@@ -24,6 +24,15 @@ class __MarkupEngine__ {
     }
 
     /**
+     * Removes an already registered company
+     * @param {string} name 
+     * @returns {boolean}
+     */
+    deleteComponent(name){
+        return this.compMap.delete(name);
+    }
+
+    /**
      * handles the DOM element creation
      * @param {string} name
      * @param  {...any} args
@@ -65,6 +74,8 @@ class __MarkupEngine__ {
             }
 
             if(typeof arg === "object") parseAttr(arg);
+
+            if(typeof arg === "string") root.innerHTML += this.toElement(arg);
         }
 
         if(parent) return parent.appendChild(root);
@@ -142,6 +153,3 @@ class __MarkupHandler__ {
 }
 
 var jm = __MarkupHandler__.proxy();
-
-
-
