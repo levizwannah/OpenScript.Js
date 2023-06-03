@@ -32,7 +32,6 @@ var OpenScript = {
          * the component map of the markup engine
          */
         mount(){
-            console.log("Executed");
             h.component(this.name, this);
         }
 
@@ -115,7 +114,11 @@ var OpenScript = {
                         .ContextProvider
                         .version )).include(qualifiedName);
     
-    
+               
+                if(!Context) {
+                    Context = OpenScript.Context;
+                }
+                
                 this.map.set(referenceName, new Context());
     
             }
@@ -403,12 +406,13 @@ var OpenScript = {
                 }
     
                 if(typeof arg === "object") {
+                    
                     parseAttr(arg); continue;
                 }
     
                 root.appendChild(this.toElement(arg));
             }
-    
+
             if(parent) return parent.appendChild(root);
     
             return root;

@@ -2,7 +2,7 @@ class Create extends OpenScript.Component {
   
   constructor() {
     super();
-    
+
     this.name = "BlogList";
   }
 
@@ -12,7 +12,7 @@ class Create extends OpenScript.Component {
    * @param  {...any} args 
    */
   render(blogsArray, ...args) {
-
+    
     let domList = [];
 
     for(let blog of blogsArray){
@@ -33,7 +33,7 @@ class Create extends OpenScript.Component {
     return h.div(
         { id: `div-blog-holder`, class: `blog-list` },
         domList,
-        ...args
+        ...args.slice(1)
     );
   }
 
