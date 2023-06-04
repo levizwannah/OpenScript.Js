@@ -1,22 +1,30 @@
 ojs(async e => {
 
-await contextProvider.put("RootContext", "RootContext");
-await contextProvider.put("BlogContext", "Blog.Context");
+await contextProvider.put("RootCxt", "RootContext");
+await contextProvider.put("BlogCxt", "Blog.Context");
+
 await require("App");
 
-let bc = context("BlogContext");
+const bc = context("BlogCxt");
 
 let blog = [];
+
 for(let i = 5; i < 20; i++){
     blog.push({
         text: `Blog Heading ${i}`,
+        subtitle: `Blog Subtitle ${i}`,
         description: `Blog Description for This blog with random number ${(new Date()).getTime()} and ID ${i}`,
+        link: `#`,
         id: i
     })
 }
 
+blog = state(blog);
+
 bc.put("blogs", blog);
 
-h.App();
+let rc = context("RootCxt");
 
-})
+h.App( { parent: rc.domRoot })
+
+});
