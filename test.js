@@ -30,9 +30,27 @@ let rc = context("RootCxt");
 h.App( { parent: rc.domRoot })
 
 setInterval(() => {
-    bc.get("counter").value++;
+    let blog = [];
+
+
+    for(let i = 5; i < 20; i++){
+        let random = Math.floor(Math.random() * 100) ;
+
+        blog.push({
+            text: `Blog Heading ${i * random}`,
+            subtitle: `Blog Subtitle ${i * random}`,
+            description: `Blog Description for This blog with random number ${(new Date()).getTime()} and ID ${i * random}`,
+            link: `#`,
+            id: i * random
+        })
+    }
+
+    bc.blogs.value = blog;
+    bc.counter.value++;
+
     h.dom.querySelector(".blog-active")?.scrollIntoView({ behavior: "smooth" });
-}, 1000);
+
+}, 5000);
 
 });
 
