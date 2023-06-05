@@ -54,7 +54,9 @@ var OpenScript = {
                 if(!(args[i] instanceof HTMLElement) 
                     && args[i].parent ) final = { index: i, parent: args[i].parent };
 
-                if(args[i] instanceof OpenScript.State) args[i].listener(this);
+                if(args[i] instanceof OpenScript.State) {
+                    args[i].listener(this);
+                } 
             }
 
             return final;
@@ -284,9 +286,8 @@ var OpenScript = {
          * @returns 
          */
         fire(...args) {
-            console.log("Fired Changes", this.listeners);
+            
             for(let [k, component] of this.listeners){
-               
                 component.wrap(...args, this.signature);
             }
 
@@ -317,7 +318,19 @@ var OpenScript = {
                     
                     value = value;
 
-                }, class {
+                    constructor() {
+                        super();
+                    }
+
+                    push = (...args) => {
+                        if(!Array.isArray(this.value)) return;
+
+                        this.value.push(...args);
+                        this.fire();
+                    }
+
+                }, 
+                class {
                 
                     set(target, prop, value) {
                     
@@ -330,8 +343,38 @@ var OpenScript = {
                         }
                         
                         return Reflect.set(...arguments);
+                    }
+
+                    get(target, prop, receiver) {
+                        
+                        if(prop === "length" && typeof target.value === "object") {
+                            return Object.keys(target.value).length;
+                        }
+
+                        if(typeof prop !== "symbol" && /\d+/.test(prop) && Array.isArray(target.value)) {
+                            return target.value[prop];
+                        }
+
+                        return Reflect.get(...arguments);
+                    }
+
+                    deleteProperty(target, prop) {
+
+                        if(typeof target.value !== "object") return false;
+                        
+                        if(Array.isArray(target.value)){
+                            target.value = target.value.filter((v, i) => i != prop);
+                        }
+                        else {
+                            delete target.value[prop];
+                        }
+
+                        target.fire();
+
+                        return true;
+                    }
                 }
-            });
+            );
         }
     },
 
@@ -409,6 +452,9 @@ var OpenScript = {
                     if(Array.isArray(obj[k])) val = `${obj[k].join(' ')}`;
     
                     k = k.replace(/_/g, "-");
+
+                    if(k.toLowerCase() === "class") val = root.getAttribute(k) ?? "" + ` ${val}`;
+
                     root.setAttribute(k, val);
                 }
             }
@@ -487,6 +533,7 @@ var OpenScript = {
         }
     
         get(target, prop, receiver){ 
+            
             if(this.reserved.has(prop)){
                 return target[prop];
             }
@@ -624,6 +671,11 @@ var OpenScript = {
         return window[name]; 
     },
 
+    /**
+     * Wraps the function to execute
+     * @param {Function} callback 
+     * @returns 
+     */
     wrap: async( callback ) => {
         return await callback();
     },

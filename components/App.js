@@ -8,6 +8,7 @@ class App extends OpenScript.Component {
         await super.mount();
         await require("MainNav");
         await require("Blog.List");
+        await require("Counter");
     }
 
     render(...args) {
@@ -27,6 +28,10 @@ class App extends OpenScript.Component {
                     h.h1("The Blog List Header"),
                     h.hr()
                 ),
+
+                h.BlogCounter(context("BlogCxt").get("counter"), {
+                    class: "p-1"
+                }),
             
                 h.BlogList(context("BlogCxt").blogs)
             ),

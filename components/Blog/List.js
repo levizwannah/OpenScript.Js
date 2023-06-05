@@ -11,16 +11,24 @@ class List extends OpenScript.Component {
    * @param  {...any} args 
    */
   render(blogsArray, ...args) {
+    
+    let counter = context("BlogCxt").counter;
+
+    counter.listener(this);
 
     let domList = [];
+    let index = 0;
 
     for(let blog of blogsArray){
+
+        let active = (index === counter.value % blogsArray.length) ? "border border-success border-5 blog-active" : "";
+      
         domList.push(
             h.div(
               { class: 'col'},
 
               h.div(
-                { id: `div-blog-${blog.id}`, class: "card p-4" },
+                { id: `div-blog-${blog.id}`, class: `card p-4 ${active}` },
 
                 h.img({ src: "https://picsum.photos/300/100", class: "card-img-top", alt: `${blog.id}-image` }),
 
@@ -39,6 +47,8 @@ class List extends OpenScript.Component {
             )
           )
         );
+
+        index++;
     }
 
     return h.div(

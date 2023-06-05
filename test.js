@@ -9,6 +9,7 @@ const bc = context("BlogCxt");
 
 let blog = [];
 
+
 for(let i = 5; i < 20; i++){
     blog.push({
         text: `Blog Heading ${i}`,
@@ -21,6 +22,7 @@ for(let i = 5; i < 20; i++){
 
 blog = state(blog);
 
+bc.put("counter", state(0));
 bc.put("blogs", blog);
 
 let rc = context("RootCxt");
@@ -28,22 +30,9 @@ let rc = context("RootCxt");
 h.App( { parent: rc.domRoot })
 
 setInterval(() => {
-    let blogs = [];
-    
-    for(let i = 0; i < 10; i++){
-        let rand = Math.random();
-
-        blogs.push({
-            text: `Blog Heading ${i * rand}`,
-            subtitle: `Blog Subtitle ${i * rand}`,
-            description: `Blog Description for This blog with random number ${(new Date()).getTime()} and ID ${i * rand}`,
-            link: `#`,
-            id: i * rand
-        })
-    }
-
-    bc.get("blogs").value = blogs;
-
-}, 5000);
+    bc.get("counter").value++;
+    h.dom.querySelector(".blog-active")?.scrollIntoView({ behavior: "smooth" });
+}, 1000);
 
 });
+
