@@ -11,7 +11,7 @@ class List extends OpenScript.Component {
    * @param  {...any} args 
    */
   render(blogsArray, ...args) {
-    
+
     let domList = [];
 
     for(let blog of blogsArray){
@@ -35,8 +35,7 @@ class List extends OpenScript.Component {
                       blog.description
                   ),
                   h.a({ href: `${blog.link}`, class: "card-link" }, "Card Link" )
-                )
-                
+                ) 
             )
           )
         );
@@ -49,7 +48,7 @@ class List extends OpenScript.Component {
           class: "row row-cols-2 g-3"
         },
         domList,
-        ...args.slice(1)
+        ...args
     )
   }
 

@@ -63,23 +63,22 @@ var OpenScript = {
         wrap(...args) {
 
             const lastArg = args[args.length - 1];
+
             let { index, parent } = this.getParentAndListen(args);
-            
-            delete args[index];
 
             // check if the render was called due to a state change
             if(lastArg && lastArg['called-by-state-change']) {
-                
-                args.pop();
-                
+
+                delete args[index];
+
                 let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`) ?? [];
                 
                 current.forEach(e => {
                     e.textContent = "";
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
-                    
-                    console.log(this.render(...arg, { parent: e }));
+
+                    this.render(...arg, { parent: e });
 
                 });
 
@@ -432,7 +431,7 @@ var OpenScript = {
     
                 root.appendChild(this.toElement(arg));
             }
-
+           
             if(parent) return parent.appendChild(root);
     
             return root;
