@@ -33,7 +33,7 @@ var OpenScript = {
         }
 
         /**
-         * Renders the Element and returns an HTML Element
+         * Renders the Element and returns an HTML Element 
          * @param  {...any} args 
          * @returns {HTMLElement|String|Array<HTMLElement|String>}
          */
@@ -231,7 +231,7 @@ var OpenScript = {
         static VALUE_CHANGED = "value-changed";
         
         /**
-         * Tells the component to rerender
+         * Tells the component to re-render
          */
         signature = { 'called-by-state-change': true, self: this };
 
@@ -414,7 +414,7 @@ var OpenScript = {
         }
     
         /**
-         * Removes an already registered company
+         * Removes an already registered component
          * @param {string} name 
          * @returns {boolean}
          */
@@ -494,7 +494,7 @@ var OpenScript = {
         }
     
         /**
-         * Converts a value to HTML element;
+         * Converts a value to an HTML element;
          * @param {string|HTMLElement} value 
          */
         toElement = (value) => {
@@ -574,7 +574,7 @@ var OpenScript = {
         version = "1.0.0";
     
         /**
-            * 
+            * @constructor (parameterized)
             * @param {string} dir Directory from which the file should be loaded
             * @param {string} extension the extension of the file .js by default
             */
@@ -583,7 +583,8 @@ var OpenScript = {
         }
 
         /**
-            * Changes . to forward slashes
+            * Changes dot(.) to forward slashes(/)
+            *@constructor (parameterized) to facilitate the change from . to / 
             * @param {string} text 
             * @returns 
             */
@@ -663,7 +664,7 @@ var OpenScript = {
     },
 
     /**
-     * Adds a new Namespace to the window
+     * Adds a new Namespace to the window 
      * @param {string} name 
      */
     namespace: (name) => {
@@ -742,6 +743,8 @@ var OpenScript = {
         }
 
         /**
+         * @function {createContextProvider()} utilizes the ProxyFactory
+         * Use of the ProxyFactory to ensure that all the already available contexts are secure
          * @returns {OpenScript.ContextProvider}
          */
         createContextProvider(){
@@ -756,8 +759,7 @@ var OpenScript = {
         }
 
         /**
-         * Loads a File into the window namespace. Throws an
-         * exception
+         * Loads a File into the window namespace. Throws an exception
          * @param {string} qualifiedName `Namespace.SubsNamespace.Name` the file to load. Note that Namespaces represents folders. 
          * @returns {class|object|Function}
          * @throws Error if the file is not found
