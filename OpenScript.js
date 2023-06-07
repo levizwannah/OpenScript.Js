@@ -15,14 +15,11 @@ var OpenScript = {
         name;
 
         /**
-         * The Data for this component
+         * The argument Map for rerendering on state changes
          */
-        data = {}
+        argsMap = new Map();
 
-        /**
-         * 
-         * @param {Context} context 
-         */
+
         constructor() {
             this.name = this.constructor.name;
         }
@@ -31,8 +28,7 @@ var OpenScript = {
          * Initializes the component and adds it to
          * the component map of the markup engine
          */
-        mount(){
-            console.log("Executed");
+        async mount(){
             h.component(this.name, this);
         }
 
@@ -43,6 +39,59 @@ var OpenScript = {
          */
         render(...args) {
             return h.toElement("<ojs></ojs>");
+        }
+
+        /**
+         * Finds the parent in the argument list
+         * @param {Array<*>} args 
+         * @returns 
+         */
+        getParentAndListen(args){
+            let final = {index: -1, parent: null };
+
+            for(let i in args){
+
+                if(!(args[i] instanceof HTMLElement) 
+                    && args[i].parent ) final = { index: i, parent: args[i].parent };
+
+                if(args[i] instanceof OpenScript.State) {
+                    args[i].listener(this);
+                } 
+            }
+
+            return final;
+        }
+
+        wrap(...args) {
+
+            const lastArg = args[args.length - 1];
+
+            let { index, parent } = this.getParentAndListen(args);
+
+            // check if the render was called due to a state change
+            if(lastArg && lastArg['called-by-state-change']) {
+
+                delete args[index];
+
+                let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`) ?? [];
+                
+                current.forEach(e => {
+                    e.textContent = "";
+
+                    let arg = this.argsMap.get(e.getAttribute("uuid"));
+
+                    this.render(...arg, { parent: e });
+
+                });
+
+                return;
+            }
+
+            let uuid = `${(new Date()).getTime()}${Math.floor(Math.random() * 100000)}`;
+
+            this.argsMap.set(uuid, args ?? []);
+
+            return h[`ojs-${this.name}`]({ uuid, parent }, this.render(...args));
         }
 
     },
@@ -115,7 +164,11 @@ var OpenScript = {
                         .ContextProvider
                         .version )).include(qualifiedName);
     
-    
+               
+                if(!Context) {
+                    Context = OpenScript.Context;
+                }
+                
                 this.map.set(referenceName, new Context());
     
             }
@@ -176,110 +229,81 @@ var OpenScript = {
         value;
 
         static VALUE_CHANGED = "value-changed";
-
-
-        listeners = {}
-    
-        /**
-         * Adds and EventListener to the State
-         * @param {string} eventName 
-         * @param {Function} fn 
-         * @returns 
-         */
-        addListener(eventName, fn) {
-            this.listeners[eventName] = this.listeners[eventName] || [];
-            this.listeners[eventName].push(fn);
-            return this;
-        }
         
         /**
-         * Adds a Listener to the DOM
-         * @param {string} eventName 
-         * @param {Function} fn 
+         * Tells the component to rerender
+         */
+        signature = { 'called-by-state-change': true, self: this };
+
+
+        listeners = new Map();
+
+        /**
+         * Add a component that listens to this state
+         * @param {OpenScript.Component} component
          * @returns 
          */
-        on(eventName, fn) {
-            return this.addListener(eventName, fn);
+        listener(component) {
+            this.listeners.set(component.name, component);
+            return this;
         }
     
         /**
          * Adds a listener that is automatically removed once the event is fired
-         * @param {string} eventName 
-         * @param {Function} fn 
+         * @param {OpenScript.Component} component 
          * @returns 
          */
-        once(eventName, fn) {
-            this.listeners[eventName] = this.listeners[eventName] || [];
-                const onceWrapper = () => {
-                fn();
-                this.off(eventName, onceWrapper);
+        once(component) {
+
+            const onceWrapper = {
+                name: component.name,
+                
+                wrap:  (...args) => {
+
+                    this.off(component.name);
+
+                    return component.wrap(...args);
+                }
             }
-            this.listeners[eventName].push(onceWrapper);
+
+            this.listeners.set(component.name, onceWrapper);
+
             return this;
         }
     
         /**
-         * Removes and Event Listener
-         * @param {string} eventName 
-         * @param {Function} fn 
+         * Removes a Component
+         * @param {OpenScript.Component} component 
          * @returns 
          */
-        off(eventName, fn) {
-            return this.removeListener(eventName, fn);
+        off(component) {
+            return this.listeners.delete(component.name);
         }
     
         /**
-         * Removes an event listener
-         * @param {string} eventName 
-         * @param {Function} fn 
-         * @returns 
-         */
-        removeListener (eventName, fn) {
-            let lis = this.listeners[eventName];
-            if (!lis) return this;
-            for(let i = lis.length; i > 0; i--) {
-                if (lis[i] === fn) {
-                lis.splice(i,1);
-                break;
-                }
-            }
-        return this;
-        }
-    
-        /**
-         * Fires an event
-         * @param {string} eventName 
+         * Fires on state change
          * @param  {...any} args 
          * @returns 
          */
-        emit(eventName, ...args) {
-            console.log(`${eventName} is fired`);
-            let fns = this.listeners[eventName];
-            if (!fns) return false;
-            fns.forEach((f) => {
-                f(...args);
-            });
-            return true;
+        fire(...args) {
+            
+            for(let [k, component] of this.listeners){
+                component.wrap(...args, this.signature);
+            }
+
+            return this;
         }
-    
-        /**
-         * Get the number of event Listeners
-         * for the event
-         * @param {string} eventName 
-         * @returns 
-         */
-        listenerCount(eventName) {
-            let fns = this.listeners[eventName] || [];
-            return fns.length;
-        }
-    
-        /** 
-         * Get raw listeners
-         * If the once() event has been fired, then that will not be part of
-         * the return array
-         */
-        rawListeners(eventName) {
-            return this.listeners[eventName];
+
+        *[Symbol.iterator](){
+
+            if(typeof this.value !== "object") {
+                yield this.value;
+            }
+            else {
+                for(let k in this.value ){
+                    yield this.value[k];
+                }
+            }
         }
 
         /**
@@ -294,22 +318,63 @@ var OpenScript = {
                     
                     value = value;
 
-                }, class {
+                    constructor() {
+                        super();
+                    }
+
+                    push = (...args) => {
+                        if(!Array.isArray(this.value)) return;
+
+                        this.value.push(...args);
+                        this.fire();
+                    }
+
+                }, 
+                class {
                 
                     set(target, prop, value) {
                     
-                        
                         if(prop === "value" && target.value !== value) {
 
                             Reflect.set(...arguments);
-                            target.emit(OpenScript.State.VALUE_CHANGED, value);
+                            target.fire();
 
                             return;
                         }
                         
                         return Reflect.set(...arguments);
+                    }
+
+                    get(target, prop, receiver) {
+                        
+                        if(prop === "length" && typeof target.value === "object") {
+                            return Object.keys(target.value).length;
+                        }
+
+                        if(typeof prop !== "symbol" && /\d+/.test(prop) && Array.isArray(target.value)) {
+                            return target.value[prop];
+                        }
+
+                        return Reflect.get(...arguments);
+                    }
+
+                    deleteProperty(target, prop) {
+
+                        if(typeof target.value !== "object") return false;
+                        
+                        if(Array.isArray(target.value)){
+                            target.value = target.value.filter((v, i) => i != prop);
+                        }
+                        else {
+                            delete target.value[prop];
+                        }
+
+                        target.fire();
+
+                        return true;
+                    }
                 }
-            });
+            );
         }
     },
 
@@ -369,7 +434,7 @@ var OpenScript = {
              */
     
             if(this.compMap.has(name)) {
-                return this.compMap.get(name).render(...args);
+                return this.compMap.get(name).wrap(...args);
             }
     
             let parent = null;
@@ -387,6 +452,9 @@ var OpenScript = {
                     if(Array.isArray(obj[k])) val = `${obj[k].join(' ')}`;
     
                     k = k.replace(/_/g, "-");
+
+                    if(k.toLowerCase() === "class") val = root.getAttribute(k) ?? "" + ` ${val}`;
+
                     root.setAttribute(k, val);
                 }
             }
@@ -403,12 +471,13 @@ var OpenScript = {
                 }
     
                 if(typeof arg === "object") {
+                    
                     parseAttr(arg); continue;
                 }
     
                 root.appendChild(this.toElement(arg));
             }
-    
+           
             if(parent) return parent.appendChild(root);
     
             return root;
@@ -464,6 +533,7 @@ var OpenScript = {
         }
     
         get(target, prop, receiver){ 
+            
             if(this.reserved.has(prop)){
                 return target[prop];
             }
@@ -550,7 +620,7 @@ var OpenScript = {
             let response = await fetch(`${this.dir}/${this.normalize(className)}${this.extension}?v=${this.version}`);
     
             let jsCode = await response.text();
-            return this.setFile(names, Function( `return (${jsCode})`)());
+            return await this.setFile(names, Function( `return (${jsCode})`)());
         }
     
         async include(className){
@@ -566,7 +636,7 @@ var OpenScript = {
          * Adds a class file to the window
          * @param {Array<string>} names 
          */
-        setFile(names, content){
+        async setFile(names, content){
             OpenScript.namespace(names[0]);
 
             let obj = window[names[0]];
@@ -585,7 +655,7 @@ var OpenScript = {
             // component
 
             if(content.prototype instanceof OpenScript.Component) {
-                (new content()).mount();
+                await (new content()).mount();
             } 
 
             return content;
@@ -601,6 +671,11 @@ var OpenScript = {
         return window[name]; 
     },
 
+    /**
+     * Wraps the function to execute
+     * @param {Function} callback 
+     * @returns 
+     */
     wrap: async( callback ) => {
         return await callback();
     },
@@ -710,17 +785,8 @@ const {
     h,
     contextProvider,
     loader,
-    context
+    context,
+    state
 } = new OpenScript.Initializer();
-
-// adds all the shared objects to the global context
-contextProvider.globalContext.scope = {
-    ojs,
-    require,
-    include,
-    namespace,
-    h,
-    loader
-}
 
 

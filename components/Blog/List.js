@@ -1,8 +1,7 @@
-class Create extends OpenScript.Component {
+class List extends OpenScript.Component {
   
   constructor() {
     super();
-    
     this.name = "BlogList";
   }
 
@@ -12,29 +11,55 @@ class Create extends OpenScript.Component {
    * @param  {...any} args 
    */
   render(blogsArray, ...args) {
+    
+    let counter = context("BlogCxt").counter;
+
+    counter.listener(this);
 
     let domList = [];
+    let index = 0;
 
     for(let blog of blogsArray){
+
+        let active = (index === counter.value % blogsArray.length) ? "border border-success border-5 blog-active" : "";
+      
         domList.push(
             h.div(
-                { id: `div-blog-${blog.id}`, class: "blog-item-holder" },
+              { class: 'col'},
 
-                h.h2( { id: blog.id, class: "blog-item" }, blog.text),
+              h.div(
+                { id: `div-blog-${blog.id}`, class: `card p-4 ${active}` },
+
+                h.img({ src: "https://picsum.photos/300/100", class: "card-img-top", alt: `${blog.id}-image` }),
 
                 h.div(
-                    { id: `div-blog-desc-${blog.id}`, class: `blog-item` },
-                    h.p(`${blog.description}`)
-                )
+                  { class: "card-body" },
+
+                  h.h5( { id: blog.id, class: "card-title" }, blog.text),
+                  h.h6( { class: "card-subtitle mb-2 text-muted" }, blog.subtitle ),
+
+                  h.p(
+                      { id: `div-blog-desc-${blog.id}`, class: `card-text` },
+                      blog.description
+                  ),
+                  h.a({ href: `${blog.link}`, class: "card-link" }, "Card Link" )
+                ) 
             )
+          )
         );
+
+        index++;
     }
 
     return h.div(
-        { id: `div-blog-holder`, class: `blog-list` },
+
+        { 
+          id: `div-blog-holder`, 
+          class: "row row-cols-2 g-3"
+        },
         domList,
         ...args
-    );
+    )
   }
 
 }
