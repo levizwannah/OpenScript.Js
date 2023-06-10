@@ -415,8 +415,7 @@ var OpenScript = {
         }
     
         /**
-         * Executes a function that returns an
-         * HTMLElement and adds that element to the overall markup.
+         * Executes a function that returns an HTMLElement and adds that element to the overall markup.
          * @param {function} f - This function should return an HTMLElement or a string or an Array of either
          * @returns {HTMLElement|string|Array<HTMLElement|string>}
          */
@@ -472,7 +471,7 @@ var OpenScript = {
         }
     
         /**
-         * For Documentation, we return a proxy of Markup Engine
+         * For Documentation, we return a proxy of the Markup Engine
          * @returns {OpenScript.MarkupEngine}
          */
         static proxy(){
@@ -504,7 +503,7 @@ var OpenScript = {
         version = "1.0.0";
     
         /**
-            * 
+            * @constructor has been used to keep track of the version and directory
             * @param {string} dir Directory from which the file should be loaded
             * @param {string} extension the extension of the file .js by default
             */
@@ -514,6 +513,7 @@ var OpenScript = {
 
         /**
             * Changes . to forward slashes
+            * @constructor has been used to achieve this
             * @param {string} text 
             * @returns 
             */
@@ -621,7 +621,7 @@ var OpenScript = {
         loader = new OpenScript.AutoLoader();
 
         /**
-         * Create a namespace if it doesn't exists and returns it.
+         * if the namespace does not exist, it is created and then returned.
          */
         namespace = OpenScript.namespace;
 
@@ -681,8 +681,7 @@ var OpenScript = {
         }
 
         /**
-         * Loads a File into the window namespace. Throws an
-         * exception
+         * Loads a File into the window namespace. Throws an exception
          * @param {string} qualifiedName `Namespace.SubsNamespace.Name` the file to load. Note that Namespaces represents folders. 
          * @returns {class|object|Function}
          * @throws Error if the file is not found
@@ -693,7 +692,7 @@ var OpenScript = {
 
         /**
          * Loads a file into the Window Namespace
-         * @param {string} qualifiedName `Namespace.SubNamespace.Name` the file to include
+         * @param {string} qualifiedName (Namespace.SubNamespace.Name) the file to include
          * @returns {class|object|Function}
          */
         include  = async (qualifiedName) => {
