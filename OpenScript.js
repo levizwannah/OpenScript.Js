@@ -169,7 +169,12 @@ var OpenScript = {
                     Context = OpenScript.Context;
                 }
                 
-                this.map.set(referenceName, new Context());
+                try{
+                    this.map.set(referenceName, new Context());
+                }
+                catch(e) {
+                    console.error(`Unable to load ${referenceName} because it already exists in the window. Please ensure that you are loading your contexts before your components`);
+                }
     
             }
             
@@ -341,6 +346,14 @@ var OpenScript = {
 
                             return;
                         }
+
+                        if(prop !== "listeners" && prop !== "signature") {
+                            
+                            target.value[prop] = value;
+                            target.fire();
+
+                            return true;
+                        }
                         
                         return Reflect.set(...arguments);
                     }
@@ -438,6 +451,8 @@ var OpenScript = {
             }
     
             let parent = null;
+            let emptyParent = false;
+
             let root = this.dom.createElement(name);
     
             let parseAttr = (obj) => {
@@ -446,6 +461,10 @@ var OpenScript = {
     
                     if(k === "parent" && obj[k] instanceof HTMLElement) {
                         parent = obj[k]; continue;
+                    }
+
+                    if(k === "resetParent" && typeof obj[k] === "boolean") {
+                        emptyParent = obj[k]; continue;
                     }
     
                     let val = `${obj[k]}`
@@ -478,7 +497,11 @@ var OpenScript = {
                 root.appendChild(this.toElement(arg));
             }
            
-            if(parent) return parent.appendChild(root);
+            if(parent) {
+                if(emptyParent) parent.textContent = '';
+
+                return parent.appendChild(root);
+            } 
     
             return root;
         }
@@ -491,6 +514,35 @@ var OpenScript = {
          */
         call = (f = () => `<ojs-group></ojs-group>`) => {
             return f();
+        }
+
+        /**
+         * Allows you to add functions to HTML elements
+         * directly from within a component
+         * @param {OpenScript.Component} component 
+         * @param {string} method name of the method 
+         * @param  {...any} args arguments to pass to the method
+         * @returns 
+         */
+        func = (component, method, ...args) => {
+            return `h.compMap.get('${component.name}')['${method}'](${this._escape(args)})`;
+        }
+
+        /**
+         * adds quotes to string arguments
+         * and serializes objects for 
+         * param passing
+         */
+        _escape = (args) => {
+            let final= [];
+
+            for(let e of args) {
+                if(typeof e === "number") final.push(e);
+                else if(typeof e === "string") final.push(`'${e}'`);
+                else if(typeof e === "object") final.push(JSON.stringify(e));
+            }
+
+            return final;
         }
     
         /**
@@ -721,6 +773,11 @@ var OpenScript = {
          */
         context;
 
+        /**
+         * Open Script Context Provider
+         */
+        ContextProvider = OpenScript.ContextProvider;
+
         constructor( configs = {
             directories: {
                 components: "./components",
@@ -738,6 +795,11 @@ var OpenScript = {
             OpenScript.ContextProvider.version = configs.version;
 
             this.contextProvider = this.createContextProvider();
+            /**
+             * 
+             * @param {string} name 
+             * @returns {OpenScript.Context}
+             */
             this.context = (name) => this.contextProvider.context(name);
         }
 
@@ -784,6 +846,7 @@ const {
     namespace,
     h,
     contextProvider,
+    ContextProvider,
     loader,
     context,
     state
