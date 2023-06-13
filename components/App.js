@@ -28,6 +28,16 @@ class App extends OpenScript.Component {
                     h.h1("The Blog List Header"),
                     h.hr()
                 ),
+                
+                h.div(
+                    { class: 'mb-3' },
+                    
+                    h.span("This span doesn't change: " + Math.random()),
+
+                    h.br(),
+
+                    v(context('BlogCxt').counter)
+                ),
 
                 h.BlogCounter(context("BlogCxt").get("counter"), {
                     class: "p-1"

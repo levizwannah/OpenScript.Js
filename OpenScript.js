@@ -14,6 +14,12 @@ var OpenScript = {
          */
         name;
 
+
+        /**
+         * Anonymous component ID
+         */
+        static aCId = 0;
+
         /**
          * The argument Map for rerendering on state changes
          */
@@ -92,6 +98,36 @@ var OpenScript = {
             this.argsMap.set(uuid, args ?? []);
 
             return h[`ojs-${this.name}`]({ uuid, parent }, this.render(...args));
+        }
+
+        /**
+         * Returns a mounted anonymous component's name.
+         */
+        static anonymous() {
+            let id = OpenScript.Component.aCId++;
+            
+            let Cls = class extends OpenScript.Component {
+
+                constructor() {
+                    super();
+                    this.name = `anonym-${id}`;
+                }
+
+                /**
+                 * Render function takes a state
+                 * @param {OpenScript.State} state 
+                 * @returns 
+                 */
+                render(state) {
+                    return state.value;
+                }
+            }
+
+            let c = new Cls();
+            
+            c.mount();
+
+            return c.name;
         }
 
     },
@@ -233,6 +269,16 @@ var OpenScript = {
          */
         value;
 
+        /**
+         * ID of this state
+         */
+        id;
+
+        /**
+         * The count of the number of states in the program
+         */
+        static count = 0;
+
         static VALUE_CHANGED = "value-changed";
         
         /**
@@ -322,6 +368,8 @@ var OpenScript = {
                 class extends OpenScript.State {
                     
                     value = value;
+
+                    id = OpenScript.State.count++;
 
                     constructor() {
                         super();
@@ -544,6 +592,16 @@ var OpenScript = {
 
             return final;
         }
+
+        /**
+         * Creates an anonymous component
+         * around a state
+         * @param {OpenScript.State} state 
+         * @returns 
+         */
+        $anonymous = (state) => {
+            return h[OpenScript.Component.anonymous()](state);
+        }
     
         /**
          * Converts a value to HTML element;
@@ -762,7 +820,12 @@ var OpenScript = {
          */
         state = (value) => OpenScript.State.state(value);
 
-
+        /**
+         * Creates an anonymous component around a state
+         * @param {OpenScript.State} state 
+         * @returns 
+         */
+        v = (state) => h.$anonymous(state);
         /**
          * The markup engine for OpenScript.Js
          */
@@ -845,6 +908,7 @@ const {
     include,
     namespace,
     h,
+    v,
     contextProvider,
     ContextProvider,
     loader,

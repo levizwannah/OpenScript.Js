@@ -21,3 +21,4 @@ h.div(
 3. State
 4. Context
 5. Auto Loading
+6. Anonymous Components
