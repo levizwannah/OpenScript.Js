@@ -21,6 +21,11 @@ var OpenScript = {
         static aCId = 0;
 
         /**
+         * Generate IDs for the components
+         */
+        static uid = 0;
+
+        /**
          * The argument Map for rerendering on state changes
          */
         argsMap = new Map();
@@ -53,15 +58,18 @@ var OpenScript = {
          * @returns 
          */
         getParentAndListen(args){
-            let final = {index: -1, parent: null };
+            let final = {index: -1, parent: null, states: [] };
 
             for(let i in args){
 
-                if(!(args[i] instanceof HTMLElement) 
-                    && args[i].parent ) final = { index: i, parent: args[i].parent };
+                if(!(args[i] instanceof HTMLElement) && args[i].parent ) {
+                    final.index = i;
+                    final.parent = args[i].parent;
+                }
 
                 if(args[i] instanceof OpenScript.State) {
                     args[i].listener(this);
+                    final.states.push(args[i]);
                 } 
             }
 
@@ -71,15 +79,16 @@ var OpenScript = {
         wrap(...args) {
 
             const lastArg = args[args.length - 1];
-
-            let { index, parent } = this.getParentAndListen(args);
-
+            let { index, parent, states } = this.getParentAndListen(args);
+            
             // check if the render was called due to a state change
             if(lastArg && lastArg['called-by-state-change']) {
 
+                let state = lastArg.self;
+
                 delete args[index];
 
-                let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`) ?? [];
+                let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}[s-${state.id}="${state.id}"]`) ?? [];
                 
                 current.forEach(e => {
                     e.textContent = "";
@@ -93,11 +102,17 @@ var OpenScript = {
                 return;
             }
 
-            let uuid = `${(new Date()).getTime()}${Math.floor(Math.random() * 100000)}`;
+            let uuid = `${OpenScript.Component.uid++}-${(new Date()).getTime()}`;
 
             this.argsMap.set(uuid, args ?? []);
 
-            return h[`ojs-${this.name}`]({ uuid, parent }, this.render(...args));
+            let attr = {uuid, parent};
+
+            states.forEach((s) => {
+                attr[`s-${s.id}`] = s.id;
+            });
+
+            return h[`ojs-${this.name}`](attr, this.render(...args));
         }
 
         /**
