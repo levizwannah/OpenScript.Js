@@ -45,12 +45,10 @@ setInterval(() => {
         })
     }
 
-    bc.blogs.value = blog;
+    // bc.blogs.value = blog;
     bc.counter.value++;
 
-    h.dom.querySelector(".blog-active")?.scrollIntoView({ behavior: "smooth" });
-
-}, 5000);
+}, 1000);
 
 });
 

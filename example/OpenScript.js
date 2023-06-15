@@ -1,6 +1,6 @@
 
 /**
- * The OpenScript Namespace implementation
+ * The OpenScript Namespace
  */
 var OpenScript = {
     
@@ -176,7 +176,7 @@ var OpenScript = {
 
         /**
          * The version number for the network request to 
-         * get updated files(version is updated regularly)
+         * get updated files
          */
         static version;
 
@@ -257,7 +257,7 @@ var OpenScript = {
         }
 
         /**
-         * Puts a value in the context(stored in an array)
+         * Puts a value in the context
          * @param {string} name 
          * @param {*} value 
          */

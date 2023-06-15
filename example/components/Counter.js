@@ -29,6 +29,8 @@ class Counter extends OpenScript.Component {
             {
                 class: "card mb-3"
             },
+            
+            h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),
 
             h.div(
                 { class: "card-body "},

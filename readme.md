@@ -16,8 +16,9 @@ h.div(
 ```
 
 # Core
-1. Components
+1. Components - render function do not have default arguments
 2. Markup
 3. State
 4. Context
 5. Auto Loading
+6. Anonymous Components
