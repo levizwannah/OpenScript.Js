@@ -10,7 +10,7 @@ class List extends OpenScript.Component {
    * @param {Array<object>|OpenScript.State} list 
    * @param  {...any} args 
    */
-  render(blogsArray, counter, ...args) {
+  render(blogsArray, counter, headerText = "Blog List", ...args) {
 
     let domList = [];
     let index = 0;
@@ -49,12 +49,24 @@ class List extends OpenScript.Component {
 
     return h.div(
 
-        { 
-          id: `div-blog-holder`, 
-          class: "row row-cols-2 g-3"
-        },
-        domList,
-        ...args
+      { class: 'card mb-3'},
+
+      h.div(
+        { class: 'card-header' },
+        headerText
+      ),
+
+      h.div(
+        { class: 'card-body' },
+        h.div(
+          { 
+            class: "row row-cols-2 g-3 mb-3"
+          },
+
+          domList,
+        )
+      ),
+      ...args
     )
   }
 
