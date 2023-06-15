@@ -10,11 +10,7 @@ class List extends OpenScript.Component {
    * @param {Array<object>|OpenScript.State} list 
    * @param  {...any} args 
    */
-  render(blogsArray, ...args) {
-    
-    let counter = context("BlogCxt").counter;
-
-    counter.listener(this);
+  render(blogsArray, counter, ...args) {
 
     let domList = [];
     let index = 0;

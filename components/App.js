@@ -39,11 +39,13 @@ class App extends OpenScript.Component {
                     v(context('BlogCxt').counter)
                 ),
 
-                h.BlogCounter(context("BlogCxt").get("counter"), {
+                h.BlogCounter(context("BlogCxt").counter, {
                     class: "p-1"
                 }),
             
-                h.BlogList(context("BlogCxt").blogs)
+                h.BlogList(context("BlogCxt").blogs, context('BlogCxt').counter),
+
+                h.BlogList(context("BlogCxt").blogs, { value: 0 } )
             ),
 
             ...args

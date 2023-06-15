@@ -90,13 +90,14 @@ var OpenScript = {
 
                 let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}[s-${state.id}="${state.id}"]`) ?? [];
                 
+                
+
                 current.forEach(e => {
                     e.textContent = "";
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
                     this.render(...arg, { parent: e });
-
                 });
 
                 return;
@@ -133,8 +134,8 @@ var OpenScript = {
                  * @param {OpenScript.State} state 
                  * @returns 
                  */
-                render(state) {
-                    return state.value;
+                render(state , ...args ) {
+                    return h[`ojs-wrapper`](state.value, ...args);
                 }
             }
 
@@ -623,6 +624,7 @@ var OpenScript = {
          * @param {string|HTMLElement} value 
          */
         toElement = (value) => {
+
             if(value instanceof HTMLElement) return value;
     
             let tmp = this.dom.createElement("ojs-group");
