@@ -8,7 +8,7 @@
  | can find the context files
  |-----------------------------------
 */
-ContextProvider.directory = '/contexts';
+ContextProvider.directory = './contexts';
 
 /*-----------------------------------
  | set the version number of the
@@ -24,7 +24,7 @@ ContextProvider.version = '1.0.0';
  | directory for the loader
  |-----------------------------------
 */
-loader.dir = "/components";
+loader.dir = "./components";
 
 /*-----------------------------------
  | set the version number of the
