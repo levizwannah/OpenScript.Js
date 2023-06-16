@@ -4,6 +4,7 @@ ojs(async e => {
 
     // init contexts
     await contextProvider.put('root', 'Root');
+    await contextProvider.put('config', 'Config');
 
 
     h.App({

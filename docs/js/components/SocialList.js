@@ -20,7 +20,8 @@ class SocialList extends OpenScript.Component {
 
         return h.ul(
             { class: 'social-list list-inline mx-md-3 mx-lg-5 mb-0 d-none d-lg-flex'},
-            listItems
+            listItems,
+            ...args
         )
     }
 
