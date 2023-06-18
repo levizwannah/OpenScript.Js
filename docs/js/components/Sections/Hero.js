@@ -7,7 +7,7 @@ class Hero extends OpenScript.Component {
 
     async mount() {
         await super.mount();
-        await require('SearchForm');
+        // await require('SearchForm');
     }
 
     render(...args) {

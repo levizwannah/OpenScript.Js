@@ -7,8 +7,8 @@ class Header extends OpenScript.Component {
 
     async mount(){
         await super.mount();
-        await require('Logo');
-        await require('SocialList');
+        // await require('Logo');
+        // await require('SocialList');
     }
 
     render() {

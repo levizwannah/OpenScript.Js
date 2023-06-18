@@ -818,6 +818,7 @@ var OpenScript = {
 
             if(!obj) return false;
 
+
             return true;
         }
     },
@@ -914,6 +915,7 @@ var OpenScript = {
              * @returns {OpenScript.Context}
              */
             this.context = (name) => this.contextProvider.context(name);
+
         }
 
         /**
@@ -1007,6 +1009,7 @@ const {
      * Creates a state object
      */
     state
+
 } = new OpenScript.Initializer();
 
 

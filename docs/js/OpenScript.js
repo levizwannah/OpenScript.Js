@@ -62,7 +62,7 @@ var OpenScript = {
 
             for(let i in args){
 
-                if(!(args[i] instanceof HTMLElement) && !(args[i] instanceof Array) && args[i].parent ) {
+                if(!(args[i] instanceof HTMLElement) && args[i].parent ) {
                     final.index = i;
                     final.parent = args[i].parent;
                 }
@@ -818,6 +818,7 @@ var OpenScript = {
 
             if(!obj) return false;
 
+
             return true;
         }
     },
@@ -914,6 +915,7 @@ var OpenScript = {
              * @returns {OpenScript.Context}
              */
             this.context = (name) => this.contextProvider.context(name);
+
         }
 
         /**
@@ -1007,6 +1009,7 @@ const {
      * Creates a state object
      */
     state
+
 } = new OpenScript.Initializer();
 
 
