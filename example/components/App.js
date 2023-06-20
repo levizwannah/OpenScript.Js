@@ -6,12 +6,13 @@ class App extends OpenScript.Component {
 
     async mount(){
         await super.mount();
-        await require("MainNav");
-        await require("Blog.List");
-        await require("Counter");
+        require("MainNav");
+        require("Blog.List");
+        require("Counter");
     }
 
     render(...args) {
+        console.log(args);
         
         return h.div(
            

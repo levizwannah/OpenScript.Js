@@ -112,24 +112,33 @@ var OpenScript = {
          */
         async mount(){
             h.component(this.name, this);
+            this.bind();
         }
 
         /**
-         * Binds this component to the elements on the dom
+         * Binds this component to the elements on the dom.
+         * @emits pre-bind
+         * @emits markup-bound 
+         * @emits bound
          */
         async bind() {
+            
+            this.emitter.emit('pre-bind', this);
+
             let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
 
-            const doBind = () => {
-                let elem = all.pop();
+            for(let elem of all) {
 
-                let hId = elem.ojsHId;
+                let hId = elem.getAttribute('ojs-key');
+
+                h[this.name](...h.compArgs.get(hId), {parent: elem});
                 
+                this.emitter.emit('markup-bound', elem, ...h.compArgs.get(hId));
             }
 
-            setTimeout(() => {
+            this.emitter.emit('bound', this);
 
-            }, 0);
+            return true;
         }
 
         /**
@@ -545,6 +554,45 @@ var OpenScript = {
     },
 
     /**
+     * Various Utility Functions
+     */
+    Utils: class {
+        /**
+         * Runs a foreach on an array
+         * @param {Iterable} array 
+         * @param {Function} callback 
+         */
+        static each = (array, callback = (v) => v) => {
+            let output = [];
+
+            for(let v of array) output.push(callback(v));
+
+            return output;
+        }
+
+        /**
+         * Iterates over array elements using setTimeout
+         * @param {Iterable} array 
+         * @param {Function} callback 
+         */
+        static lazyFor = (array, callback = (v) => v) => {
+            let index = 0;
+
+            if(array.length < 1) return;
+
+            const iterate = () => {
+
+                callback(array[index]);
+                index++;
+
+                if(index < array.length) return setTimeout(iterate, 0);
+            }
+
+            setTimeout(iterate, 0);
+        }
+    },
+
+    /**
      * Base Markup Engine Class
      */
     MarkupEngine: class {
@@ -552,6 +600,17 @@ var OpenScript = {
          * Keeps the components
          */
         compMap = new Map();
+
+        /**
+         * Keeps the components arguments
+         */
+        compArgs = new Map();
+
+        /**
+         * The IDs for components on the DOM awaiting 
+         * rendering
+         */
+        static ID = 0;
     
         /**
          * References the DOM object
@@ -580,11 +639,16 @@ var OpenScript = {
         }
     
         /**
+         * @emits unmount
          * Removes an already registered company
          * @param {string} name 
          * @returns {boolean}
          */
         deleteComponent(name){
+            this.compMap.get(name)
+            .emitter
+            .emit('unmount', this.compMap.get(name));
+
             return this.compMap.delete(name);
         }
     
@@ -608,10 +672,29 @@ var OpenScript = {
             let rootFrag = new DocumentFragment();
             let finalRoot = new DocumentFragment();
 
+            const isUpperCase = (string) => /^[A-Z]*$/.test(string);
+
             let root = this.dom.createElement(name);
+            let isComponent = isUpperCase(name[0]);
+
+            /**
+             * When dealing with a component
+             * save the argument for async rendering
+             */
+            if(isComponent) {
+                console.log(name + ' is component ');
+
+                root = this.dom.createElement(`ojs-${name}`);
+
+                let id = `ojs-${name}-${OpenScript.MarkupEngine.ID++}`;
+
+                root.setAttribute('ojs-key', id);
+
+                this.compArgs.set(id, args);
+            }
     
             let parseAttr = (obj) => {
-    
+
                 for(let k in obj){
     
                     if(k === "parent" && obj[k] instanceof HTMLElement) {
@@ -634,13 +717,17 @@ var OpenScript = {
             }
     
             for(let arg of args){
-    
+
+                if(isComponent && parent) break;
+
                 if(Array.isArray(arg)) {
+                    if(isComponent) continue;
                     arg.forEach(e => rootFrag.append(this.toElement(e)));
                     continue;
                 }
     
                 if(arg instanceof DocumentFragment || arg instanceof HTMLElement) {
+                    if(isComponent) continue;
                     rootFrag.append(arg);
                     continue;   
                 }
@@ -649,8 +736,11 @@ var OpenScript = {
                     parseAttr(arg); 
                     continue;
                 }
-    
-                rootFrag.append(this.toElement(arg));
+
+                if(isComponent) continue;
+                
+                let v = this.toElement(arg);
+                if(typeof v !== 'undefined') rootFrag.append(v);
             }
 
             root.append(rootFrag);
@@ -659,7 +749,8 @@ var OpenScript = {
             if(parent) {
                 if(emptyParent) parent.textContent = '';
 
-                return parent.append(finalRoot);
+                parent.append(finalRoot);
+                return;
             } 
     
             return finalRoot;
@@ -703,6 +794,8 @@ var OpenScript = {
 
             return final;
         }
+
+
 
         /**
          * Creates an anonymous component
@@ -1053,6 +1146,18 @@ var OpenScript = {
         include  = async (qualifiedName) => {
             return await this.loader.include(qualifiedName);
         }
+
+        /**
+         * Iterates over the values of an array using set timeout.
+         */
+        lazyFor = OpenScript.Utils.lazyFor;
+
+        /**
+         * Iterates over each elements
+         * in the array
+         */
+        each = OpenScript.Utils.each;
+
     }
 }
 
@@ -1115,7 +1220,12 @@ const {
     /**
      * The Event Emitter Class
      */
-    Emitter
+    Emitter,
+
+    /**
+     * Lazy For-loop
+     */
+    lazyFor
 
 } = new OpenScript.Initializer();
 
