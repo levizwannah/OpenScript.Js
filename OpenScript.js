@@ -3,7 +3,74 @@
  * The OpenScript Namespace
  */
 var OpenScript = {
-    
+
+    /**
+     * Event Emitter Class
+     */
+    Emitter: class {
+        listeners = {}
+        
+        addListener(eventName, fn) {
+          this.listeners[eventName] = this.listeners[eventName] || [];
+          this.listeners[eventName].push(fn);
+          return this;
+        }
+        // Attach event listener
+        on(eventName, fn) {
+          return this.addListener(eventName, fn);
+        }
+      
+        // Attach event handler only once. Automatically removed.
+        once(eventName, fn) {
+          this.listeners[eventName] = this.listeners[eventName] || [];
+          const onceWrapper = () => {
+            fn();
+            this.off(eventName, onceWrapper);
+          }
+          this.listeners[eventName].push(onceWrapper);
+          return this;
+        }
+      
+        // Alias for removeListener
+        off(eventName, fn) {
+          return this.removeListener(eventName, fn);
+        }
+      
+        removeListener (eventName, fn) {
+          let lis = this.listeners[eventName];
+          if (!lis) return this;
+          for(let i = lis.length; i > 0; i--) {
+            if (lis[i] === fn) {
+              lis.splice(i,1);
+              break;
+            }
+          }
+          return this;
+        }
+      
+        // Fire the event
+        emit(eventName, ...args) {
+          let fns = this.listeners[eventName];
+          if (!fns) return false;
+          fns.forEach((f) => {
+            f(...args);
+          });
+          return true;
+        }
+      
+        listenerCount(eventName) {
+          let fns = this.listeners[eventName] || [];
+          return fns.length;
+        }
+      
+        // Get raw listeners
+        // If the once() event has been fired, then that will not be part of
+        // the return array
+        rawListeners(eventName) {
+          return this.listeners[eventName];
+        }
+      
+    },
     /**
      * Base Component Class
      */
@@ -30,6 +97,10 @@ var OpenScript = {
          */
         argsMap = new Map();
 
+        /**
+         * Event Emitter for the component
+         */
+        emitter = new OpenScript.Emitter();
 
         constructor() {
             this.name = this.constructor.name;
@@ -44,9 +115,27 @@ var OpenScript = {
         }
 
         /**
+         * Binds this component to the elements on the dom
+         */
+        async bind() {
+            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
+
+            const doBind = () => {
+                let elem = all.pop();
+
+                let hId = elem.ojsHId;
+                
+            }
+
+            setTimeout(() => {
+
+            }, 0);
+        }
+
+        /**
          * Renders the Element and returns an HTML Element
          * @param  {...any} args 
-         * @returns {HTMLElement|String|Array<HTMLElement|String>}
+         * @returns {DocumentFragment|HTMLElement|String|Array<DocumentFragment|HTMLElement|String>}
          */
         render(...args) {
             return h.toElement("<ojs></ojs>");
@@ -634,7 +723,7 @@ var OpenScript = {
             if(value instanceof DocumentFragment || value instanceof HTMLElement) {
                 return value;
             }
-            
+
             let tmp = this.dom.createElement("ojs-group");
             tmp.innerHTML = value;
     
@@ -900,6 +989,11 @@ var OpenScript = {
          */
         ContextProvider = OpenScript.ContextProvider;
 
+        /**
+         * The Event Emitter Class
+         */
+        Emitter = OpenScript.Emitter;
+
         constructor( configs = {
             directories: {
                 components: "./components",
@@ -1016,7 +1110,12 @@ const {
     /**
      * Creates a state object
      */
-    state
+    state,
+
+    /**
+     * The Event Emitter Class
+     */
+    Emitter
 
 } = new OpenScript.Initializer();
 
