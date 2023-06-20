@@ -516,6 +516,7 @@ var OpenScript = {
     
             let parent = null;
             let emptyParent = false;
+            let rootFrag = new DocumentFragment();
 
             let root = this.dom.createElement(name);
     
@@ -536,7 +537,7 @@ var OpenScript = {
     
                     k = k.replace(/_/g, "-");
 
-                    if(k.toLowerCase() === "class") val = root.getAttribute(k) ?? "" + ` ${val}`;
+                    if(k === "class" || k === "Class") val = root.getAttribute(k) ?? "" + ` ${val}`;
 
                     root.setAttribute(k, val);
                 }
@@ -550,7 +551,8 @@ var OpenScript = {
                 }
     
                 if(arg instanceof HTMLElement) {
-                    root.appendChild(arg); continue;
+                    rootFrag.appendChild(arg);
+                    continue;
                 }
     
                 if(typeof arg === "object") {
@@ -558,9 +560,11 @@ var OpenScript = {
                     parseAttr(arg); continue;
                 }
     
-                root.appendChild(this.toElement(arg));
+                rootFrag.appendChild(this.toElement(arg));
             }
-           
+            
+            root.appendChild(rootFrag);
+
             if(parent) {
                 if(emptyParent) parent.textContent = '';
 
