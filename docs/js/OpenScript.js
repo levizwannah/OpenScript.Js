@@ -516,6 +516,8 @@ var OpenScript = {
     
             let parent = null;
             let emptyParent = false;
+            let rootFrag = new DocumentFragment();
+            let finalRoot = new DocumentFragment();
 
             let root = this.dom.createElement(name);
     
@@ -536,7 +538,7 @@ var OpenScript = {
     
                     k = k.replace(/_/g, "-");
 
-                    if(k.toLowerCase() === "class") val = root.getAttribute(k) ?? "" + ` ${val}`;
+                    if(k === "class" || k === "Class") val = root.getAttribute(k) ?? "" + ` ${val}`;
 
                     root.setAttribute(k, val);
                 }
@@ -545,29 +547,33 @@ var OpenScript = {
             for(let arg of args){
     
                 if(Array.isArray(arg)) {
-                    arg.forEach(e => root.appendChild(this.toElement(e)));
+                    arg.forEach(e => rootFrag.append(this.toElement(e)));
                     continue;
                 }
     
-                if(arg instanceof HTMLElement) {
-                    root.appendChild(arg); continue;
+                if(arg instanceof DocumentFragment || arg instanceof HTMLElement) {
+                    rootFrag.append(arg);
+                    continue;   
                 }
     
                 if(typeof arg === "object") {
-                    
-                    parseAttr(arg); continue;
+                    parseAttr(arg); 
+                    continue;
                 }
     
-                root.appendChild(this.toElement(arg));
+                rootFrag.append(this.toElement(arg));
             }
-           
+
+            root.append(rootFrag);
+            finalRoot.append(root);
+
             if(parent) {
                 if(emptyParent) parent.textContent = '';
 
-                return parent.appendChild(root);
+                return parent.append(finalRoot);
             } 
     
-            return root;
+            return finalRoot;
         }
     
         /**
@@ -625,8 +631,10 @@ var OpenScript = {
          */
         toElement = (value) => {
 
-            if(value instanceof HTMLElement) return value;
-    
+            if(value instanceof DocumentFragment || value instanceof HTMLElement) {
+                return value;
+            }
+            
             let tmp = this.dom.createElement("ojs-group");
             tmp.innerHTML = value;
     
