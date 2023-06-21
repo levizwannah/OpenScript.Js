@@ -6,9 +6,9 @@ class App extends OpenScript.Component {
 
     async mount(){
         await super.mount();
-        require("MainNav");
-        require("Blog.List");
-        require("Counter");
+        req("MainNav");
+        req("Blog.List");
+        req("Counter");
     }
 
     render(...args) {
@@ -36,12 +36,16 @@ class App extends OpenScript.Component {
                     h.div({ class: 'card-header'}, 'Uses Anonymous Component' ),
                     h.div(
                         { class: "card-body "},
+
                         h.p(
                             { 
                                 class: "card-text"
                             }, 
+
                             `I will not change: (`,
+
                             h.b(Math.floor(Math.random() * 1000)),
+                            
                             `) because I am not re-rendered`,
                             
                             h.br(),

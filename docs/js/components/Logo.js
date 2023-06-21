@@ -28,12 +28,12 @@ class Logo extends OpenScript.Component {
 
                     h.span(
                         { class: 'logo-text' },
-                        v(context('config').logo)
+                        v(context('config').logo, (state) => state.value.text)
                     ),
 
                     h.span(
                         { class: 'text-alt'},
-                        '.Js'
+                        v(context('config').logo, (state) => state.value.alt)
                     )
                 )
             )

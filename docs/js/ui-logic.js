@@ -1,7 +1,7 @@
 ojs(async e => {
-
+    
     // init components
-    require('App');
+    req('App');
 
     // init contexts
     let rc = fetchContext('root', 'Root');
@@ -17,6 +17,6 @@ ojs(async e => {
 
     h.App({
         parent: rc.root
-    })
+    });
+   
 });
-

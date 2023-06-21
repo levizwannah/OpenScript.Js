@@ -257,10 +257,12 @@ var OpenScript = {
                 /**
                  * Render function takes a state
                  * @param {OpenScript.State} state 
+                 * @param {Function} callback that returns the value to
+                 * put in the markup
                  * @returns 
                  */
-                render(state , ...args ) {
-                    return h[`ojs-wrapper`](state.value, ...args);
+                render(state , callback, ...args ) {
+                    return h[`ojs-wrapper`](callback(state), ...args);
                 }
             }
 
@@ -383,7 +385,7 @@ var OpenScript = {
                     this.map.set(referenceName, cxt);
                 }
                 catch(e) {
-                    console.error(`Unable to load ${referenceName} because it already exists in the window. Please ensure that you are loading your contexts before your components`);
+                    console.error(`Unable to load ${referenceName} because it already exists in the window. Please ensure that you are loading your contexts before your components`, e);
                 }
             }
             
@@ -453,11 +455,14 @@ var OpenScript = {
          */
         reconcile(map, referenceName) {
 
+            console.log('reconciling');
+
             let cxt = map.get(referenceName);
             
             if(!cxt) return true;
 
             for(let key in cxt) {
+                
                 if(this.$__specialKeys__.has(key)) continue;
 
                 let v = cxt[key];
@@ -472,6 +477,17 @@ var OpenScript = {
             this.__fromNetwork__ = true;
 
             return true;
+        }
+
+        /**
+         * Ensures a property exist
+         * @param {string} name 
+         * @param {*} def 
+         * @returns 
+         */
+        has(name, def = state({})) {
+            if(!this[name]) this[name] = def;
+            return this[name];
         }
 
         /**
@@ -629,7 +645,7 @@ var OpenScript = {
 
                             target.fire();
 
-                            return;
+                            return true;
                         }
 
                         if(prop !== "listeners" && prop !== "signature" && target.value[prop] !== value) {
@@ -926,10 +942,11 @@ var OpenScript = {
          * Creates an anonymous component
          * around a state
          * @param {OpenScript.State} state 
+         * @param {Array<string>} attribute attribute path
          * @returns 
          */
-        $anonymous = (state) => {
-            return h[OpenScript.Component.anonymous()](state);
+        $anonymous = (state, callback = (state) => state.value) => {
+            return h[OpenScript.Component.anonymous()](state, callback);
         }
     
         /**
@@ -1040,7 +1057,7 @@ var OpenScript = {
             * 
             * @param {string} className script name without the .js.
             */
-        async require(className){
+        async req(className){
             
             let names = className.split(/\./);
             let obj;
@@ -1074,7 +1091,7 @@ var OpenScript = {
                 parent = parent.replace(/extends/g, "").trim();
 
                 if(!this.exists(parent)) {
-                    await this.require(parent);
+                    await this.req(parent);
                 }
             }
 
@@ -1084,7 +1101,7 @@ var OpenScript = {
         async include(className){
 
             try{ 
-                return await this.require(this.normalize(className));
+                return await this.req(this.normalize(className));
             } catch(e) {}
 
             return null;
@@ -1189,9 +1206,11 @@ var OpenScript = {
         /**
          * Creates an anonymous component around a state
          * @param {OpenScript.State} state 
+         * @param {Function<OpenScript.State>} callback the function that returns
+         * the value to put in the anonymous markup created
          * @returns 
          */
-        v = (state) => h.$anonymous(state);
+        v = (state, callback = (state) => state.value) => h.$anonymous(state, callback);
         /**
          * The markup engine for OpenScript.Js
          */
@@ -1259,8 +1278,8 @@ var OpenScript = {
          * @returns {class|object|Function}
          * @throws Error if the file is not found
          */
-        require  = async (qualifiedName) => {
-            return await this.loader.require(qualifiedName);
+        req  = async (qualifiedName) => {
+            return await this.loader.req(qualifiedName);
         }
 
         /**
@@ -1314,7 +1333,7 @@ const {
     /**
      * The function for autoloading components or files in general @throws exception
      */
-    require,
+    req,
 
     /**
      * The function for including a file without exceptions

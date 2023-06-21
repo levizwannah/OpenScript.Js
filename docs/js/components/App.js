@@ -2,8 +2,8 @@ class App extends OpenScript.Component {
 
     async mount() {
         await super.mount();
-        require('Sections.Header');
-        require('Sections.Hero');
+        req('Sections.Header');
+        req('Sections.Hero');
     }
 
     render(...args) {

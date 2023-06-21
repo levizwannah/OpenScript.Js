@@ -2,7 +2,7 @@ class SocialList extends OpenScript.Component {
 
     async mount() {
         await super.mount();
-        require('Icons.Social');
+        req('Icons.Social');
     }
 
 

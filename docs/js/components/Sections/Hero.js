@@ -7,7 +7,7 @@ class Hero extends OpenScript.Component {
 
     async mount() {
         await super.mount();
-        require('SearchForm');
+        req('SearchForm');
     }
 
     render(...args) {
@@ -31,12 +31,12 @@ class Hero extends OpenScript.Component {
 
                 h.h1(
                     {class: 'page-heading single-col-max mx-auto'},
-                    context('config').site.name
+                    v(context('config').site, (site) => site.value.name)
                 ),
 
                 h.div(
                     {class: 'page-intro single-col-max mx-auto'},
-                    context('config').site.description
+                    v(context('config').site, (site) => site.value.description)
                 ),
 
                 h.div(
