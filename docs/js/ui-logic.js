@@ -4,12 +4,13 @@ ojs(async e => {
     require('App');
 
     // init contexts
-    await contextProvider.put('root', 'Root');
-    await contextProvider.put('config', 'Config');
+    let rc = fetchContext('root', 'Root');
+    fetchContext('config', 'Config');
 
+    rc.root = h.dom.querySelector('#root');
 
     h.App({
-        parent: context('root').root
+        parent: rc.root
     })
 });
 
