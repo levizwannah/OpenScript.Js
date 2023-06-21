@@ -124,16 +124,18 @@ var OpenScript = {
         async bind() {
             
             this.emitter.emit('pre-bind', this);
+            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}-tmp`);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
+
 
             for(let elem of all) {
 
                 let hId = elem.getAttribute('ojs-key');
+                let args = [...h.compArgs.get(hId)];
 
-                h[this.name](...h.compArgs.get(hId), {parent: elem});
+                this.wrap(...args, {parent: elem});
                 
-                this.emitter.emit('markup-bound', elem, ...h.compArgs.get(hId));
+                this.emitter.emit('markup-bound', elem, args);
             }
 
             this.emitter.emit('bound', this);
@@ -160,9 +162,12 @@ var OpenScript = {
 
             for(let i in args){
 
-                if(!(args[i] instanceof HTMLElement) && args[i].parent ) {
+                if(!(args[i] instanceof DocumentFragment 
+                    || args[i] instanceof HTMLElement) && args[i].parent ) {
                     final.index = i;
                     final.parent = args[i].parent;
+
+                    delete args[i].parent;
                 }
 
                 if(args[i] instanceof OpenScript.State) {
@@ -187,8 +192,6 @@ var OpenScript = {
                 delete args[index];
 
                 let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}[s-${state.id}="${state.id}"]`) ?? [];
-                
-                
 
                 current.forEach(e => {
                     e.textContent = "";
@@ -673,28 +676,26 @@ var OpenScript = {
             let finalRoot = new DocumentFragment();
 
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
-
-            let root = this.dom.createElement(name);
             let isComponent = isUpperCase(name[0]);
-
+            let root = null;
             /**
              * When dealing with a component
              * save the argument for async rendering
              */
             if(isComponent) {
-                console.log(name + ' is component ');
-
-                root = this.dom.createElement(`ojs-${name}`);
+                root = this.dom.createElement(`ojs-${name}-tmp`);
 
                 let id = `ojs-${name}-${OpenScript.MarkupEngine.ID++}`;
-
                 root.setAttribute('ojs-key', id);
 
                 this.compArgs.set(id, args);
             }
+            else {
+                root = this.dom.createElement(name);
+            }
     
             let parseAttr = (obj) => {
-
+                
                 for(let k in obj){
     
                     if(k === "parent" && obj[k] instanceof HTMLElement) {
@@ -715,10 +716,12 @@ var OpenScript = {
                     root.setAttribute(k, val);
                 }
             }
-    
+
             for(let arg of args){
 
                 if(isComponent && parent) break;
+
+                if(arg instanceof OpenScript.State) continue;
 
                 if(Array.isArray(arg)) {
                     if(isComponent) continue;
@@ -750,7 +753,7 @@ var OpenScript = {
                 if(emptyParent) parent.textContent = '';
 
                 parent.append(finalRoot);
-                return;
+                return finalRoot;
             } 
     
             return finalRoot;

@@ -3,7 +3,7 @@ ojs(async e => {
 await contextProvider.put("RootCxt", "RootContext");
 await contextProvider.put("BlogCxt", "Blog.Context");
 
-await require("App");
+require("App");
 
 const bc = context("BlogCxt");
 
