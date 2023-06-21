@@ -5,7 +5,13 @@ ojs(async e => {
 
     // init contexts
     let rc = fetchContext('root', 'Root');
-    fetchContext('config', 'Config');
+    let cc = fetchContext('config', 'Config');
+
+    cc.states({
+        logo: {},
+        socialLinks: {},
+        site: {}
+    });
 
     rc.root = h.dom.querySelector('#root');
 

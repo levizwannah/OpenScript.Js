@@ -28,7 +28,7 @@ class Logo extends OpenScript.Component {
 
                     h.span(
                         { class: 'logo-text' },
-                        'OpenScript'
+                        v(context('config').logo)
                     ),
 
                     h.span(

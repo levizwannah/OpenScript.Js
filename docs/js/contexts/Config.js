@@ -3,28 +3,30 @@ class Config extends OpenScript.Context {
     constructor() {
         super();
 
-        this.socialLinks();
+        this.socials();
         this.logoInfo();
         this.siteInfo();
     }
 
-    socialLinks() {
-        this.put('socialLinks',[
+    socials() {
+        this.socialLinks.value = [
             { link: 'https://github.com/levizwannah/openscript.js', icon: 'fa-github' }
-        ])
+        ];
     }
 
     logoInfo() {
-        this.put('logoSrc', 'assets/images/coderdocs-logo.svg');
-        this.put('logoText', 'OpenScript');
-        this.put('logoAlt', '.Js');
+        this.logo.value = {
+            src: 'assets/images/coderdocs-logo.svg',
+            text: 'OpenScript',
+            alt: '.Js'
+        }
     }
 
     siteInfo() {
-        this.put('site', {
+        this.site.value =  {
             name: 'OpenScript.Js',
             description: 'Handling UI in an open JavaScript Environment'
-        });
+        };
     }
 
 }

@@ -257,10 +257,12 @@ var OpenScript = {
                 /**
                  * Render function takes a state
                  * @param {OpenScript.State} state 
+                 * @param {Function} callback that returns the value to
+                 * put in the markup
                  * @returns 
                  */
-                render(state , ...args ) {
-                    return h[`ojs-wrapper`](state.value, ...args);
+                render(state , callback, ...args ) {
+                    return h[`ojs-wrapper`](callback(state), ...args);
                 }
             }
 
@@ -472,6 +474,17 @@ var OpenScript = {
             this.__fromNetwork__ = true;
 
             return true;
+        }
+
+        /**
+         * Sets all the initial values in state
+         * so that upon load, they can cause DOM re-rendering
+         * @param {object} obj 
+         */
+        states(obj = {}) {
+            for(let k in obj) {
+                this[k] = state(obj[k]);
+            }
         }
     },
 
@@ -915,10 +928,11 @@ var OpenScript = {
          * Creates an anonymous component
          * around a state
          * @param {OpenScript.State} state 
+         * @param {Array<string>} attribute attribute path
          * @returns 
          */
-        $anonymous = (state) => {
-            return h[OpenScript.Component.anonymous()](state);
+        $anonymous = (state, callback = (state) => state.value) => {
+            return h[OpenScript.Component.anonymous()](state, callback);
         }
     
         /**
@@ -1178,9 +1192,11 @@ var OpenScript = {
         /**
          * Creates an anonymous component around a state
          * @param {OpenScript.State} state 
+         * @param {Function<OpenScript.State>} callback the function that returns
+         * the value to put in the anonymous markup created
          * @returns 
          */
-        v = (state) => h.$anonymous(state);
+        v = (state, callback = (state) => state.value) => h.$anonymous(state, callback);
         /**
          * The markup engine for OpenScript.Js
          */

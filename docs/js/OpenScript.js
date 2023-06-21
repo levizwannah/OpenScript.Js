@@ -473,6 +473,17 @@ var OpenScript = {
 
             return true;
         }
+
+        /**
+         * Sets all the initial values in state
+         * so that upon load, they can cause DOM re-rendering
+         * @param {object} obj 
+         */
+        states(obj = {}) {
+            for(let k in obj) {
+                this[k] = state(obj[k]);
+            }
+        }
     },
 
     /**
