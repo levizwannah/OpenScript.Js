@@ -12,8 +12,7 @@ class App extends OpenScript.Component {
     }
 
     render(...args) {
-        console.log(args);
-        
+
         return h.div(
            
             h.MainNav(),
@@ -47,7 +46,7 @@ class App extends OpenScript.Component {
                             
                             h.br(),
 
-                            `I will change: (`, h.b(v(context('BlogCxt').counter)), `) because I am re-rendered when the number changes. `,
+                            `I will change: (`, h.b(v(context('blogCxt').counter)), `) because I am re-rendered when the number changes. `,
                             h.b(
                                 `Actually, only the number is re-rendered, not this text.`
                             )
@@ -55,13 +54,13 @@ class App extends OpenScript.Component {
                     )
                 ),
 
-                h.BlogCounter(context("BlogCxt").counter, {
+                h.BlogCounter(context("blogCxt").counter, {
                     class: "p-1"
                 }),
             
-                h.BlogList(context("BlogCxt").blogs, context('BlogCxt').counter, "I am a blog List. I re-render when counter changes"),
+                h.BlogList(context("blogCxt").blogs, context('blogCxt').counter, "I am a blog List. I re-render when counter changes"),
 
-                h.BlogList(context("BlogCxt").blogs, { value: 0 }, 'I am the same blog list. I do not re-render when counter changes because I do not listen its changes.' )
+                h.BlogList(context("blogCxt").blogs, { value: 0 }, 'I am the same blog list. I do not re-render when counter changes because I do not listen its changes.' )
             ),
 
             ...args

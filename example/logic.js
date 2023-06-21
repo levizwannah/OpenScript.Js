@@ -1,11 +1,11 @@
 ojs(async e => {
 
-await contextProvider.put("RootCxt", "RootContext");
-await contextProvider.put("BlogCxt", "Blog.Context");
+fetchContext("rootCxt", "RootContext");
+putContext("blogCxt", "Blog.Context");
 
 require("App");
 
-const bc = context("BlogCxt");
+const bc = context("blogCxt");
 
 let blog = [];
 
@@ -25,11 +25,10 @@ blog = state(blog);
 bc.put("counter", state(0));
 bc.put("blogs", blog);
 
-let rc = context("RootCxt");
+let rc = context("rootCxt");
+rc.domRoot = h.dom.querySelector("#root");
 
 h.App( { parent: rc.domRoot })
-
-h.Test( { parent: rc.domRoot });
 
 setInterval(() => {
     let blog = [];

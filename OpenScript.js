@@ -109,10 +109,25 @@ var OpenScript = {
         /**
          * Initializes the component and adds it to
          * the component map of the markup engine
+         * @emits mounted
+         * @emits pre-mount
          */
         async mount(){
+            this.emit('pre-mount');
+
             h.component(this.name, this);
             this.bind();
+
+            this.emit('mounted');
+        }
+
+        /**
+         * Emits an event
+         * @param {string} event 
+         * @param {Array<*>} args 
+         */
+        emit(event, args) {
+            this.emitter.emit(event, this, args = []);
         }
 
         /**
@@ -123,7 +138,8 @@ var OpenScript = {
          */
         async bind() {
             
-            this.emitter.emit('pre-bind', this);
+            this.emit('pre-bind');
+
             let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}-tmp`);
 
 
@@ -135,10 +151,10 @@ var OpenScript = {
 
                 this.wrap(...args, {parent: elem});
                 
-                this.emitter.emit('markup-bound', elem, args);
+                this.emit('markup-bound', [elem, args]);
             }
 
-            this.emitter.emit('bound', this);
+            this.emit('bound');
 
             return true;
         }
@@ -179,6 +195,12 @@ var OpenScript = {
             return final;
         }
 
+        /**
+         * Wraps the rendered content
+         * @emits re-rendered
+         * @param  {...any} args 
+         * @returns 
+         */
         wrap(...args) {
 
             const lastArg = args[args.length - 1];
@@ -199,6 +221,8 @@ var OpenScript = {
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
                     this.render(...arg, { parent: e });
+
+                    this.emit('re-rendered', arg);
                 });
 
                 return;
@@ -301,21 +325,47 @@ var OpenScript = {
         }
 
         /**
+         * Asynchronously loads a context
+         * @param {string} referenceName 
+         * @param {string} qualifiedName 
+         * @param {boolean} fetch
+         */
+        load(referenceName, qualifiedName, fetch = false) {
+            let c = this.map.get(referenceName);
+
+            if(!c) {
+                this.map.set(referenceName, new OpenScript.Context());
+            }
+
+            this.put(referenceName, qualifiedName, fetch);
+
+            return this.map.get(referenceName);
+        }
+
+        /**
          * Adds a Context Path to the Map
          * @param {string} referenceName  
          * @param {string} qualifiedName The Context File path, ignoring the context directory itself.
+         * @param {boolean} fetch Should the file be fetched from the backend
          * @param {boolean} load Should this context be loaded automatically
          */
-        put = async (referenceName, qualifiedName) => {
-            if(!this.map.has(referenceName)){
-                let Context =  await (new OpenScript
+        put = async (referenceName, qualifiedName, fetch = false) => {
+            let c = this.map.get(referenceName);
+
+            let shouldFetch = false;
+
+            if(!c || (c && !c.__fromNetwork__ && fetch)) shouldFetch = true;
+            
+            if(shouldFetch){
+                let Context = fetch ?  await (new OpenScript
                     .AutoLoader(
                         OpenScript.
                         ContextProvider.
                         directory,
                         OpenScript
                         .ContextProvider
-                        .version )).include(qualifiedName);
+                        .version )).include(qualifiedName)
+                        : null;
     
                
                 if(!Context) {
@@ -323,12 +373,18 @@ var OpenScript = {
                 }
                 
                 try{
-                    this.map.set(referenceName, new Context());
+                    let cxt = new Context();
+                    
+                    /**
+                     * Update States that should be updated
+                     */
+                    if(shouldFetch) cxt.reconcile(this.map, referenceName);
+
+                    this.map.set(referenceName, cxt);
                 }
                 catch(e) {
                     console.error(`Unable to load ${referenceName} because it already exists in the window. Please ensure that you are loading your contexts before your components`);
                 }
-    
             }
             
             return this.context(referenceName);
@@ -353,8 +409,22 @@ var OpenScript = {
          */
         __contextName__;
 
+        /**
+         * Let us know if this context was loaded from the network
+         */
+        __fromNetwork__ = false;
+
+        /**
+         * Keeps special keys
+         */
+        $__specialKeys__ = new Map();
+
         constructor() {
             this.__contextName__ = this.constructor.name + "Context";
+
+            for(const key in this) {
+                this.$__specialKeys__.set(key, true);
+            }
         }
 
         /**
@@ -374,6 +444,35 @@ var OpenScript = {
         get(name){
             return this[name];
         }
+
+        /**
+         * Reconciles all states in the temporary context with the loaded context
+         * including additional data
+         * @param {Map<string,*>} map 
+         * @param {string} referenceName 
+         */
+        reconcile(map, referenceName) {
+
+            let cxt = map.get(referenceName);
+            
+            if(!cxt) return true;
+
+            for(let key in cxt) {
+                if(this.$__specialKeys__.has(key)) continue;
+
+                let v = cxt[key];
+
+                if(v instanceof OpenScript.State && !v.$__changed__) {
+                    v.value = this[key]?.value ?? v.value;
+                }
+
+                this[key] = v;
+            }
+
+            this.__fromNetwork__ = true;
+
+            return true;
+        }
     },
 
     /**
@@ -390,6 +489,11 @@ var OpenScript = {
          * ID of this state
          */
         id;
+
+        /**
+         * Has this state changed
+         */
+        $__changed__ = false;
 
         /**
          * The count of the number of states in the program
@@ -496,6 +600,8 @@ var OpenScript = {
                         if(!Array.isArray(this.value)) return;
 
                         this.value.push(...args);
+                        this.$__changed__ = true;
+
                         this.fire();
                     }
 
@@ -507,14 +613,19 @@ var OpenScript = {
                         if(prop === "value" && target.value !== value) {
 
                             Reflect.set(...arguments);
+
+                            target.$__changed__ = true;
+
                             target.fire();
 
                             return;
                         }
 
-                        if(prop !== "listeners" && prop !== "signature") {
+                        if(prop !== "listeners" && prop !== "signature" && target.value[prop] !== value) {
                             
                             target.value[prop] = value;
+                            target.$__changed__ = true;
+
                             target.fire();
 
                             return true;
@@ -1161,6 +1272,25 @@ var OpenScript = {
          */
         each = OpenScript.Utils.each;
 
+        /**
+         * Adds a context without loading it from the network
+         * @param {string} referenceName 
+         * @param {string} qualifiedName e.g. 'Blog.Context'
+         * @returns 
+         */
+        putContext = (referenceName, qualifiedName) => {
+            return this.contextProvider.load(referenceName, qualifiedName);
+        }
+
+        /**
+         * Fetch a context asynchronously over the network and reconciles it.
+         * @param {string} referenceName 
+         * @param {string} qualifiedName 
+         * @returns 
+         */
+        fetchContext = (referenceName, qualifiedName) => {
+            return this.contextProvider.load(referenceName, qualifiedName, true);
+        }
     }
 }
 
@@ -1228,7 +1358,17 @@ const {
     /**
      * Lazy For-loop
      */
-    lazyFor
+    lazyFor,
+
+    /**
+     * Asynchronously loads a context
+     */
+    putContext,
+
+    /**
+     * Fetch a Context from the network
+     */
+    fetchContext
 
 } = new OpenScript.Initializer();
 
