@@ -33,6 +33,11 @@ class App extends OpenScript.Component {
                         {class: 'doc-overview py-5'},
                         h.Overview(context('data').overview)
                     )
+                    h.div(
+                        {class: 'row justify-content-center'}
+       
+                    )
+                
                 )
             ),
 

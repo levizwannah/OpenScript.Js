@@ -20,7 +20,7 @@ class SearchForm extends OpenScript.Component {
             h.input( {
                 type: 'text',
                 placeholder: 'Search the docs...',
-                class: 'form-control search-input'
+                class: 'form-control search-input underlined input-data'
             }),
 
             h.button(
