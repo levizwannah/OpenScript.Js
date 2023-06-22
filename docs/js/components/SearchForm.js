@@ -15,7 +15,7 @@ class SearchForm extends OpenScript.Component {
 
     hero(...args) {
         return h.form(
-            {class: 'main-search-form w-100'},
+            {class: 'search-form w-100'},
 
             h.input( {
                 type: 'text',

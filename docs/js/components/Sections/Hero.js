@@ -16,13 +16,13 @@ class Hero extends OpenScript.Component {
                 class: 'page-header theme-bg-dark py-5 text-center position-relative'
             },
 
-            // h.div(
-            //     {class: 'theme-bg-shapes-right'}
-            // ),
+            h.div(
+                {class: 'theme-bg-shapes-right'}
+            ),
 
-            // h.div(
-            //     {class: 'theme-bg-shapes-left'}
-            // ),
+            h.div(
+                {class: 'theme-bg-shapes-left'}
+            ),
 
             h.div(
                 {
