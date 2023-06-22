@@ -6,6 +6,7 @@ class Config extends OpenScript.Context {
         this.socials();
         this.logoInfo();
         this.siteInfo();
+        this.siteFooter();
     }
 
     socials() {
@@ -27,6 +28,14 @@ class Config extends OpenScript.Context {
             name: 'OpenScript.Js',
             description: 'Handling UI in an open JavaScript Environment'
         };
+    }
+
+    siteFooter() {
+        this.has('footer').value = {
+            title: 'Build Reactive and Well designed UIs with normal JavaScript',
+
+            body: 'OpenScript.Js allows you to build reactive User Interfaces Using Normal, Non-bundled, Non-Modularized JavaScript. Powered by the concept of Asynchronous Rendering, Components, States, Context, and Autoloading'
+        }
     }
 
 }

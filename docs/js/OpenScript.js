@@ -455,7 +455,7 @@ var OpenScript = {
          */
         reconcile(map, referenceName) {
 
-            console.log('reconciling');
+            //console.log('reconciling', this.__contextName__);
 
             let cxt = map.get(referenceName);
             
@@ -497,6 +497,8 @@ var OpenScript = {
          */
         states(obj = {}) {
             for(let k in obj) {
+                if(this[k]) continue;
+
                 this[k] = state(obj[k]);
             }
         }
@@ -1398,7 +1400,12 @@ const {
     /**
      * Fetch a Context from the network
      */
-    fetchContext
+    fetchContext,
+
+    /**
+     * Iterates using the each function
+     */
+    each
 
 } = new OpenScript.Initializer();
 

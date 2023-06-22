@@ -11,7 +11,8 @@ ojs(async e => {
     cc.states({
         logo: {},
         socialLinks: {},
-        site: {}
+        site: {},
+        footer: {}
     });
 
     rc.root = h.dom.querySelector('#root');
