@@ -1,24 +1,8 @@
 # OpenScript.Js
-A frontend framework for developing and Managing UIs in the most elegant and easy way. It is called opened script because you don't need to work with javascript modules. If you want to export, then use a `Context`. Welcome to `OJS`.
+A frontend framework for developing and Managing Reactive UIs in the most elegant and easy way using normal non-module base JavaScript. That is, you can run this just like every other browser script. You can use OJs as part of a project or using it to create you whole UI.
 
-```js
-const rc = context("RootCxt");
+Full documentation at: https://levizwannah.github.io/OpenScript.Js
 
-h.div(
-    { 
-        class: "div-class", 
-        aria_labelledby: "blah blah",
-        parent: rc.domRoot 
-    }
+Developed by: Levi Kamara Zwannah
 
-    h.p("Hello Paragraph")
-)
-```
 
-# Core
-1. Components - render function do not have default arguments
-2. Markup
-3. State
-4. Context
-5. Auto Loading
-6. Anonymous Components
