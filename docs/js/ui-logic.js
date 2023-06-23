@@ -1,7 +1,7 @@
 ojs(async e => {
     
     // init components
-    req('App');
+    req('Index');
 
     // init contexts
     let rc = fetchContext('root', 'Root');
@@ -17,7 +17,7 @@ ojs(async e => {
 
     rc.root = h.dom.querySelector('#root');
 
-    h.App({
+    h.Index({
         parent: rc.root
     });
    
