@@ -75,7 +75,7 @@ class IndexData extends OpenScript.Context {
             {
                 icon: 'fa-scroll',
                 title: 'OpenScript.Js Full Code',
-                body: 'Here is all the code put together in the OpenScript Namespace.',
+                body: 'Here is all of OpenScript.Js code put together in the OpenScript Namespace. You can copy and paste it. (Consistent with the updated versions)',
                 link: 'docs-page.html#ojs-full-code'
             }
         ]
