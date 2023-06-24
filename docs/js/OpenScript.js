@@ -5,6 +5,237 @@
 var OpenScript = {
 
     /**
+     * OpenScript's Router Class
+     */
+    Router: class {
+        /**
+         * URL
+         * @type {URL}
+         */
+        url;
+
+        /**
+         * Current Prefix
+         * @type {string}
+         */
+        __prefix;
+
+        /**
+         * The routes Map
+         * @type {Map<string,Map<string,function>|string|function>}
+         */
+        map = new Map();
+
+        /**
+         * The Params in the URL
+         * @type {object}
+         */
+        params = {}
+
+        /**
+         * The Query String
+         * @type {URLSearchParams}
+         */
+        qs = {};
+
+        /**
+         * Should the root element be cleared?
+         */
+        reset;
+
+        /**
+         * 
+         * @param {string} url 
+         */
+        constructor(url = null) {
+            url = url ?? window.location.href;
+            this.url = new URL(url);
+
+            this.reset = OpenScript.State.state(false);
+
+            window.addEventListener('popstate', () => {
+                this.reset.value = true;
+                this.listen();
+            });
+        }
+
+        /**
+         * Adds an action on URL path
+         * @param {string} path 
+         * @param {function} action action to perform
+         */
+        on(path, action) {
+
+            const paths =`${this.__prefix}/${path}`.split('/');
+            
+            let key = null;
+            let map = this.map;
+
+            for(const cmp of paths) {
+
+                if(cmp.length < 1) continue;
+
+                key = /^\{w+\}$/.test(cmp) ? '*' : cmp;
+
+                let val = map.get(key);
+                if(!val) val = [cmp, new Map()];
+
+                map.set(key, val);
+                map = map.get(key)[1];
+            }
+
+            map.set('->', [true, action]);
+
+            return this;
+        }
+
+        /**
+         * Creates a prefix for a group of routes
+         * @param {string} name 
+         */
+        prefix(name){
+
+            this.__prefix = name;
+
+            return new this.PrefixRoute(this);
+        }
+
+        /**
+         * Executes the actions based on the url
+         */
+        listen(){
+            
+            let paths = this.url.pathname.split('/');
+
+            let map = this.map;
+
+            for(const cmp of paths) {
+
+                if(cmp.length < 1) continue;
+
+                let next = map.get(cmp);
+
+                if(!next) {
+                    next = map.get('*');
+                    if(next) this.params[next[0].replace(/[\{\}]/g, '')] = cmp;
+                }
+
+                if(!next) break;
+
+                map = next[1];
+            }
+            
+            this.qs = new URLSearchParams(this.url.search);
+
+            map.get('->')[1]();
+            
+            this.reset.value = false;
+
+            return this;
+        }
+
+        /**
+         * Change the URL path without loading
+         * @param {string} path 
+         * @param {object} qs Query string
+         */
+        to(path, qs = {}){
+
+            let s = '';
+
+            for(let k in qs) {
+                if(s.length > 0) s += '&';
+                s += `${k}=${qs[k]}`;
+            }
+
+            if(s.length > 0) s = `?${s}`;
+
+            this.history().pushState({random: Math.random()}, '', `${path}${s}`);
+            this.reset.value = true;
+
+            return this.listen();
+        }
+
+        /**
+         * Redirects to a page using loading
+         * @param {string} to 
+         */
+        redirect(to){
+            return window.location.href = to;
+        }
+
+        /**
+         * Refreshes the current page
+         */
+        refresh(){
+            this.history().go();
+            return this;
+        }
+
+        /**
+         * Goes back to the previous route
+         * @returns 
+         */
+        back() {
+           this.history().back();
+           return this; 
+        }
+
+        /**
+         * Goes forward to the next route
+         * @returns 
+         */
+        forward(){
+            this.history().forward();
+            return this;
+        }
+
+        /**
+         * Returns the Window History Object
+         * @returns {History}
+         */
+        history(){
+            return window.history;
+        }
+
+
+        /**
+         * Allows Grouping of routes
+         */
+        PrefixRoute = class PrefixRoute {
+            
+            /**
+             * Parent Router
+             * @type {OpenScript.Router}
+             */
+            router;
+
+            /**
+             * Creates a new PrefixRoute
+             * @param {OpenScript.Router} router 
+             */
+            constructor(router) {
+                this.router = router;
+            }
+
+            /**
+             * Creates a Group 
+             * @param {function} func 
+             * @returns {OpenScript.Router}
+             */
+            group(func = () => {}) {
+                
+                func();
+
+                this.router.__prefix = "";
+
+                return this.router;
+            }
+        }
+
+    },
+
+    /**
      * Event Emitter Class
      */
     Emitter: class {
@@ -197,14 +428,22 @@ var OpenScript = {
          * @returns 
          */
         getParentAndListen(args){
-            let final = {index: -1, parent: null, states: [] };
+            let final = {index: -1, parent: null, states: [], resetParent: false };
 
             for(let i in args){
 
                 if(!(args[i] instanceof DocumentFragment 
                     || args[i] instanceof HTMLElement) && args[i].parent ) {
-                    final.index = i;
-                    final.parent = args[i].parent;
+
+                    if(args[i].parent){
+                        final.index = i;
+                        final.parent = args[i].parent;
+                    }
+                    
+                    if(args[i].resetParent){
+                        final.resetParent = args[i].resetParent;
+                        delete args[i].resetParent;
+                    }
 
                     delete args[i].parent;
                 }
@@ -227,7 +466,7 @@ var OpenScript = {
         wrap(...args) {
 
             const lastArg = args[args.length - 1];
-            let { index, parent, states } = this.getParentAndListen(args);
+            let { index, parent, resetParent, states } = this.getParentAndListen(args);
             
             // check if the render was called due to a state change
             if(lastArg && lastArg['called-by-state-change']) {
@@ -255,7 +494,7 @@ var OpenScript = {
 
             this.argsMap.set(uuid, args ?? []);
 
-            let attr = {uuid, parent};
+            let attr = {uuid, parent, resetParent};
 
             states.forEach((s) => {
                 attr[`s-${s.id}`] = s.id;
@@ -635,12 +874,12 @@ var OpenScript = {
          * @param {any} value 
          * @returns {OpenScript.State}
          */
-        static state(value = null){
+        static state(v = null){
             
             return OpenScript.ProxyFactory.make(
                 class extends OpenScript.State {
                     
-                    value = value;
+                    value = v;
 
                     id = OpenScript.State.count++;
 
@@ -662,7 +901,9 @@ var OpenScript = {
                 
                     set(target, prop, value) {
                     
-                        if(prop === "value" && target.value !== value) {
+                        if(prop === "value") {
+
+                            if(target.value === value) return true;
 
                             Reflect.set(...arguments);
 
@@ -673,7 +914,7 @@ var OpenScript = {
                             return true;
                         }
 
-                        if(prop !== "listeners" && prop !== "signature" && target.value[prop] !== value) {
+                        else if(prop !== "listeners" && prop !== "signature" && target.value[prop] !== value) {
                             
                             target.value[prop] = value;
                             target.$__changed__ = true;
@@ -849,6 +1090,7 @@ var OpenScript = {
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
             let isComponent = isUpperCase(name[0]);
             let root = null;
+
             /**
              * When dealing with a component
              * save the argument for async rendering
@@ -868,17 +1110,25 @@ var OpenScript = {
             let parseAttr = (obj) => {
                 
                 for(let k in obj){
-    
-                    if(k === "parent" && obj[k] instanceof HTMLElement) {
-                        parent = obj[k]; continue;
+                    let v = obj[k];
+                    
+
+                    if(v instanceof OpenScript.State){
+                        v = v.value;
+                    } 
+
+                    if(k === "parent" && v instanceof HTMLElement) {
+                        parent = v; continue;
                     }
 
-                    if(k === "resetParent" && typeof obj[k] === "boolean") {
-                        emptyParent = obj[k]; continue;
+                    if(k === "resetParent" && typeof v === "boolean") {
+                        emptyParent = v; 
+                        // console.log(k, name, emptyParent);
+                        continue;
                     }
     
-                    let val = `${obj[k]}`
-                    if(Array.isArray(obj[k])) val = `${obj[k].join(' ')}`;
+                    let val = `${v}`
+                    if(Array.isArray(v)) val = `${v.join(' ')}`;
     
                     k = k.replace(/_/g, "-");
 
@@ -887,6 +1137,8 @@ var OpenScript = {
                     root.setAttribute(k, val);
                 }
             }
+
+            // console.log(`empty parent is: ${name}`, emptyParent);
 
             for(let arg of args){
 
@@ -921,7 +1173,11 @@ var OpenScript = {
             finalRoot.append(root);
 
             if(parent) {
-                if(emptyParent) parent.textContent = '';
+                // console.log('parent found', `${parent}`, emptyParent);
+                if(emptyParent){
+                    parent.textContent = '';
+                    // console.log('emptied parent');
+                }
 
                 parent.append(finalRoot);
                 return finalRoot;
@@ -1307,6 +1563,16 @@ var OpenScript = {
          */
         Emitter = OpenScript.Emitter;
 
+        /**
+         * The Router class
+         */
+        Router = OpenScript.Router;
+
+        /**
+         * The router object
+         */
+        route = new OpenScript.Router();
+
         constructor( configs = {
             directories: {
                 components: "./components",
@@ -1479,7 +1745,17 @@ const {
     /**
      * Iterates using the each function
      */
-    each
+    each,
+
+    /**
+     * The router class
+     */
+    Router,
+
+    /**
+     * The router object
+     */
+    route
 
 } = new OpenScript.Initializer();
 

@@ -13,28 +13,28 @@ ojs(async e => {
 
     rc.root = h.dom.querySelector('#root');
 
-    const url = new URL(window.location.href);
-    let path = url.pathname.split('/');
-    path = path.pop();
-
-    switch(path) {
-        case 'index.html':
+    route.prefix('docs').group(_e => {
+        
+        route.on('index.html', () => {
             req('Index');
 
             h.Index({
-                parent: rc.root
+                parent: rc.root,
+                resetParent: route.reset
             });
+        })
 
-            break;
-        case 'docs.html': 
+        .on('docs.html', () => {
             req('Docs');
 
             h.Docs({
-                parent: rc.root
+                parent: rc.root,
+                resetParent: route.reset
             });
 
-            break;
-    }
+            console.log('executed 2');
+        });
+    });
     
-   
+    route.listen();
 });
