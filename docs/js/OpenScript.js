@@ -8,11 +8,6 @@ var OpenScript = {
      * OpenScript's Router Class
      */
     Router: class {
-        /**
-         * URL
-         * @type {URL}
-         */
-        url;
 
         /**
          * Current Prefix
@@ -44,12 +39,9 @@ var OpenScript = {
         reset;
 
         /**
-         * 
-         * @param {string} url 
+         *  
          */
-        constructor(url = null) {
-            url = url ?? window.location.href;
-            this.url = new URL(url);
+        constructor() {
 
             this.reset = OpenScript.State.state(false);
 
@@ -75,7 +67,7 @@ var OpenScript = {
 
                 if(cmp.length < 1) continue;
 
-                key = /^\{w+\}$/.test(cmp) ? '*' : cmp;
+                key = /^\{\w+\}$/.test(cmp) ? '*' : cmp;
 
                 let val = map.get(key);
                 if(!val) val = [cmp, new Map()];
@@ -104,8 +96,10 @@ var OpenScript = {
          * Executes the actions based on the url
          */
         listen(){
-            
-            let paths = this.url.pathname.split('/');
+            let url = new URL(window.location.href);
+            this.params = {};
+
+            let paths = url.pathname.split('/');
 
             let map = this.map;
 
@@ -125,7 +119,7 @@ var OpenScript = {
                 map = next[1];
             }
             
-            this.qs = new URLSearchParams(this.url.search);
+            this.qs = new URLSearchParams(url.search);
 
             map.get('->')[1]();
             
