@@ -3,6 +3,7 @@ class Docs extends OpenScript.Component {
     await super.mount();
     req("Sections.Header");
   }
+
   render(...args) {
     fetchContext("docs", "DocsData");
 
@@ -10,8 +11,800 @@ class Docs extends OpenScript.Component {
       overview: [],
     });
 
+
+
     return h.wrapper(
-      h.MainHeader(),
+      
+      {class:'docs-page'},
+      h.header(
+        {
+          class:"header fixed-top"
+        },
+        h.div(
+          {
+            class:"branding docs-branding"
+          },
+          h.div(
+            {
+              class:"container-fluid position-relative py-2"
+            },
+            h.div(
+              {
+                class:"docs-logo-wrapper"
+              },
+              h.button(
+                {
+                   id:"docs-sidebar-toggler",
+                   class:"docs-sidebar-toggler docs-sidebar-visible me-2 d-xl-none" ,
+                   type:"button"
+                },
+                h.span(),
+                h.span(),
+                h.span()
+              ),
+              h.div(
+                {
+                  class:"site-logo"
+                },
+                h.a(
+                  {
+                    class:"navbar-brand" ,
+                    href:"index.html"
+                  },
+                  h.img(
+                    {
+                      class:"logo-icon me-2" ,
+                      src:"assets/images/coderdocs-logo.svg" ,
+                      alt:"logo"
+                    },
+                    h.span(
+                      {
+                        class:"logo-text"
+                      }
+                    ),'coder',
+                    h.span(
+                      {
+                        class:"text-alt"
+                      }
+                    )
+                  )
+                )
+              )
+
+            ),
+            h.div(
+              {
+                class:"docs-top-utilities d-flex justify-content-end align-items-center"
+              },
+              h.div(
+                {
+                  class:"top-search-box d-none d-lg-flex"
+                },
+                h.form(
+                  {
+                    class:"search-form"
+                  },
+                  h.input(
+                    {
+                        type:"text",
+                        placeholder:"Search the docs...",
+                        name:"search",
+                        class:"form-control search-input"
+                    }
+                  ),
+                  h.button(
+                    {
+                      type:"submit" ,
+                      class:"btn search-btn",
+                       value:"Search"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-search"
+                      }
+                    )
+                  )
+                )
+              ),
+              h.ul(
+                {
+                  class:"social-list list-inline mx-md-3 mx-lg-5 mb-0 d-none d-lg-flex"
+                },
+                h.li(
+                  {
+                    class:"list-inline-item"
+                  },
+                  h.a(
+                    {
+                      href:"#"
+                    }
+                  ),
+                  h.i(
+                    {
+                      class:"fab fa-github fa-fw"
+                    }
+                  )
+
+                ),
+                h.li(
+                  {
+                    class:"list-inline-item"
+                  },
+                  h.a(
+                    {
+                      href:"#"
+                    }
+                  ),
+                  h.i(
+                    {
+                      class:"fab fa-twitter fa-fw"
+                    }
+                  )
+
+                ),
+                h.li(
+                  {
+                    class:"list-inline-item"
+                  },
+                  h.a(
+                    {
+                      href:"#"
+                    }
+                  ),
+                  h.i(
+                    {
+                      class:"fab fa-slack fa-fw"
+                    }
+                  )
+
+                ),
+                h.li(
+                  {
+                    class:"list-inline-item"
+                  },
+                  h.a(
+                    {
+                      href:"#"
+                    }
+                  ),
+                  h.i(
+                    {
+                      class:"fab fa-product-hunt fa-fw"
+                    }
+                  )
+
+                )
+
+              ),
+              h.a(
+                {
+                  href:"https://themes.3rdwavemedia.com/bootstrap-templates/startup/coderdocs-free-bootstrap-5-documentation-template-for-software-projects/" ,
+                  class:"btn btn-primary d-none d-lg-flex"
+                }
+              )
+            )
+          )
+        )
+      ),
+      h.div(
+        {
+          class:"docs-wrapper"
+        },
+        h.div(
+          {
+            id:"docs-sidebar" ,
+            class:"docs-sidebar"
+          },
+          h.div(
+            {
+              class:"top-search-box d-lg-none p-3"
+            },
+            h.form(
+              {
+                class:"search-form"
+              },
+              h.input(
+                {
+                  type:"text",
+                  placeholder:"Search the docs...", 
+                  name:"search" ,
+                  class:"form-control search-input"
+                }
+              ),
+              h.button(
+                {
+                  type:"submit", 
+                  class:"btn search-btn", 
+                  value:"Search"
+                },
+                h.i(
+                  {
+                    class:"fas fa-search"
+                  }
+                )
+              )
+            ),
+
+          ),
+          h.nav(
+            {
+              id:"docs-nav", 
+              class:"docs-nav navbar"
+            },
+            h.ul(
+              {
+                class:"section-items list-unstyled nav flex-column pb-3"
+              },
+              h.li(
+                {
+                  class:"nav-item section-title"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto active", 
+                    href:"#section-1"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-map-signs"
+                      }
+
+                    )
+                  ),
+                  'Introduction'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#item-1-1"
+                  },
+                  'Section Item 1.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#item-1-2"
+                  },
+                  'Section Item 1.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#item-1-3"
+                  },
+                  'Section Item 1.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#item-1-4"
+                  },
+                  'Section Item 1.4'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#item-1-5"
+                  },
+                  'Section Item 1.5'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#item-1-6"
+                  },
+                  'Section Item 1.6'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-2"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-arrow-down"
+                      }
+                    )
+                  ),
+                  'Installation'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-2-1"
+                  },
+                  'Section Item 2.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-2-2"
+                  },
+                  'Section Item 2.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-2-3"
+                  },
+                  'Section Item 2.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-3"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-box"
+                      }
+                    )
+                  ),
+                  'APIs'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-3-1"
+                  },
+                  'Section Item 3.1'
+                )
+
+
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-3-2"
+                  },
+                  'Section Item 3.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-3-3"
+                  },
+                  'Section Item 3.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-4"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-cogs"
+                      }
+                    )
+                  ),
+                  'Intergration'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-4-1"
+                  },
+                  'Section Item 4.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-4-2"
+                  },
+                  'Section Item 4.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-4-3"
+                  },
+                  'Section Item 4.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-5"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-tools"
+                      }
+                    )
+                  ),
+                  'Utitlities'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-5-1"
+                  },
+                  'Section Item 5.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-5-2"
+                  },
+                  'Section Item 5.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-5-3"
+                  },
+                  'Section Item 5.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-6"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-laptop-code"
+                      }
+                    )
+                  ),
+                  'Web'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-6-1"
+                  },
+                  'Section Item 6.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-6-2"
+                  },
+                  'Section Item 6.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-6-3"
+                  },
+                  'Section Item 6.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-7"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-tablet-alt"
+                      }
+                    )
+                  ),
+                  'Moblile'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-7-1"
+                  },
+                  'Section Item 7.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-7-2"
+                  },
+                  'Section Item 7.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-7-3"
+                  },
+                  'Section Item 7.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-8"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-book-reader"
+                      }
+                    )
+                  ),
+                  'Resources'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-8-1"
+                  },
+                  'Section Item 8.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-8-2"
+                  },
+                  'Section Item 8.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-8-3"
+                  },
+                  'Section Item 8.3'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item section-title mt-3"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto" ,
+                    href:"#section-9"
+                  },
+                  h.span(
+                    {
+                      class:"theme-icon-holder me-2"
+                    },
+                    h.i(
+                      {
+                        class:"fas fa-lightbulb"
+                      }
+                    )
+                  ),
+                  'FAQs'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-9-1"
+                  },
+                  'Section Item 9.1'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-9-2"
+                  },
+                  'Section Item 9.2'
+                )
+              ),
+              h.li(
+                {
+                  class:"nav-item"
+                },
+                h.a(
+                  {
+                    class:"nav-link scrollto",
+                    href:"#item-9-3"
+                  },
+                  'Section Item 9.3'
+                )
+              ),
+
+
+
+
+        )
+      )
+     ),
+
+    
 
       // page content to be output
       h.div(
@@ -1615,8 +2408,9 @@ class Docs extends OpenScript.Component {
           )
         )
       ),
+    )
 
-      ...args
+      
     );
   }
 }
