@@ -116,7 +116,10 @@ var OpenScript = {
             this.emit('pre-mount');
 
             h.component(this.name, this);
+
             this.bind();
+            
+            this.claimListeners();
 
             this.emit('mounted');
         }
@@ -126,8 +129,8 @@ var OpenScript = {
          * @param {string} event 
          * @param {Array<*>} args 
          */
-        emit(event, args) {
-            this.emitter.emit(event, this, args = []);
+        emit(event, ...args) {
+            this.emitter.emit(event, this, ...args);
         }
 
         /**
@@ -157,6 +160,26 @@ var OpenScript = {
             this.emit('bound');
 
             return true;
+        }
+
+        /**
+         * Gets all the listeners for itself and adds them to itself
+         */
+        claimListeners() {
+            if(h.eventsMap.has(this.name)) return;
+            let events = h.eventsMap.get(this.name);
+
+            for(let event in events) {
+
+                if(!this.emitter.listeners[event]) {
+                    this.emitter.listeners[event] = events[event];
+                    continue;
+                } 
+
+                this.emitter.listeners[event].push(...events[event]);
+            }
+
+            h.eventsMap.delete(this.name);
         }
 
         /**
@@ -455,7 +478,7 @@ var OpenScript = {
          */
         reconcile(map, referenceName) {
 
-            console.log('reconciling');
+            //console.log('reconciling', this.__contextName__);
 
             let cxt = map.get(referenceName);
             
@@ -497,6 +520,8 @@ var OpenScript = {
          */
         states(obj = {}) {
             for(let k in obj) {
+                if(this[k]) continue;
+
                 this[k] = state(obj[k]);
             }
         }
@@ -739,13 +764,21 @@ var OpenScript = {
     MarkupEngine: class {
         /**
          * Keeps the components
+         * @type {Map<string,OpenScript.Component>}
          */
         compMap = new Map();
 
         /**
          * Keeps the components arguments
+         * @type {Map<string, Array<string|DocumentFragment|HTMLElement>}
          */
         compArgs = new Map();
+
+        /**
+         * Keeps a temporary component-events map
+         * @type {Map<string,Array<Function>>}
+         */
+        eventsMap = new Map();
 
         /**
          * The IDs for components on the DOM awaiting 
@@ -936,7 +969,50 @@ var OpenScript = {
             return final;
         }
 
+        /**
+         * Adds an event listener to a component
+         * @param {string} component component name 
+         * @param {string} event event name
+         * @param  {...function} listeners listeners
+         */
+        on = (component, event, ...listeners) =>{
 
+            if(this.compMap.has(component)) {
+
+                if(!this.emitter(component).listeners[event]) {
+                    this.emitter(component).listeners[event] = [];
+                }
+
+                return this.emitter(component).listeners[event].push(...listeners);
+            }
+
+            if(!this.eventsMap.has(component)){
+                this.eventsMap.set(component, {});
+                this.eventsMap.get(component)[event] = listeners;
+                return;
+            }
+            
+            return this.eventsMap.get(component)[event].push(...listeners);
+        }
+
+        /**
+         * Gets the event emitter of a component
+         * @param {string} component component name 
+         * @returns 
+         */
+        emitter = (component) => {
+            return this.compMap.get(component)?.emitter;
+        }
+
+
+        /**
+         * Gets a component and returns it
+         * @param {string} name 
+         * @returns {OpenScript.Component|null}
+         */
+        getComponent = (name) => {
+            return this.compMap.get(name);
+        }
 
         /**
          * Creates an anonymous component
@@ -1398,7 +1474,12 @@ const {
     /**
      * Fetch a Context from the network
      */
-    fetchContext
+    fetchContext,
+
+    /**
+     * Iterates using the each function
+     */
+    each
 
 } = new OpenScript.Initializer();
 
