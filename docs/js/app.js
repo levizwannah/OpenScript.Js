@@ -2,7 +2,7 @@ ojs(async e => {
     // init global components
     req('Groups.Common');
     req('Groups.Common');
-    
+
     // init contexts
     let rc = fetchContext(['root', 'data', 'config'], 'Groups.UrgentContexts').get('root');
     let cc = context('config');
@@ -16,7 +16,16 @@ ojs(async e => {
 
     rc.root = h.dom.querySelector('#root');
 
-    route.prefix('docs').group(_e => {
+    route.prefix('OpenScript.Js').group(_e => {
+        
+        route.on('/', () => {
+            req('Index');
+
+            h.Index({
+                parent: rc.root,
+                resetParent: route.reset
+            });
+        });
         
         route.on('index.html', () => {
             req('Index');
