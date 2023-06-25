@@ -39,6 +39,11 @@ var OpenScript = {
         reset;
 
         /**
+         * The default path
+         */
+        path = "";
+
+        /**
          *  
          */
         constructor() {
@@ -52,13 +57,23 @@ var OpenScript = {
         }
 
         /**
+         * Sets the default path
+         * @param {string} path 
+         * @returns 
+         */
+        default(path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
          * Adds an action on URL path
          * @param {string} path 
          * @param {function} action action to perform
          */
         on(path, action) {
 
-            const paths =`${this.__prefix}/${path}`.split('/');
+            const paths =`${this.path}/${this.__prefix}/${path}`.split('/');
             
             let key = null;
             let map = this.map;
@@ -110,7 +125,7 @@ var OpenScript = {
          * Executes the actions based on the url
          */
         listen(){
-            let url = new URL(window.location.href);
+            let url = new URL(window.location.href + `/${this.path}/`);
             this.params = {};
 
             let paths = url.pathname.split('/');
@@ -151,6 +166,8 @@ var OpenScript = {
          * @param {object} qs Query string
          */
         to(path, qs = {}){
+            
+            if(path[0] != '/') path = '/' + path;
 
             let s = '';
 
@@ -173,7 +190,8 @@ var OpenScript = {
          * @returns string
          */
         baseUrl(path = ''){
-            return (new URL(window.location.href)).origin + '/' + path;
+            return (new URL(window.location.href)).origin + 
+           ( (this.path.length > 0) ? '/' + this.path: '' )  + '/' + path;
         }
 
         /**

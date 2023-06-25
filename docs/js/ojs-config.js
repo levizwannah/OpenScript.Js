@@ -3,12 +3,19 @@
  |----------------------------------
 */
 
+/**----------------------------------
+ * 
+ * Set the default route path here
+ * ----------------------------------
+ */
+route.default('/OpenScript.Js');
+
 /*-----------------------------------
  | set the directories in which we
  | can find the context files
  |-----------------------------------
 */
-ContextProvider.directory = route.baseUrl('OpenScript.Js/docs/js/contexts');
+ContextProvider.directory = route.baseUrl('/docs/js/contexts');
 
 /*-----------------------------------
  | set the version number of the
@@ -24,7 +31,7 @@ ContextProvider.version = '1.0.0';
  | directory for the loader
  |-----------------------------------
 */
-loader.dir = route.baseUrl('OpenScript.Js/docs/js/components');
+loader.dir = route.baseUrl('/docs/js/components');
 
 /*-----------------------------------
  | set the version number of the
