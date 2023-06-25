@@ -185,7 +185,19 @@ var OpenScript = {
          */
         to(path, qs = {}){
 
-            if(path[0] != '/') path = '/' + path;
+            path = `${this.path}/${path}`.trim();
+
+            let paths = path.split('/');
+
+            path = '';
+
+            for(let p of paths) {
+                if(p.length === 0 || /^\s+$/.test(p)) continue;
+
+                if(path.length) path += '/';
+
+                path += p.trim();
+            }
 
             let s = '';
 
@@ -196,7 +208,7 @@ var OpenScript = {
 
             if(s.length > 0) s = `?${s}`;
 
-            this.history().pushState({random: Math.random()}, '', `${path}${s}`);
+            this.history().pushState({random: Math.random()}, '', `/${path}${s}`);
             this.reset.value = true;
 
             return this.listen();
