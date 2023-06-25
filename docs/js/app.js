@@ -1,7 +1,6 @@
 ojs(async e => {
     // init global components
     req('Groups.Common');
-    req('Groups.Common');
 
     // init contexts
     let rc = fetchContext(['root', 'data', 'config'], 'Groups.UrgentContexts').get('root');
