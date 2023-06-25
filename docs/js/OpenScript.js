@@ -13,7 +13,7 @@ var OpenScript = {
          * Current Prefix
          * @type {string}
          */
-        __prefix;
+        __prefix = '';
 
         /**
          * The routes Map
@@ -39,6 +39,19 @@ var OpenScript = {
         reset;
 
         /**
+         * The default path
+         */
+        path = "";
+
+        /**
+         * Default Action
+         * @type {function}
+         */
+        defaultAction = () => {
+            alert('404 File Not Found')
+        }
+
+        /**
          *  
          */
         constructor() {
@@ -52,13 +65,31 @@ var OpenScript = {
         }
 
         /**
+         * Sets the default path
+         * @param {string} path 
+         * @returns 
+         */
+        basePath(path) {
+            this.path = path;
+            return this;
+        }
+
+        /**
+         * Sets the default action if a route is not found
+         * @param {function} action 
+         */
+        default(action) {
+            this.defaultAction = action;
+        }
+
+        /**
          * Adds an action on URL path
          * @param {string} path 
          * @param {function} action action to perform
          */
         on(path, action) {
 
-            const paths =`${this.__prefix}/${path}`.split('/');
+            const paths =`${this.path}/${this.__prefix}/${path}`.split('/');
             
             let key = null;
             let map = this.map;
@@ -82,6 +113,20 @@ var OpenScript = {
         }
 
         /**
+         * Used to add multiple routes to the same action
+         * @param {Array<string>} paths 
+         * @param {function} action 
+         */
+        orOn(paths, action){
+            
+            for(let path of paths) {
+                this.on(path, action);
+            }
+
+            return this;
+        }
+
+        /**
          * Creates a prefix for a group of routes
          * @param {string} name 
          */
@@ -96,6 +141,7 @@ var OpenScript = {
          * Executes the actions based on the url
          */
         listen(){
+            
             let url = new URL(window.location.href);
             this.params = {};
 
@@ -116,6 +162,7 @@ var OpenScript = {
 
                 if(!next) {
                     console.error(`${url.pathname} was not found`);
+                    this.defaultAction();
                     return this;
                 } 
 
@@ -138,6 +185,8 @@ var OpenScript = {
          */
         to(path, qs = {}){
 
+            if(path[0] != '/') path = '/' + path;
+
             let s = '';
 
             for(let k in qs) {
@@ -159,7 +208,8 @@ var OpenScript = {
          * @returns string
          */
         baseUrl(path = ''){
-            return (new URL(window.location.href)).origin + '/' + path;
+            return (new URL(window.location.href)).origin + 
+           ( (this.path.length > 0) ? '/' + this.path: '' )  + '/' + path;
         }
 
         /**
