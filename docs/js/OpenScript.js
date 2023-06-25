@@ -13,7 +13,7 @@ var OpenScript = {
          * Current Prefix
          * @type {string}
          */
-        __prefix;
+        __prefix = '';
 
         /**
          * The routes Map
@@ -44,6 +44,14 @@ var OpenScript = {
         path = "";
 
         /**
+         * Default Action
+         * @type {function}
+         */
+        defaultAction = () => {
+            alert('404 File Not Found')
+        }
+
+        /**
          *  
          */
         constructor() {
@@ -61,9 +69,17 @@ var OpenScript = {
          * @param {string} path 
          * @returns 
          */
-        default(path) {
+        basePath(path) {
             this.path = path;
             return this;
+        }
+
+        /**
+         * Sets the default action if a route is not found
+         * @param {function} action 
+         */
+        default(action) {
+            this.defaultAction = action;
         }
 
         /**
@@ -125,7 +141,9 @@ var OpenScript = {
          * Executes the actions based on the url
          */
         listen(){
-            let url = new URL(window.location.href + `/${this.path}/`);
+            let p = this.path;
+            if(p.length > 0 && !/^\s+$/.test(p)) p = '/' + p; 
+            let url = new URL(window.location.href + `${p}/`);
             this.params = {};
 
             let paths = url.pathname.split('/');
@@ -145,6 +163,7 @@ var OpenScript = {
 
                 if(!next) {
                     console.error(`${url.pathname} was not found`);
+                    this.defaultAction();
                     return this;
                 } 
 
@@ -166,7 +185,7 @@ var OpenScript = {
          * @param {object} qs Query string
          */
         to(path, qs = {}){
-            
+
             if(path[0] != '/') path = '/' + path;
 
             let s = '';

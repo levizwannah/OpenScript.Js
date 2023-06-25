@@ -16,7 +16,7 @@ ojs(async e => {
 
     rc.root = h.dom.querySelector('#root');
 
-    route.orOn(['/', 'index.html'], () => {
+    route.orOn(['/', 'index.html', 'index'], () => {
         req('Index');
 
         h.Index({
@@ -25,7 +25,7 @@ ojs(async e => {
         });
     })
 
-    .on('docs.html', () => {
+    .orOn([ 'docs', 'docs.html'], () => {
         req('Docs');
 
         h.Docs({

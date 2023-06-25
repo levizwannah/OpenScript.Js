@@ -8,7 +8,9 @@
  * Set the default route path here
  * ----------------------------------
  */
-route.default('/OpenScript.Js');
+if((new URL(window.location.href).hostname !== '127.0.0.1')){
+    route.basePath('OpenScript.Js');
+} 
 
 /*-----------------------------------
  | set the directories in which we
