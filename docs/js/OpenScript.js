@@ -141,9 +141,8 @@ var OpenScript = {
          * Executes the actions based on the url
          */
         listen(){
-            let p = this.path;
-            if(p.length > 0 && !/^\s+$/.test(p)) p = '/' + p; 
-            let url = new URL(window.location.href + `${p}/`);
+            
+            let url = new URL(window.location.href);
             this.params = {};
 
             let paths = url.pathname.split('/');
