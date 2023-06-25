@@ -21,7 +21,7 @@ class Logo extends OpenScript.Component {
                     h.img(
                         {
                             class: 'logo-icon me-2',
-                            src: 'assets/images/coderdocs-logo.svg',
+                            src: route.baseUrl('docs/assets/images/coderdocs-logo.svg'),
                             alt: 'OpenScript Logo',
                         }
                     ),

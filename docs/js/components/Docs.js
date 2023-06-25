@@ -11,11 +11,11 @@ class Docs extends OpenScript.Component {
       overview: [],
     });
 
-
-
     return h.wrapper(
-      
-      {class:'docs-page'},
+      {
+        class:'docs-page'
+      },
+
       h.header(
         {
           class:"header fixed-top"
@@ -54,7 +54,7 @@ class Docs extends OpenScript.Component {
                   h.img(
                     {
                       class:"logo-icon me-2" ,
-                      src:"assets/images/coderdocs-logo.svg" ,
+                      src: route.baseUrl("docs/assets/images/coderdocs-logo.svg") ,
                       alt:"logo"
                     },
                     h.span(

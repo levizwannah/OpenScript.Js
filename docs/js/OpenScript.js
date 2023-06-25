@@ -114,7 +114,10 @@ var OpenScript = {
                     if(next) this.params[next[0].replace(/[\{\}]/g, '')] = cmp;
                 }
 
-                if(!next) break;
+                if(!next) {
+                    console.error(`${url.pathname} was not found`);
+                    return this;
+                } 
 
                 map = next[1];
             }
@@ -148,6 +151,15 @@ var OpenScript = {
             this.reset.value = true;
 
             return this.listen();
+        }
+
+        /**
+         * Gets the base URL
+         * @param {string} path
+         * @returns string
+         */
+        baseUrl(path = ''){
+            return (new URL(window.location.href)).origin + '/' + path;
         }
 
         /**
@@ -602,7 +614,7 @@ var OpenScript = {
 
         /**
          * Adds a Context Path to the Map
-         * @param {string} referenceName  
+         * @param {string|Array<string>} referenceName  
          * @param {string} qualifiedName The Context File path, ignoring the context directory itself.
          * @param {boolean} fetch Should the file be fetched from the backend
          * @param {boolean} load Should this context be loaded automatically
@@ -627,21 +639,31 @@ var OpenScript = {
     
                
                 if(!Context) {
-                    Context = OpenScript.Context;
+                    Context = new Map([qualifiedName, ['_', OpenScript.Context]]);
                 }
-                
-                try{
-                    let cxt = new Context();
-                    
-                    /**
-                     * Update States that should be updated
-                     */
-                    if(shouldFetch) cxt.reconcile(this.map, referenceName);
 
-                    this.map.set(referenceName, cxt);
-                }
-                catch(e) {
-                    console.error(`Unable to load ${referenceName} because it already exists in the window. Please ensure that you are loading your contexts before your components`, e);
+                let counter = 0;
+                if(!Array.isArray(referenceName)) referenceName = [referenceName];
+
+                for(let [k, v] of Context) {
+
+                    try{
+                        let cxt = new v[1]();
+                        
+                        /**
+                         * Update States that should be updated
+                         */
+                        let key = referenceName[counter] ?? cxt.__contextName__;
+
+                        if(shouldFetch) cxt.reconcile(this.map, key);
+
+                        this.map.set(key, cxt);
+                    }
+                    catch(e) {
+                        console.error(`Unable to load ${referenceName} because it already exists in the window. Please ensure that you are loading your contexts before your components`, e);
+                    }
+
+                    counter++;
                 }
             }
             
@@ -1388,6 +1410,7 @@ var OpenScript = {
             let names = className.split(/\./);
             let obj;
 
+            // check if the object already exists
             for(let n of names){
 
                 if(!obj) {
@@ -1407,21 +1430,94 @@ var OpenScript = {
     
             let response = await fetch(`${this.dir}/${this.normalize(className)}${this.extension}?v=${this.version}`);
     
-            let jsCode = await response.text();
+            let classes = await response.text();
 
-            let inheritance = jsCode.match(/extends[\s\n]+\s*.+\s*[\s\n]+\{/);
+            let matches = classes.match(/class\s+[A-Za-z]+/g);
+            
 
-            if(inheritance) {
+            // checking if there is only one class
+            if(matches && matches.index) matches = [matches[0]];
 
-                let parent = inheritance[0].replace(/[\n\s\{]+/g, " ");
-                parent = parent.replace(/extends/g, "").trim();
+            classes = classes.split(/class\s+[A-Za-z]+/g);
 
-                if(!this.exists(parent)) {
-                    await this.req(parent);
-                }
+            let classMap = new Map();
+            let codeMap = new Map();
+
+            let prefixArray = [...names];
+            prefixArray.pop();
+
+            let prefix = prefixArray.join('.');
+            if(prefix.length > 0 && !/^\s+$/.test(prefix)) prefix += '.';
+            
+            classes.shift();
+
+            for(let k in classes){
+                if(classes[k].length === 0 || /^[\s+\n+\r+\t+]*$/.test(classes[k])) continue;
+                
+                classes[k] = classes[k].trim();
+                matches[k] = matches[k].trim();
+                
+                let m = matches[k].match(/\s+/);
+                let name = matches[k].substring(m['index'])?.trim();
+            
+                let key = prefix + name;
+                
+                classMap.set(key, [name, `${matches[k]} ${classes[k]}`]);
+
             }
 
-            return await this.setFile(names, Function( `return (${jsCode})`)());
+            for(let [k, arr] of classMap){
+                
+                let inheritance = arr[1].match(/extends[\s\n]+\s*.+\s*[\s\n]+\{/);
+
+                if(inheritance) {
+
+                    let parent = inheritance[0].replace(/[\n\s\{]+/g, " ");
+                    parent = parent.replace(/extends/g, "").trim();
+
+                    let original = parent;
+
+                    if(!/\./g.test(parent)) parent = prefix + parent;
+                    
+                    if(!this.exists(parent)) {
+
+                        if(!classMap.has(parent)) {
+                            await this.req(parent);
+                        }
+                        else {
+                            let pCode = classMap.get(parent);
+
+                            prefixArray.push(pCode[0]);
+
+                            let code = await this.setFile(prefixArray, Function( `return (${pCode[1]})`)());
+
+                            prefixArray.pop();
+
+                            codeMap.set(parent, [pCode[0], code]);
+                        }
+                    }
+                    else {
+                        let replacement = inheritance[0].replace(original, parent);
+                        console.log(k, arr[1]);
+
+                        let c = arr[1].replace(inheritance[0], replacement);
+                        arr[1] = c;
+                    }
+                }
+
+                if(!this.exists(k)){
+                    prefixArray.push(arr[0]);
+
+                    let code = await this.setFile(prefixArray, Function( `return (${arr[1]})`)());
+
+                    prefixArray.pop();
+
+                    codeMap.set(k, [arr[0], code]);
+                }
+            }
+            
+
+            return codeMap;
         }
     
         async include(className){

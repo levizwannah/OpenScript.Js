@@ -22,42 +22,16 @@ ojs(async e => {
                 parent: rc.root,
                 resetParent: route.reset
             });
-
-            console.log('executed 1');
         })
 
-        .on('docs.html/{id}/here', () => {
+        .on('docs.html', () => {
             req('Docs');
 
             h.Docs({
                 parent: rc.root,
                 resetParent: route.reset
             });
-
-            console.log('executed 2');
-        })
-        .on('docs.html/{id}/blue', () => {
-            req('Docs');
-
-            h.Docs({
-                parent: rc.root,
-                resetParent: route.reset
-            });
-
-            console.log('executed 2');
-        })
-
-        .on('docs.html/hello/here', () => {
-            req('Docs');
-
-            h.Docs({
-                parent: rc.root,
-                resetParent: route.reset
-            });
-
-            console.log('executed 2');
-        })
-        ;
+        });
     });
     
     route.listen();

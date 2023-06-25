@@ -8,7 +8,7 @@
  | can find the context files
  |-----------------------------------
 */
-ContextProvider.directory = './js/contexts';
+ContextProvider.directory = route.baseUrl('/docs/js/contexts');
 
 /*-----------------------------------
  | set the version number of the
@@ -24,7 +24,7 @@ ContextProvider.version = '1.0.0';
  | directory for the loader
  |-----------------------------------
 */
-loader.dir = "./js/components";
+loader.dir = route.baseUrl('docs/js/components');
 
 /*-----------------------------------
  | set the version number of the
