@@ -82,6 +82,20 @@ var OpenScript = {
         }
 
         /**
+         * Used to add multiple routes to the same action
+         * @param {Array<string>} paths 
+         * @param {function} action 
+         */
+        orOn(paths, action){
+            
+            for(let path of paths) {
+                this.on(path, action);
+            }
+
+            return this;
+        }
+
+        /**
          * Creates a prefix for a group of routes
          * @param {string} name 
          */

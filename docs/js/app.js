@@ -17,17 +17,8 @@ ojs(async e => {
     rc.root = h.dom.querySelector('#root');
 
     route.prefix('OpenScript.Js').group(_e => {
-        
-        route.on('/', () => {
-            req('Index');
 
-            h.Index({
-                parent: rc.root,
-                resetParent: route.reset
-            });
-        });
-        
-        route.on('index.html', () => {
+        route.orOn(['/', 'index.html'], () => {
             req('Index');
 
             h.Index({
