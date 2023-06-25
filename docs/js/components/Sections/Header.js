@@ -7,8 +7,6 @@ class Header extends OpenScript.Component {
 
     async mount(){
         await super.mount();
-        req('Logo');
-        req('SocialList');
     }
 
     render() {

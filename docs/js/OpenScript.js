@@ -596,20 +596,25 @@ var OpenScript = {
 
         /**
          * Asynchronously loads a context
-         * @param {string} referenceName 
+         * @param {string|Array<string>} referenceName 
          * @param {string} qualifiedName 
          * @param {boolean} fetch
          */
         load(referenceName, qualifiedName, fetch = false) {
-            let c = this.map.get(referenceName);
+            if(!Array.isArray(referenceName)) referenceName = [ referenceName ];
+            
+            for(let name of referenceName) {
+                let c = this.map.get(name);
 
-            if(!c) {
-                this.map.set(referenceName, new OpenScript.Context());
+                if(!c) {
+                    this.map.set(name, new OpenScript.Context());
+                }
             }
 
+            
             this.put(referenceName, qualifiedName, fetch);
 
-            return this.map.get(referenceName);
+            return referenceName.length == 1 ? this.map.get(referenceName[0]) : this.map;
         }
 
         /**
@@ -620,7 +625,9 @@ var OpenScript = {
          * @param {boolean} load Should this context be loaded automatically
          */
         put = async (referenceName, qualifiedName, fetch = false) => {
-            let c = this.map.get(referenceName);
+            if(!Array.isArray(referenceName)) referenceName = [referenceName];
+
+            let c = this.map.get(referenceName[0]);
 
             let shouldFetch = false;
 
@@ -643,7 +650,6 @@ var OpenScript = {
                 }
 
                 let counter = 0;
-                if(!Array.isArray(referenceName)) referenceName = [referenceName];
 
                 for(let [k, v] of Context) {
 
@@ -665,6 +671,9 @@ var OpenScript = {
 
                     counter++;
                 }
+            }
+            else {
+                console.error(`${referenceName[0]} already exists. If you have multiple contexts in the file in ${qualifiedName}, then you can use context('[contextName]Context') to access them.`)
             }
             
             return this.context(referenceName);
@@ -1365,6 +1374,11 @@ var OpenScript = {
     AutoLoader: class ClassLoader {
 
         /**
+         * Keeps track of the files that have been loaded
+         */
+        history = new Map();
+
+        /**
             * The Directory or URL in which all JS files are located
             */
         dir = ".";
@@ -1403,32 +1417,15 @@ var OpenScript = {
     
         /**
             * 
-            * @param {string} className script name without the .js.
+            * @param {string} fileName script name without the .js.
             */
-        async req(className){
+        async req(fileName){
             
-            let names = className.split(/\./);
-            let obj;
-
-            // check if the object already exists
-            for(let n of names){
-
-                if(!obj) {
-                    obj = window[n];
-                    continue;
-                }
-                
-                if(!obj) {
-                    obj = null;
-                    break;
-                } 
-
-                obj = obj[n];
-            }
-
-            if(obj) return obj;
-    
-            let response = await fetch(`${this.dir}/${this.normalize(className)}${this.extension}?v=${this.version}`);
+            let names = fileName.split(/\./);
+            
+            if(this.history.has(`${this.dir}.${fileName}`)) return this.history.get(`${this.dir}.${fileName}`);
+            
+            let response = await fetch(`${this.dir}/${this.normalize(fileName)}${this.extension}?v=${this.version}`);
     
             let classes = await response.text();
 
@@ -1444,7 +1441,6 @@ var OpenScript = {
             let codeMap = new Map();
 
             let prefixArray = [...names];
-            prefixArray.pop();
 
             let prefix = prefixArray.join('.');
             if(prefix.length > 0 && !/^\s+$/.test(prefix)) prefix += '.';
@@ -1498,7 +1494,7 @@ var OpenScript = {
                     }
                     else {
                         let replacement = inheritance[0].replace(original, parent);
-                        console.log(k, arr[1]);
+                        //console.log(k, arr[1]);
 
                         let c = arr[1].replace(inheritance[0], replacement);
                         arr[1] = c;
@@ -1516,14 +1512,15 @@ var OpenScript = {
                 }
             }
             
+            this.history.set(`${this.dir}.${fileName}`, codeMap);
 
             return codeMap;
         }
     
-        async include(className){
+        async include(fileName){
 
             try{ 
-                return await this.req(this.normalize(className));
+                return await this.req(fileName);
             } catch(e) {}
 
             return null;

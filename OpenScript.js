@@ -596,20 +596,25 @@ var OpenScript = {
 
         /**
          * Asynchronously loads a context
-         * @param {string} referenceName 
+         * @param {string|Array<string>} referenceName 
          * @param {string} qualifiedName 
          * @param {boolean} fetch
          */
         load(referenceName, qualifiedName, fetch = false) {
-            let c = this.map.get(referenceName);
+            if(!Array.isArray(referenceName)) referenceName = [ referenceName ];
+            
+            for(let name of referenceName) {
+                let c = this.map.get(name);
 
-            if(!c) {
-                this.map.set(referenceName, new OpenScript.Context());
+                if(!c) {
+                    this.map.set(name, new OpenScript.Context());
+                }
             }
 
+            
             this.put(referenceName, qualifiedName, fetch);
 
-            return this.map.get(referenceName);
+            return referenceName.length == 1 ? this.map.get(referenceName[0]) : this.map;
         }
 
         /**
@@ -620,7 +625,9 @@ var OpenScript = {
          * @param {boolean} load Should this context be loaded automatically
          */
         put = async (referenceName, qualifiedName, fetch = false) => {
-            let c = this.map.get(referenceName);
+            if(!Array.isArray(referenceName)) referenceName = [referenceName];
+
+            let c = this.map.get(referenceName[0]);
 
             let shouldFetch = false;
 
@@ -643,7 +650,6 @@ var OpenScript = {
                 }
 
                 let counter = 0;
-                if(!Array.isArray(referenceName)) referenceName = [referenceName];
 
                 for(let [k, v] of Context) {
 
@@ -665,6 +671,9 @@ var OpenScript = {
 
                     counter++;
                 }
+            }
+            else {
+                console.error(`${referenceName[0]} already exists. If you have multiple contexts in the file in ${qualifiedName}, then you can use context('[contextName]Context') to access them.`)
             }
             
             return this.context(referenceName);

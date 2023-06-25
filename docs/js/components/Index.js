@@ -1,15 +1,111 @@
+class SearchForm extends OpenScript.Component {
+    constructor() {
+        super();
+
+        this.name = 'Search';
+    }
+
+    render(type, ...args) {
+        switch(type) {
+            case 'hero': return this.hero(...args);
+
+            default: return this.hero(...args);
+        }
+    }
+
+    hero(...args) {
+        return h.form(
+            {class: 'search-form w-100'},
+
+            h.input( {
+                type: 'text',
+                placeholder: 'Search the docs...',
+                class: 'form-control search-input underlined input-data'
+            }),
+
+            h.button(
+                {
+                    type: 'submit',
+                    class: 'btn search-btn',
+                    value: 's'
+                },
+
+                h.i(
+                    {class: 'fas fa-search'}
+                )
+            ),
+
+            ...args
+        )
+    }
+
+}
+
+class Overview extends OpenScript.Component {
+
+    render(contents, ...args) {
+
+        let cards = [];
+
+        each(contents, (content) => {
+            cards.push(
+                h.div(
+                    { class: 'col-12 col-lg-4 py-3'},
+
+                    h.div( 
+                        {class: 'card shadow-sm'},
+
+                        h.div(
+                            {class: 'card-body'},
+
+                            h.h5(
+                                {class: 'card-title mb-3'},
+
+                                h.span(
+                                    {class: 'theme-icon-holder card-icon-holder me-2'},
+                                    h.i(
+                                        {class: `fas ${content.icon}`}
+                                    )
+                                ),
+
+                                h.span(
+                                    {class: 'card-title-text'},
+                                    content.title
+                                )
+                            ),
+
+                            h.div(
+                                {class: 'card-text'},
+                                content.body
+                            ),
+
+                            h.a({
+                                class: 'card-link-mask',
+                                href: content.link
+                            })
+                        )
+                    )
+                )
+            )
+        });
+
+        return h.div(
+            {class: 'row justify-content-center'},
+            cards,
+            ...args
+        );
+    }
+
+}
+
 class Index extends OpenScript.Component {
 
     async mount() {
         await super.mount();
         req('Sections.Header');
-        req('SearchForm');
-        req('Overview');
     }
 
     render(...args) {
-        
-        fetchContext('data', 'IndexData');
 
         context('data').states({
             overview: []
@@ -149,5 +245,4 @@ class Index extends OpenScript.Component {
             ...args
         )
     }
-
 }
