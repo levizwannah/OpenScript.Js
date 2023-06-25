@@ -16,24 +16,21 @@ ojs(async e => {
 
     rc.root = h.dom.querySelector('#root');
 
-    route.prefix('OpenScript.Js').group(_e => {
+    route.orOn(['/', 'index.html'], () => {
+        req('Index');
 
-        route.orOn(['/', 'index.html'], () => {
-            req('Index');
+        h.Index({
+            parent: rc.root,
+            resetParent: route.reset
+        });
+    })
 
-            h.Index({
-                parent: rc.root,
-                resetParent: route.reset
-            });
-        })
+    .on('docs.html', () => {
+        req('Docs');
 
-        .on('docs.html', () => {
-            req('Docs');
-
-            h.Docs({
-                parent: rc.root,
-                resetParent: route.reset
-            });
+        h.Docs({
+            parent: rc.root,
+            resetParent: route.reset
         });
     });
     
