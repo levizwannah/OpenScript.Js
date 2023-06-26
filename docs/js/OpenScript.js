@@ -349,12 +349,14 @@ var OpenScript = {
       
         // Fire the event
         emit(eventName, ...args) {
+    
           let fns = this.listeners[eventName];
           if (!fns) return false;
           fns.forEach((f) => {
             f(...args);
           });
           return true;
+
         }
       
         listenerCount(eventName) {
@@ -375,6 +377,18 @@ var OpenScript = {
      */
     Component: class {
 
+        /**
+         * List of events that a component emits
+         */
+        EVENTS = {
+            rendered: 'rendered', // component is visible on the dom
+            rerendered: 'rerendered', // component was rerendered
+            premount: 'premount', // component is ready to register
+            mounted: 'mounted', // the component is now registered
+            prebind: 'prebind', // the component is ready to bind
+            bound: 'bound', // the component has bound
+            markupBound: 'markup-bound' // a temporary markup has bound
+        }
         /**
          * Name of the component
          */
@@ -412,15 +426,11 @@ var OpenScript = {
          * @emits pre-mount
          */
         async mount(){
-            this.emit('pre-mount');
-
-            h.component(this.name, this);
-
-            this.bind();
-            
             this.claimListeners();
-
-            this.emit('mounted');
+            this.emit(this.EVENTS.premount);
+            h.component(this.name, this);
+            this.bind();
+            this.emit(this.EVENTS.mounted);
         }
 
         /**
@@ -428,7 +438,7 @@ var OpenScript = {
          * @param {string} event 
          * @param {Array<*>} args 
          */
-        emit(event, ...args) {
+        emit(event, args = []) {
             this.emitter.emit(event, this, ...args);
         }
 
@@ -440,11 +450,9 @@ var OpenScript = {
          */
         async bind() {
             
-            this.emit('pre-bind');
+            this.emit(this.EVENTS.prebind);
 
             let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}-tmp`);
-
-
 
             for(let elem of all) {
 
@@ -453,10 +461,10 @@ var OpenScript = {
 
                 this.wrap(...args, {parent: elem});
                 
-                this.emit('markup-bound', [elem, args]);
+                this.emit(this.EVENTS.markupBound, [elem, args]);
             }
 
-            this.emit('bound');
+            this.emit(this.EVENTS.bound);
 
             return true;
         }
@@ -465,7 +473,9 @@ var OpenScript = {
          * Gets all the listeners for itself and adds them to itself
          */
         claimListeners() {
-            if(h.eventsMap.has(this.name)) return;
+
+            if(!h.eventsMap.has(this.name)) return;
+
             let events = h.eventsMap.get(this.name);
 
             for(let event in events) {
@@ -550,9 +560,7 @@ var OpenScript = {
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
-                    this.render(...arg, { parent: e });
-
-                    this.emit('re-rendered', arg);
+                    this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [] });
                 });
 
                 return;
@@ -568,7 +576,10 @@ var OpenScript = {
                 attr[`s-${s.id}`] = s.id;
             });
 
-            return h[`ojs-${this.name}`](attr, this.render(...args));
+            return h[`ojs-${this.name}`](attr, this.render(...args), {
+                component: this, 
+                event: this.EVENTS.rendered,
+                eventParams: []});
         }
 
         /**
@@ -1169,6 +1180,10 @@ var OpenScript = {
                 return this.compMap.get(name).wrap(...args);
             }
     
+            let component;
+            let event = '';
+            let eventParams = [];
+
             let parent = null;
             let emptyParent = false;
             let rootFrag = new DocumentFragment();
@@ -1209,8 +1224,23 @@ var OpenScript = {
                     }
 
                     if(k === "resetParent" && typeof v === "boolean") {
-                        emptyParent = v; 
-                        // console.log(k, name, emptyParent);
+                        emptyParent = v;
+                        continue;
+                    }
+                    
+                    if(k === "event" && typeof v === "string") {
+                        event = v;
+                        continue;
+                    }
+
+                    if(k === "eventParams") {
+                        if(!Array.isArray(v)) v = [v];
+                        eventParams = v;
+                        continue;
+                    }
+
+                    if(k === "component" && v instanceof OpenScript.Component){
+                        component = v;
                         continue;
                     }
     
@@ -1225,7 +1255,6 @@ var OpenScript = {
                 }
             }
 
-            // console.log(`empty parent is: ${name}`, emptyParent);
 
             for(let arg of args){
 
@@ -1260,13 +1289,13 @@ var OpenScript = {
             finalRoot.append(root);
 
             if(parent) {
-                // console.log('parent found', `${parent}`, emptyParent);
+                
                 if(emptyParent){
                     parent.textContent = '';
-                    // console.log('emptied parent');
                 }
 
                 parent.append(finalRoot);
+                if(component) component.emit(event, eventParams);
                 return finalRoot;
             } 
     
@@ -1321,11 +1350,9 @@ var OpenScript = {
         on = (component, event, ...listeners) =>{
 
             if(this.compMap.has(component)) {
-
                 if(!this.emitter(component).listeners[event]) {
                     this.emitter(component).listeners[event] = [];
                 }
-
                 return this.emitter(component).listeners[event].push(...listeners);
             }
 
