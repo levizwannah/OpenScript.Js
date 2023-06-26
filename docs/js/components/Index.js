@@ -113,7 +113,7 @@ class Index extends OpenScript.Component {
 
         return h.wrapper(
 
-            h.MainHeader(),
+            h.MainHeader('index'),
 
             h.div(
                 {

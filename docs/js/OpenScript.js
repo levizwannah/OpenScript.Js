@@ -1404,6 +1404,8 @@ var OpenScript = {
             if(value instanceof DocumentFragment || value instanceof HTMLElement) {
                 return value;
             }
+            
+            if(value.length === 0) return this.dom.createTextNode(value);
 
             let tmp = this.dom.createElement("ojs-group");
             tmp.innerHTML = value;

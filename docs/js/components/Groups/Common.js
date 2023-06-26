@@ -6,35 +6,29 @@ class Logo extends OpenScript.Component {
 
     render(...args) {
         return h.div(
-            {
-                class: 'docs-logo-wrapper'
-            },
+            { class: 'site-logo' },
+            h.a(
+                {
+                    class: 'navbar-brand',
+                    href: 'index.html'
+                },
 
-            h.div(
-                { class: 'site-logo' },
-                h.a(
+                h.img(
                     {
-                        class: 'navbar-brand',
-                        href: 'index.html'
-                    },
+                        class: 'logo-icon me-2',
+                        src: route.baseUrl('/docs/assets/images/coderdocs-logo.svg'),
+                        alt: 'OpenScript Logo',
+                    }
+                ),
 
-                    h.img(
-                        {
-                            class: 'logo-icon me-2',
-                            src: route.baseUrl('/docs/assets/images/coderdocs-logo.svg'),
-                            alt: 'OpenScript Logo',
-                        }
-                    ),
+                h.span(
+                    { class: 'logo-text' },
+                    v(context('config').logo, (state) => state.value.text)
+                ),
 
-                    h.span(
-                        { class: 'logo-text' },
-                        v(context('config').logo, (state) => state.value.text)
-                    ),
-
-                    h.span(
-                        { class: 'text-alt'},
-                        v(context('config').logo, (state) => state.value.alt)
-                    )
+                h.span(
+                    { class: 'text-alt'},
+                    v(context('config').logo, (state) => state.value.alt)
                 )
             )
         )
@@ -82,6 +76,8 @@ class SearchForm extends OpenScript.Component {
         switch(type) {
             case 'hero': return this.hero(...args);
 
+            case 'nav': return this.nav(...args);
+
             default: return this.hero(...args);
         }
     }
@@ -108,6 +104,37 @@ class SearchForm extends OpenScript.Component {
                 )
             ),
 
+            ...args
+        )
+    }
+
+    nav(...args) {
+        return h.div(
+            {
+                class: 'top-search-box d-none d-lg-flex'
+            },
+            h.form(
+                {class: 'search-form'},
+
+                h.input(
+                    {
+                        type: 'text',
+                        placeholder: 'Search the docs...',
+                        name: 'search',
+                        class: 'form-control search-input'
+                    }
+                ),
+
+                h.button(
+                    {
+                        type: 'submit',
+                        class: 'btn search-btn',
+                        value: 'Search',
+                    },
+
+                    h.i({class: 'fas fa-search'})
+                )
+            ),
             ...args
         )
     }
