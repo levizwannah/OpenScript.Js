@@ -641,7 +641,6 @@ class Docs extends OpenScript.Component {
         h.div(
           { class: "container" },
 
-<<<<<<< HEAD
           h.article({
             class: "docs-article",
             id: "section-1",
@@ -663,26 +662,6 @@ class Docs extends OpenScript.Component {
         {class:'docs-intro'},
         h.p(
           "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
-=======
-          h.article(
-            {
-              class: "docs-article",
-              id: "section-1",
-            },
-
-            h.h1(
-              {class: 'docs-heading'}, 
-              'Introduction',
-              h.span({class: 'docs-time'}, 'Last Updated: 2019-06-01')
-            ),
-
-            h.section(
-              h.p(
-                "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
-              )
-            )
-          )
->>>>>>> fc8d0b106961e158d4670cce7696a36e4fe9c4ed
         )
       ),
       
