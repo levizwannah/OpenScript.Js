@@ -816,10 +816,22 @@ class Docs extends OpenScript.Component {
           h.article({
             class: "docs-article",
             id: "section-1",
-          })
-        )
-      ),
+          },
+          h.header(
+            { class:'docs-handler'},
+
+          h.h1(
+            {class:"docs-heading"},
+            "Introduction",
+            h.span(
+              {class:"docs-time"},
+              "Last updated: 2019-06-01"
+            )
+          ),
+        
+      
       h.section(
+        {class:'docs-intro'},
         h.p(
           "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
         )
@@ -834,20 +846,20 @@ class Docs extends OpenScript.Component {
           href: "https://gist.github.com/",
           target: "_blank",
         }),
-        "embed your code snippets using Github gists"
+        " embed your code snippets using Github gists "
       ),
 
       h.div({ class: "docs-code-block" }),
       h.h5("Highlight.js Example:"),
       h.p(
-        "you can",
+        "you can ",
         h.a(
           {
             class: "theme-link",
             href: "https://github.com/highlightjs/highlight.js",
             target: "_blank",
           },
-          "embed your code snippets using highlight.js"
+          " embed your code snippets using highlight.js "
         ),
         "It supports ",
         h.a(
@@ -925,7 +937,8 @@ class Docs extends OpenScript.Component {
             h.span({ class: "hljs-literal" }, "false")
           )
         )
-      ),
+      )
+          ),
       h.section(
         { class: "docs-section", id: "item-1-1" },
         h.h2({ class: "section-heading" }, "Section item 1.1"),
@@ -1586,6 +1599,8 @@ class Docs extends OpenScript.Component {
             "Vivamus efficitur fringilla ullamcorper. Cras condimentum condimentum mauris, vitae facilisis leo. Aliquam sagittis purus nisi, at commodo augue convallis id. Sed interdum turpis quis felis bibendum imperdiet. Mauris pellentesque urna eu leo gravida iaculis. In fringilla odio in felis ultricies porttitor. Donec at purus libero. Vestibulum libero orci, commodo nec arcu sit amet, commodo sollicitudin est. Vestibulum ultricies malesuada tempor."
           )
         ),
+      ),
+      
 
         // fix article tag
         h.article(
@@ -2407,10 +2422,13 @@ class Docs extends OpenScript.Component {
             )
           )
         )
+      )
+      )
       ),
     )
 
       
     );
+    args
   }
 }
