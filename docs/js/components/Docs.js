@@ -12,16 +12,14 @@ class Docs extends OpenScript.Component {
     });
 
     return h.wrapper(
-      {
-        class:'docs-page'
-      },
 
       h.MainHeader('docs'),
-      
+
       h.div(
         {
           class:"docs-wrapper"
         },
+
         h.div(
           {
             id:"docs-sidebar" ,
@@ -633,10 +631,8 @@ class Docs extends OpenScript.Component {
 
 
         )
-      )
-     ),
-
-    
+        )
+      ),
 
       // page content to be output
       h.div(
@@ -645,17 +641,27 @@ class Docs extends OpenScript.Component {
         h.div(
           { class: "container" },
 
-          h.article({
-            class: "docs-article",
-            id: "section-1",
-          })
+          h.article(
+            {
+              class: "docs-article",
+              id: "section-1",
+            },
+
+            h.h1(
+              {class: 'docs-heading'}, 
+              'Introduction',
+              h.span({class: 'docs-time'}, 'Last Updated: 2019-06-01')
+            ),
+
+            h.section(
+              h.p(
+                "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
+              )
+            )
+          )
         )
       ),
-      h.section(
-        h.p(
-          "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
-        )
-      ),
+      
 
       h.h5("Github Code Example:"),
 
