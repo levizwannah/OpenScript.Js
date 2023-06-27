@@ -11,185 +11,15 @@ class Docs extends OpenScript.Component {
       overview: [],
     });
 
-
-
     return h.wrapper(
-      
-      {class:'docs-page'},
-      h.header(
-        {
-          class:"header fixed-top"
-        },
-        h.div(
-          {
-            class:"branding docs-branding"
-          },
-          h.div(
-            {
-              class:"container-fluid position-relative py-2"
-            },
-            h.div(
-              {
-                class:"docs-logo-wrapper"
-              },
-              h.button(
-                {
-                   id:"docs-sidebar-toggler",
-                   class:"docs-sidebar-toggler docs-sidebar-visible me-2 d-xl-none" ,
-                   type:"button"
-                },
-                h.span(),
-                h.span(),
-                h.span()
-              ),
-              h.div(
-                {
-                  class:"site-logo"
-                },
-                h.a(
-                  {
-                    class:"navbar-brand" ,
-                    href:"index.html"
-                  },
-                  h.img(
-                    {
-                      class:"logo-icon me-2" ,
-                      src:"assets/images/coderdocs-logo.svg" ,
-                      alt:"logo"
-                    },
-                    h.span(
-                      {
-                        class:"logo-text"
-                      }
-                    ),'coder',
-                    h.span(
-                      {
-                        class:"text-alt"
-                      }
-                    )
-                  )
-                )
-              )
 
-            ),
-            h.div(
-              {
-                class:"docs-top-utilities d-flex justify-content-end align-items-center"
-              },
-              h.div(
-                {
-                  class:"top-search-box d-none d-lg-flex"
-                },
-                h.form(
-                  {
-                    class:"search-form"
-                  },
-                  h.input(
-                    {
-                        type:"text",
-                        placeholder:"Search the docs...",
-                        name:"search",
-                        class:"form-control search-input"
-                    }
-                  ),
-                  h.button(
-                    {
-                      type:"submit" ,
-                      class:"btn search-btn",
-                       value:"Search"
-                    },
-                    h.i(
-                      {
-                        class:"fas fa-search"
-                      }
-                    )
-                  )
-                )
-              ),
-              h.ul(
-                {
-                  class:"social-list list-inline mx-md-3 mx-lg-5 mb-0 d-none d-lg-flex"
-                },
-                h.li(
-                  {
-                    class:"list-inline-item"
-                  },
-                  h.a(
-                    {
-                      href:"#"
-                    }
-                  ),
-                  h.i(
-                    {
-                      class:"fab fa-github fa-fw"
-                    }
-                  )
+      h.MainHeader('docs'),
 
-                ),
-                h.li(
-                  {
-                    class:"list-inline-item"
-                  },
-                  h.a(
-                    {
-                      href:"#"
-                    }
-                  ),
-                  h.i(
-                    {
-                      class:"fab fa-twitter fa-fw"
-                    }
-                  )
-
-                ),
-                h.li(
-                  {
-                    class:"list-inline-item"
-                  },
-                  h.a(
-                    {
-                      href:"#"
-                    }
-                  ),
-                  h.i(
-                    {
-                      class:"fab fa-slack fa-fw"
-                    }
-                  )
-
-                ),
-                h.li(
-                  {
-                    class:"list-inline-item"
-                  },
-                  h.a(
-                    {
-                      href:"#"
-                    }
-                  ),
-                  h.i(
-                    {
-                      class:"fab fa-product-hunt fa-fw"
-                    }
-                  )
-
-                )
-
-              ),
-              h.a(
-                {
-                  href:"https://themes.3rdwavemedia.com/bootstrap-templates/startup/coderdocs-free-bootstrap-5-documentation-template-for-software-projects/" ,
-                  class:"btn btn-primary d-none d-lg-flex"
-                }
-              )
-            )
-          )
-        )
-      ),
       h.div(
         {
           class:"docs-wrapper"
         },
+
         h.div(
           {
             id:"docs-sidebar" ,
@@ -801,10 +631,8 @@ class Docs extends OpenScript.Component {
 
 
         )
-      )
-     ),
-
-    
+        )
+      ),
 
       // page content to be output
       h.div(
@@ -813,6 +641,7 @@ class Docs extends OpenScript.Component {
         h.div(
           { class: "container" },
 
+<<<<<<< HEAD
           h.article({
             class: "docs-article",
             id: "section-1",
@@ -834,8 +663,29 @@ class Docs extends OpenScript.Component {
         {class:'docs-intro'},
         h.p(
           "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
+=======
+          h.article(
+            {
+              class: "docs-article",
+              id: "section-1",
+            },
+
+            h.h1(
+              {class: 'docs-heading'}, 
+              'Introduction',
+              h.span({class: 'docs-time'}, 'Last Updated: 2019-06-01')
+            ),
+
+            h.section(
+              h.p(
+                "Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio."
+              )
+            )
+          )
+>>>>>>> fc8d0b106961e158d4670cce7696a36e4fe9c4ed
         )
       ),
+      
 
       h.h5("Github Code Example:"),
 

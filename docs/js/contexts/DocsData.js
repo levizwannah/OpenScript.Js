@@ -28,5 +28,4 @@ class DocsData extends OpenScript.Context {
         }
     }
 
-
 }
