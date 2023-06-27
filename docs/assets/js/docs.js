@@ -2,8 +2,10 @@
 
 h.on("Index", "rendered", docsJs);
 h.on("Docs", "rendered", docsJs);
+h.on('MainHeader', 'bound', docsJs);
 
-function docsJs() {
+function docsJs(elem, event) {
+  console.log(elem, event);
 
   try{
         /* ====== Define JS Constants ====== */

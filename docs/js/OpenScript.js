@@ -439,7 +439,7 @@ var OpenScript = {
          * @param {Array<*>} args 
          */
         emit(event, args = []) {
-            this.emitter.emit(event, this, ...args);
+            this.emitter.emit(event, this, event, ...args);
         }
 
         /**
@@ -1343,26 +1343,32 @@ var OpenScript = {
 
         /**
          * Adds an event listener to a component
-         * @param {string} component component name 
+         * @param {string|Array<string>} component component name 
          * @param {string} event event name
          * @param  {...function} listeners listeners
          */
         on = (component, event, ...listeners) =>{
+            let components = component;
 
-            if(this.compMap.has(component)) {
-                if(!this.emitter(component).listeners[event]) {
-                    this.emitter(component).listeners[event] = [];
+            if(!Array.isArray(component)) components = [component];
+
+            for(let component of components) {
+                if(this.compMap.has(component)) {
+                    if(!this.emitter(component).listeners[event]) {
+                        this.emitter(component).listeners[event] = [];
+                    }
+                    this.emitter(component).listeners[event].push(...listeners);
+                    continue;
                 }
-                return this.emitter(component).listeners[event].push(...listeners);
+    
+                if(!this.eventsMap.has(component)){
+                    this.eventsMap.set(component, {});
+                    this.eventsMap.get(component)[event] = listeners;
+                    continue;
+                }
+                
+                his.eventsMap.get(component)[event].push(...listeners);
             }
-
-            if(!this.eventsMap.has(component)){
-                this.eventsMap.set(component, {});
-                this.eventsMap.get(component)[event] = listeners;
-                return;
-            }
-            
-            return this.eventsMap.get(component)[event].push(...listeners);
         }
 
         /**
@@ -1404,7 +1410,7 @@ var OpenScript = {
             if(value instanceof DocumentFragment || value instanceof HTMLElement) {
                 return value;
             }
-            
+
             if(value.length === 0) return this.dom.createTextNode(value);
 
             let tmp = this.dom.createElement("ojs-group");
