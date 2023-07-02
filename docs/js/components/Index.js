@@ -238,7 +238,7 @@ class Index extends OpenScript.Component {
                             'Xiaoying Riley'
                         ),
 
-                        'for developers'
+                        ' for developers'
                     )
                 )
             ),
