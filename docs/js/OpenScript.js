@@ -459,7 +459,7 @@ var OpenScript = {
                 let hId = elem.getAttribute('ojs-key');
                 let args = [...h.compArgs.get(hId)];
 
-                this.wrap(...args, {parent: elem});
+                this.wrap(...args, {parent: elem, replaceParent: true});
                 
                 this.emit(this.EVENTS.markupBound, [elem, args]);
             }
@@ -506,7 +506,7 @@ var OpenScript = {
          * @returns 
          */
         getParentAndListen(args){
-            let final = {index: -1, parent: null, states: [], resetParent: false };
+            let final = {index: -1, parent: null, states: [], resetParent: false, replaceParent: false };
 
             for(let i in args){
 
@@ -521,6 +521,11 @@ var OpenScript = {
                     if(args[i].resetParent){
                         final.resetParent = args[i].resetParent;
                         delete args[i].resetParent;
+                    }
+
+                    if(args[i].replaceParent) {
+                        final.replaceParent = args[i].replaceParent;
+                        delete args[i].replaceParent;
                     }
 
                     delete args[i].parent;
@@ -544,7 +549,7 @@ var OpenScript = {
         wrap(...args) {
 
             const lastArg = args[args.length - 1];
-            let { index, parent, resetParent, states } = this.getParentAndListen(args);
+            let { index, parent, resetParent, states, replaceParent } = this.getParentAndListen(args);
             
             // check if the render was called due to a state change
             if(lastArg && lastArg['called-by-state-change']) {
@@ -570,7 +575,7 @@ var OpenScript = {
 
             this.argsMap.set(uuid, args ?? []);
 
-            let attr = {uuid, parent, resetParent};
+            let attr = {uuid, parent, resetParent, replaceParent};
 
             states.forEach((s) => {
                 attr[`s-${s.id}`] = s.id;
@@ -1184,8 +1189,13 @@ var OpenScript = {
             let event = '';
             let eventParams = [];
 
+            /**
+             * @type {DocumentFragment|HTMLElement}
+             */
             let parent = null;
+
             let emptyParent = false;
+            let replaceParent = false;
             let rootFrag = new DocumentFragment();
             let finalRoot = new DocumentFragment();
 
@@ -1230,6 +1240,11 @@ var OpenScript = {
                     
                     if(k === "event" && typeof v === "string") {
                         event = v;
+                        continue;
+                    }
+
+                    if(k === "replaceParent" && typeof v === "boolean") {
+                        replaceParent = v;
                         continue;
                     }
 
@@ -1294,7 +1309,12 @@ var OpenScript = {
                     parent.textContent = '';
                 }
 
-                parent.append(finalRoot);
+                if(replaceParent) {
+                    parent.replaceWith(finalRoot);
+                }
+                else {
+                    parent.append(finalRoot);
+                }
                 if(component) component.emit(event, eventParams);
                 return finalRoot;
             } 
