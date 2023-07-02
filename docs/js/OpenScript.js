@@ -751,7 +751,7 @@ var OpenScript = {
                 }
             }
             else {
-                console.error(`${referenceName[0]} already exists. If you have multiple contexts in the file in ${qualifiedName}, then you can use context('[contextName]Context') to access them.`)
+                console.log(`${referenceName[0]} already exists. If you have multiple contexts in the file in ${qualifiedName}, then you can use context('[contextName]Context') to access them.`)
             }
             
             return this.context(referenceName);
@@ -1725,6 +1725,11 @@ var OpenScript = {
         loader = new OpenScript.AutoLoader();
 
         /**
+         * Used to Import any File
+         */
+        autoload = new OpenScript.AutoLoader();
+
+        /**
          * Create a namespace if it doesn't exists and returns it.
          */
         namespace = OpenScript.namespace;
@@ -1959,7 +1964,12 @@ const {
     /**
      * The router object
      */
-    route
+    route,
+
+    /**
+     * Used to Autoload Files
+     */
+    autoload
 
 } = new OpenScript.Initializer();
 

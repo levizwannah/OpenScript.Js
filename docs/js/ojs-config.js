@@ -42,3 +42,20 @@ loader.dir = route.baseUrl('/docs/js/components');
  |-----------------------------------
 */
 loader.version = "1.0.0";
+
+/*-----------------------------------
+ | Set the default directory of the
+ | autoload object for loading
+ | files.
+ |-----------------------------------
+*/
+
+autoload.dir = route.baseUrl('/docs/js');
+
+/*-----------------------------------
+ | set the version number of the
+ | JS files so that we load
+ | a fresh file when they change
+ |-----------------------------------
+*/
+autoload.version = "1.0.0";

@@ -11,9 +11,9 @@ function docsJs(elem, event) {
 
   try{
         /* ====== Define JS Constants ====== */
-        const sidebarToggler = document.getElementById("docs-sidebar-toggler");
-        const sidebar = document.getElementById("docs-sidebar");
-        const sidebarLinks = document.querySelectorAll("#docs-sidebar .scrollto");
+        window.sidebarToggler = document.getElementById("docs-sidebar-toggler");
+        window.sidebar = document.getElementById("docs-sidebar");
+        window.sidebarLinks = document.querySelectorAll("#docs-sidebar .scrollto");
 
         /* ===== Responsive Sidebar ====== */
 

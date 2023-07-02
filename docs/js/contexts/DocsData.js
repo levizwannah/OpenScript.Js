@@ -1,13 +1,11 @@
 class DocsData extends OpenScript.Context {
     data;
+    arrangements;
 
     constructor() {
         super();
-        this.initData();
-    }
 
-    initData() {
-        let funcs = [
+        this.has('arrangements').value = [
             'introduction',
             'installation',
             'gettingStarted',
@@ -22,61 +20,19 @@ class DocsData extends OpenScript.Context {
             'openScriptFullCode'
         ];
 
-        for(let initiator of funcs) {
+        this.initData();
+    }
+
+    initData() {
+        for(let initiator of this.arrangements) {
             if(!this[initiator]) continue;
-            console.log(initiator, 'found');
             this[initiator]();
         }
     }
 
-    introduction() {
-        this.has('data').introduction = {
-            icon: 'fa-map-signs',
-            id: 'ojs-introduction',
-            title: 'Introduction',
-
-            content: [
-                h.p(
-                    `OpenScript.Js`
-                ),
-                h.p(
-                    'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
-                )
-            ],
-
-            sections: [
-                {
-                    id: 'ojs-introduction-1',
-                    title: 'Intro 1.1',
-                    heading: 'Section one point one',
-                    content: [
-                        h.p(
-                            'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
-                        )
-                    ]
-                },
-                {
-                    id: 'ojs-introduction-2',
-                    title: 'Keyboard 1.1',
-                    heading: 'Section one point one',
-                    content: [
-                        h.p(
-                            'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
-                        )
-                    ]
-                },
-                {
-                    id: 'ojs-introduction-3',
-                    title: 'Keyboard 1.1',
-                    heading: 'Section one point one',
-                    content: [
-                        h.p(
-                            'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
-                        )
-                    ]
-                }
-            ]
-        }
+    async introduction() {
+        await autoload.req('data.Introduction');
+        this.has('data').introduction = new data.Introduction.Introduction();
     }
 
     installation() {

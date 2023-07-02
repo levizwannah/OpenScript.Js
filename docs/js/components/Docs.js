@@ -3,11 +3,13 @@ class DocsNav extends OpenScript.Component {
     await super.mount();
   }
 
-  render(data, ...args) {
+  render(data, arrangements, ...args) {
     let navItems = [];
 
-    for( let k in data.value){
+    for( let k of arrangements){
       let section = data.value[k];
+      if(!section) continue;
+      
       console.log(section);
 
       navItems.push(
@@ -84,9 +86,12 @@ class Docs extends OpenScript.Component {
 
   render(...args) {
     fetchContext("docs", "DocsData");
+    
+    let docs = context('docs');
 
-    context("docs").states({
+    docs.states({
       data: {},
+      arrangements: []
     });
 
     return h.wrapper(
@@ -710,7 +715,7 @@ class Docs extends OpenScript.Component {
 
           // )
           //   ),
-          h.DocsNav(context('docs').data)
+          h.DocsNav(docs.data, docs.arrangements)
         ),
 
       // page content to be output
