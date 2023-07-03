@@ -14,7 +14,6 @@ class DocsData extends OpenScript.Context {
             'designRoutes',
             'designComponents',
             'designStates',
-            'designStates',
             'designContexts',
             'designAutoloading',
             'openScriptFullCode'
@@ -38,7 +37,55 @@ class DocsData extends OpenScript.Context {
     installation() {
         autoload.req('data.Installation').then(() => {
             this.has('data').installation = new data.Installation.Installation();
-        })
+        });
+    }
+
+    usingOpenScript(){
+        autoload.req('data.UsingOpenScript').then(() => {
+            this.has('data').usingOpenScript = new data.UsingOpenScript.UsingOpenScript();
+        });
+    }
+
+    designMarkup(){
+        autoload.req('data.DesignMarkup').then(() => {
+            this.has('data').designMarkup = new data.DesignMarkup.DesignMarkup();
+        });
+    }
+
+    designRoutes(){
+        autoload.req('data.DesignRoutes').then(() => {
+            this.has('data').designRoutes = new data.DesignRoutes.DesignRoutes();
+        });
+    }
+
+    designComponents(){
+        autoload.req('data.DesignComponents').then(() => {
+            this.has('data').designComponents = new data.DesignComponents.DesignComponents();
+        });
+    }
+
+    designStates(){
+        autoload.req('data.DesignStates').then(() => {
+            this.has('data').designStates = new data.DesignStates.DesignStates();
+        });
+    }
+
+    designContexts(){
+        autoload.req('data.DesignContexts').then(() => {
+            this.has('data').designContexts = new data.DesignContexts.DesignContexts();
+        });
+    }
+
+    designAutoloading(){
+        autoload.req('data.DesignAutoloading').then(() => {
+            this.has('data').designAutoloading = new data.DesignAutoloading.DesignAutoloading();
+        });
+    }
+
+    openScriptFullCode(){
+        autoload.req('data.OpenScriptFullCode').then(() => {
+            this.has('data').openScriptFullCode = new data.OpenScriptFullCode.OpenScriptFullCode();
+        });
     }
 
 }
