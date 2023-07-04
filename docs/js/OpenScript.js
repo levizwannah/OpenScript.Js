@@ -429,7 +429,7 @@ var OpenScript = {
             this.claimListeners();
             this.emit(this.EVENTS.premount);
             h.component(this.name, this);
-            this.bind();
+            await this.bind();
             this.emit(this.EVENTS.mounted);
         }
 
@@ -1373,10 +1373,20 @@ var OpenScript = {
             if(!Array.isArray(component)) components = [component];
 
             for(let component of components) {
+                
+                if(/\./.test(component)){
+                    let tmp = component.split('.').filter(e => e);
+                    component = tmp[0];
+                    listeners.push(event);
+                    event = tmp[1];
+                }
+
                 if(this.compMap.has(component)) {
+                    
                     if(!this.emitter(component).listeners[event]) {
                         this.emitter(component).listeners[event] = [];
                     }
+
                     this.emitter(component).listeners[event].push(...listeners);
                     continue;
                 }
@@ -1386,8 +1396,12 @@ var OpenScript = {
                     this.eventsMap.get(component)[event] = listeners;
                     continue;
                 }
-                
-                his.eventsMap.get(component)[event].push(...listeners);
+
+                if(!this.eventsMap.get(component)[event]) {
+                    this.eventsMap.get(component)[event] = [];  
+                }
+
+                this.eventsMap.get(component)[event].push(...listeners);
             }
         }
 
