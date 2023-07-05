@@ -41,4 +41,10 @@ class DocsData extends OpenScript.Context {
         })
     }
 
+    gettingStarted(){
+         autoload.req('data.GettingStarted').then( ()=>{
+        this.has('data').GettingStarted=new data.GettingStarted.gettingStarted();
+         })
+    }
+
 }
