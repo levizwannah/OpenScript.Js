@@ -78,6 +78,8 @@ class SearchForm extends OpenScript.Component {
 
             case 'nav': return this.nav(...args);
 
+            case 'docs': return this.docs(...args);
+
             default: return this.hero(...args);
         }
     }
@@ -137,6 +139,39 @@ class SearchForm extends OpenScript.Component {
             ),
             ...args
         )
+    }
+
+    docs(...args) {
+        return h.div(
+            {
+              class:"top-search-box d-lg-none p-3"
+            },
+            h.form(
+              {
+                class:"search-form"
+              },
+              h.input(
+                {
+                  type:"text",
+                  placeholder:"Search the docs...", 
+                  name:"search" ,
+                  class:"form-control search-input"
+                }
+              ),
+              h.button(
+                {
+                  type:"submit", 
+                  class:"btn search-btn", 
+                  value:"Search"
+                },
+                h.i(
+                  {
+                    class:"fas fa-search"
+                  }
+                )
+              )
+            ),
+        );
     }
 
 }

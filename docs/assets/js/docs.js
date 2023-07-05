@@ -73,12 +73,16 @@ h?.on('DocsNav.rerendered', (elem, event) => {
 
   });
 
-  /* ===== Gumshoe SrollSpy ===== */
-  /* Ref: https://github.com/cferdinandi/gumshoe  */
-  // Initialize Gumshoe
-  window.spy = new Gumshoe("#docs-nav a", {
-    offset: 69, //sticky header height
-  });
+  try{
+    /* ===== Gumshoe SrollSpy ===== */
+    /* Ref: https://github.com/cferdinandi/gumshoe  */
+    // Initialize Gumshoe
+    window.spy = new Gumshoe("#docs-nav a", {
+      offset: 69, //sticky header height
+    });
+  }
+  catch(e){}
+  
 
 });
 
