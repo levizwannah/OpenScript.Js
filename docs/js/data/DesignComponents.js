@@ -1,8 +1,7 @@
-class Introduction {
-
-    icon = 'fa-map-signs';
-    id = 'ojs-introduction';
-    title = 'Introduction';
+class DesignComponents {
+    icon = 'fa-box';
+    id = 'ojs-design-components';
+    title = 'OJS - Components';
 
     content = [
         h.section(
@@ -15,7 +14,7 @@ class Introduction {
 
     sections = [
         {
-            id: 'ojs-introduction-1',
+            id: 'ojs-design-components-1',
             title: 'Intro 1.1',
             heading: 'Section one point one',
             content: [
@@ -25,7 +24,7 @@ class Introduction {
             ]
         },
         {
-            id: 'ojs-introduction-2',
+            id: 'ojs-design-components-2',
             title: 'Keyboard 1.1',
             heading: 'Section one point one',
             content: [
@@ -35,7 +34,7 @@ class Introduction {
             ]
         },
         {
-            id: 'ojs-introduction-3',
+            id: 'ojs-design-components-3',
             title: 'Keyboard 1.1',
             heading: 'Section one point one',
             content: [

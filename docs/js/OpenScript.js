@@ -268,6 +268,23 @@ var OpenScript = {
 
 
         /**
+         * Returns the current URL
+         * @returns {URL}
+         */
+        url(){
+            return new URL(window.location.href);
+        }
+
+        /**
+         * Gets the value after hash in the url
+         * @returns {string}
+         */
+        hash(){
+            return this.url().hash.replace('#', '');
+        }
+
+
+        /**
          * Allows Grouping of routes
          */
         PrefixRoute = class PrefixRoute {
@@ -429,7 +446,7 @@ var OpenScript = {
             this.claimListeners();
             this.emit(this.EVENTS.premount);
             h.component(this.name, this);
-            this.bind();
+            await this.bind();
             this.emit(this.EVENTS.mounted);
         }
 
@@ -1197,7 +1214,6 @@ var OpenScript = {
             let emptyParent = false;
             let replaceParent = false;
             let rootFrag = new DocumentFragment();
-            let finalRoot = new DocumentFragment();
 
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
             let isComponent = isUpperCase(name[0]);
@@ -1301,7 +1317,6 @@ var OpenScript = {
             }
 
             root.append(rootFrag);
-            finalRoot.append(root);
 
             if(parent) {
                 
@@ -1310,16 +1325,16 @@ var OpenScript = {
                 }
 
                 if(replaceParent) {
-                    parent.replaceWith(finalRoot);
+                    parent.replaceWith(root);
                 }
                 else {
-                    parent.append(finalRoot);
+                    parent.append(root);
                 }
                 if(component) component.emit(event, eventParams);
-                return finalRoot;
+                return root;
             } 
     
-            return finalRoot;
+            return root;
         }
     
         /**
@@ -1373,10 +1388,20 @@ var OpenScript = {
             if(!Array.isArray(component)) components = [component];
 
             for(let component of components) {
+                
+                if(/\./.test(component)){
+                    let tmp = component.split('.').filter(e => e);
+                    component = tmp[0];
+                    listeners.push(event);
+                    event = tmp[1];
+                }
+
                 if(this.compMap.has(component)) {
+                    
                     if(!this.emitter(component).listeners[event]) {
                         this.emitter(component).listeners[event] = [];
                     }
+
                     this.emitter(component).listeners[event].push(...listeners);
                     continue;
                 }
@@ -1386,8 +1411,12 @@ var OpenScript = {
                     this.eventsMap.get(component)[event] = listeners;
                     continue;
                 }
-                
-                his.eventsMap.get(component)[event].push(...listeners);
+
+                if(!this.eventsMap.get(component)[event]) {
+                    this.eventsMap.get(component)[event] = [];  
+                }
+
+                this.eventsMap.get(component)[event].push(...listeners);
             }
         }
 
@@ -1431,7 +1460,7 @@ var OpenScript = {
                 return value;
             }
 
-            if(value.length === 0) return this.dom.createTextNode(value);
+            if(value?.length === 0) return this.dom.createTextNode('');
 
             let tmp = this.dom.createElement("ojs-group");
             tmp.innerHTML = value;

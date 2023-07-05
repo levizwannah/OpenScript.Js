@@ -78,6 +78,8 @@ class SearchForm extends OpenScript.Component {
 
             case 'nav': return this.nav(...args);
 
+            case 'docs': return this.docs(...args);
+
             default: return this.hero(...args);
         }
     }
@@ -139,4 +141,79 @@ class SearchForm extends OpenScript.Component {
         )
     }
 
+    docs(...args) {
+        return h.div(
+            {
+              class:"top-search-box d-lg-none p-3"
+            },
+            h.form(
+              {
+                class:"search-form"
+              },
+              h.input(
+                {
+                  type:"text",
+                  placeholder:"Search the docs...", 
+                  name:"search" ,
+                  class:"form-control search-input"
+                }
+              ),
+              h.button(
+                {
+                  type:"submit", 
+                  class:"btn search-btn", 
+                  value:"Search"
+                },
+                h.i(
+                  {
+                    class:"fas fa-search"
+                  }
+                )
+              )
+            ),
+        );
+    }
+}
+
+class Footer extends OpenScript.Component {
+    render(...args) {
+        return h.footer(
+            {class: 'footer'},
+
+            h.div(
+                {class: 'footer-bottom text-center py-5'},
+
+                h.small(
+                    {class: 'copyright'},
+                    'Designed with',
+                    h.span(
+                        {class: 'sr-only'},
+                        'love'
+                    ),
+
+                    h.i(
+                        {
+                            class: 'fas fa-heart',
+                            
+                            style: 'color: #fb866a;'
+                        },
+                    ),
+                    
+                    ' by ',
+
+                    h.a(
+                        {
+                            href: 'http://themes.3rdwavemedia.com',
+                            class: 'theme-link',
+                            target: '_blank'
+                        },
+                        'Xiaoying Riley'
+                    ),
+
+                    ' for developers'
+                )
+            ),
+            ...args
+        );
+    }
 }
