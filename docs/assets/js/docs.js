@@ -34,7 +34,7 @@ h?.on('MainHeader.bound', () => {
   const sidebarToggler = document.getElementById("docs-sidebar-toggler");
   const sidebar = document.getElementById("docs-sidebar");
 
-  sidebarToggler.addEventListener("click", () => {
+  sidebarToggler?.addEventListener("click", () => {
     if(!sidebar) return;
 
     if (sidebar.classList.contains("sidebar-visible")) {
@@ -50,12 +50,11 @@ h?.on('MainHeader.bound', () => {
 
 });
 
-h?.on('DocsNav.rerendered', (elem, event) => {
+h?.on('DocsNav.rerendered', () => {
   const sidebarLinks = document.querySelectorAll("#docs-sidebar .scrollto");
   const sidebar = document.getElementById("docs-sidebar");
 
   sidebarLinks.forEach((sidebarLink) => {
-
     sidebarLink.addEventListener("click", (e) => {
       let target = sidebarLink.getAttribute("link");
 
@@ -70,7 +69,6 @@ h?.on('DocsNav.rerendered', (elem, event) => {
         sidebar.classList.add("sidebar-hidden");
       }
     });
-
   });
 
   try{
@@ -82,8 +80,10 @@ h?.on('DocsNav.rerendered', (elem, event) => {
     });
   }
   catch(e){}
-  
+});
 
+h?.on('DocsSections.rerendered', () => {
+  document.getElementById(route.hash())?.scrollIntoView({ behavior: "smooth" });
 });
 
 /* ====== SimpleLightbox Plugin ======= */

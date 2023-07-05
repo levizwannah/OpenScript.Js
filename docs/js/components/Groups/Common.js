@@ -173,5 +173,47 @@ class SearchForm extends OpenScript.Component {
             ),
         );
     }
+}
 
+class Footer extends OpenScript.Component {
+    render(...args) {
+        return h.footer(
+            {class: 'footer'},
+
+            h.div(
+                {class: 'footer-bottom text-center py-5'},
+
+                h.small(
+                    {class: 'copyright'},
+                    'Designed with',
+                    h.span(
+                        {class: 'sr-only'},
+                        'love'
+                    ),
+
+                    h.i(
+                        {
+                            class: 'fas fa-heart',
+                            
+                            style: 'color: #fb866a;'
+                        },
+                    ),
+                    
+                    ' by ',
+
+                    h.a(
+                        {
+                            href: 'http://themes.3rdwavemedia.com',
+                            class: 'theme-link',
+                            target: '_blank'
+                        },
+                        'Xiaoying Riley'
+                    ),
+
+                    ' for developers'
+                )
+            ),
+            ...args
+        );
+    }
 }

@@ -80,7 +80,7 @@ class Sections extends OpenScript.Component {
   }
 
   render(data, arrangements, ...args) {
-
+    
     let sections = [];
 
     for( let k of arrangements){
@@ -103,13 +103,12 @@ class Sections extends OpenScript.Component {
             ) 
           ),
 
-          ...section.content,
+          section.content,
 
           h.call(() => {
             let secs = [];
 
             each(section.sections, (s) => {
-              console.log(s.content);
 
               secs.push(
                 h.section(
@@ -125,7 +124,7 @@ class Sections extends OpenScript.Component {
           })
         )
       );
-    };
+    }
 
     return h.div( {class: 'container'}, sections, ...args);
   }
@@ -169,7 +168,8 @@ class Docs extends OpenScript.Component {
         h.div(
           { class: "docs-content" },
 
-          h.DocsSections(docs.data, docs.arrangements)
+          h.DocsSections(docs.data, docs.arrangements),
+          h.Footer()
         ),
       ),
       

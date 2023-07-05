@@ -268,6 +268,23 @@ var OpenScript = {
 
 
         /**
+         * Returns the current URL
+         * @returns {URL}
+         */
+        url(){
+            return new URL(window.location.href);
+        }
+
+        /**
+         * Gets the value after hash in the url
+         * @returns {string}
+         */
+        hash(){
+            return this.url().hash.replace('#', '');
+        }
+
+
+        /**
          * Allows Grouping of routes
          */
         PrefixRoute = class PrefixRoute {
@@ -1197,7 +1214,6 @@ var OpenScript = {
             let emptyParent = false;
             let replaceParent = false;
             let rootFrag = new DocumentFragment();
-            let finalRoot = new DocumentFragment();
 
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
             let isComponent = isUpperCase(name[0]);
@@ -1301,7 +1317,6 @@ var OpenScript = {
             }
 
             root.append(rootFrag);
-            finalRoot.append(root);
 
             if(parent) {
                 
@@ -1310,16 +1325,16 @@ var OpenScript = {
                 }
 
                 if(replaceParent) {
-                    parent.replaceWith(finalRoot);
+                    parent.replaceWith(root);
                 }
                 else {
-                    parent.append(finalRoot);
+                    parent.append(root);
                 }
                 if(component) component.emit(event, eventParams);
-                return finalRoot;
+                return root;
             } 
     
-            return finalRoot;
+            return root;
         }
     
         /**
@@ -1445,7 +1460,7 @@ var OpenScript = {
                 return value;
             }
 
-            if(value.length === 0) return this.dom.createTextNode(value);
+            if(value?.length === 0) return this.dom.createTextNode('');
 
             let tmp = this.dom.createElement("ojs-group");
             tmp.innerHTML = value;
