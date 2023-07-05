@@ -268,6 +268,23 @@ var OpenScript = {
 
 
         /**
+         * Returns the current URL
+         * @returns {URL}
+         */
+        url(){
+            return new URL(window.location.href);
+        }
+
+        /**
+         * Gets the value after hash in the url
+         * @returns {string}
+         */
+        hash(){
+            return this.url().hash.replace('#', '');
+        }
+
+
+        /**
          * Allows Grouping of routes
          */
         PrefixRoute = class PrefixRoute {
@@ -349,12 +366,14 @@ var OpenScript = {
       
         // Fire the event
         emit(eventName, ...args) {
+    
           let fns = this.listeners[eventName];
           if (!fns) return false;
           fns.forEach((f) => {
             f(...args);
           });
           return true;
+
         }
       
         listenerCount(eventName) {
@@ -375,6 +394,18 @@ var OpenScript = {
      */
     Component: class {
 
+        /**
+         * List of events that a component emits
+         */
+        EVENTS = {
+            rendered: 'rendered', // component is visible on the dom
+            rerendered: 'rerendered', // component was rerendered
+            premount: 'premount', // component is ready to register
+            mounted: 'mounted', // the component is now registered
+            prebind: 'prebind', // the component is ready to bind
+            bound: 'bound', // the component has bound
+            markupBound: 'markup-bound' // a temporary markup has bound
+        }
         /**
          * Name of the component
          */
@@ -412,15 +443,11 @@ var OpenScript = {
          * @emits pre-mount
          */
         async mount(){
-            this.emit('pre-mount');
-
-            h.component(this.name, this);
-
-            this.bind();
-            
             this.claimListeners();
-
-            this.emit('mounted');
+            this.emit(this.EVENTS.premount);
+            h.component(this.name, this);
+            await this.bind();
+            this.emit(this.EVENTS.mounted);
         }
 
         /**
@@ -428,8 +455,8 @@ var OpenScript = {
          * @param {string} event 
          * @param {Array<*>} args 
          */
-        emit(event, ...args) {
-            this.emitter.emit(event, this, ...args);
+        emit(event, args = []) {
+            this.emitter.emit(event, this, event, ...args);
         }
 
         /**
@@ -440,23 +467,21 @@ var OpenScript = {
          */
         async bind() {
             
-            this.emit('pre-bind');
+            this.emit(this.EVENTS.prebind);
 
             let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}-tmp`);
-
-
 
             for(let elem of all) {
 
                 let hId = elem.getAttribute('ojs-key');
                 let args = [...h.compArgs.get(hId)];
 
-                this.wrap(...args, {parent: elem});
+                this.wrap(...args, {parent: elem, replaceParent: true});
                 
-                this.emit('markup-bound', [elem, args]);
+                this.emit(this.EVENTS.markupBound, [elem, args]);
             }
 
-            this.emit('bound');
+            this.emit(this.EVENTS.bound);
 
             return true;
         }
@@ -465,7 +490,9 @@ var OpenScript = {
          * Gets all the listeners for itself and adds them to itself
          */
         claimListeners() {
-            if(h.eventsMap.has(this.name)) return;
+
+            if(!h.eventsMap.has(this.name)) return;
+
             let events = h.eventsMap.get(this.name);
 
             for(let event in events) {
@@ -496,7 +523,7 @@ var OpenScript = {
          * @returns 
          */
         getParentAndListen(args){
-            let final = {index: -1, parent: null, states: [], resetParent: false };
+            let final = {index: -1, parent: null, states: [], resetParent: false, replaceParent: false };
 
             for(let i in args){
 
@@ -511,6 +538,11 @@ var OpenScript = {
                     if(args[i].resetParent){
                         final.resetParent = args[i].resetParent;
                         delete args[i].resetParent;
+                    }
+
+                    if(args[i].replaceParent) {
+                        final.replaceParent = args[i].replaceParent;
+                        delete args[i].replaceParent;
                     }
 
                     delete args[i].parent;
@@ -534,7 +566,7 @@ var OpenScript = {
         wrap(...args) {
 
             const lastArg = args[args.length - 1];
-            let { index, parent, resetParent, states } = this.getParentAndListen(args);
+            let { index, parent, resetParent, states, replaceParent } = this.getParentAndListen(args);
             
             // check if the render was called due to a state change
             if(lastArg && lastArg['called-by-state-change']) {
@@ -550,9 +582,7 @@ var OpenScript = {
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
-                    this.render(...arg, { parent: e });
-
-                    this.emit('re-rendered', arg);
+                    this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [] });
                 });
 
                 return;
@@ -562,13 +592,16 @@ var OpenScript = {
 
             this.argsMap.set(uuid, args ?? []);
 
-            let attr = {uuid, parent, resetParent};
+            let attr = {uuid, parent, resetParent, replaceParent};
 
             states.forEach((s) => {
                 attr[`s-${s.id}`] = s.id;
             });
 
-            return h[`ojs-${this.name}`](attr, this.render(...args));
+            return h[`ojs-${this.name}`](attr, this.render(...args), {
+                component: this, 
+                event: this.EVENTS.rendered,
+                eventParams: []});
         }
 
         /**
@@ -735,7 +768,7 @@ var OpenScript = {
                 }
             }
             else {
-                console.error(`${referenceName[0]} already exists. If you have multiple contexts in the file in ${qualifiedName}, then you can use context('[contextName]Context') to access them.`)
+                console.log(`${referenceName[0]} already exists. If you have multiple contexts in the file in ${qualifiedName}, then you can use context('[contextName]Context') to access them.`)
             }
             
             return this.context(referenceName);
@@ -1169,10 +1202,18 @@ var OpenScript = {
                 return this.compMap.get(name).wrap(...args);
             }
     
+            let component;
+            let event = '';
+            let eventParams = [];
+
+            /**
+             * @type {DocumentFragment|HTMLElement}
+             */
             let parent = null;
+
             let emptyParent = false;
+            let replaceParent = false;
             let rootFrag = new DocumentFragment();
-            let finalRoot = new DocumentFragment();
 
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
             let isComponent = isUpperCase(name[0]);
@@ -1209,8 +1250,28 @@ var OpenScript = {
                     }
 
                     if(k === "resetParent" && typeof v === "boolean") {
-                        emptyParent = v; 
-                        // console.log(k, name, emptyParent);
+                        emptyParent = v;
+                        continue;
+                    }
+                    
+                    if(k === "event" && typeof v === "string") {
+                        event = v;
+                        continue;
+                    }
+
+                    if(k === "replaceParent" && typeof v === "boolean") {
+                        replaceParent = v;
+                        continue;
+                    }
+
+                    if(k === "eventParams") {
+                        if(!Array.isArray(v)) v = [v];
+                        eventParams = v;
+                        continue;
+                    }
+
+                    if(k === "component" && v instanceof OpenScript.Component){
+                        component = v;
                         continue;
                     }
     
@@ -1225,7 +1286,6 @@ var OpenScript = {
                 }
             }
 
-            // console.log(`empty parent is: ${name}`, emptyParent);
 
             for(let arg of args){
 
@@ -1257,20 +1317,24 @@ var OpenScript = {
             }
 
             root.append(rootFrag);
-            finalRoot.append(root);
 
             if(parent) {
-                // console.log('parent found', `${parent}`, emptyParent);
+                
                 if(emptyParent){
                     parent.textContent = '';
-                    // console.log('emptied parent');
                 }
 
-                parent.append(finalRoot);
-                return finalRoot;
+                if(replaceParent) {
+                    parent.replaceWith(root);
+                }
+                else {
+                    parent.append(root);
+                }
+                if(component) component.emit(event, eventParams);
+                return root;
             } 
     
-            return finalRoot;
+            return root;
         }
     
         /**
@@ -1314,28 +1378,46 @@ var OpenScript = {
 
         /**
          * Adds an event listener to a component
-         * @param {string} component component name 
+         * @param {string|Array<string>} component component name 
          * @param {string} event event name
          * @param  {...function} listeners listeners
          */
         on = (component, event, ...listeners) =>{
+            let components = component;
 
-            if(this.compMap.has(component)) {
+            if(!Array.isArray(component)) components = [component];
 
-                if(!this.emitter(component).listeners[event]) {
-                    this.emitter(component).listeners[event] = [];
+            for(let component of components) {
+                
+                if(/\./.test(component)){
+                    let tmp = component.split('.').filter(e => e);
+                    component = tmp[0];
+                    listeners.push(event);
+                    event = tmp[1];
                 }
 
-                return this.emitter(component).listeners[event].push(...listeners);
-            }
+                if(this.compMap.has(component)) {
+                    
+                    if(!this.emitter(component).listeners[event]) {
+                        this.emitter(component).listeners[event] = [];
+                    }
 
-            if(!this.eventsMap.has(component)){
-                this.eventsMap.set(component, {});
-                this.eventsMap.get(component)[event] = listeners;
-                return;
+                    this.emitter(component).listeners[event].push(...listeners);
+                    continue;
+                }
+    
+                if(!this.eventsMap.has(component)){
+                    this.eventsMap.set(component, {});
+                    this.eventsMap.get(component)[event] = listeners;
+                    continue;
+                }
+
+                if(!this.eventsMap.get(component)[event]) {
+                    this.eventsMap.get(component)[event] = [];  
+                }
+
+                this.eventsMap.get(component)[event].push(...listeners);
             }
-            
-            return this.eventsMap.get(component)[event].push(...listeners);
         }
 
         /**
@@ -1377,6 +1459,8 @@ var OpenScript = {
             if(value instanceof DocumentFragment || value instanceof HTMLElement) {
                 return value;
             }
+
+            if(value?.length === 0) return this.dom.createTextNode('');
 
             let tmp = this.dom.createElement("ojs-group");
             tmp.innerHTML = value;
@@ -1670,6 +1754,11 @@ var OpenScript = {
         loader = new OpenScript.AutoLoader();
 
         /**
+         * Used to Import any File
+         */
+        autoload = new OpenScript.AutoLoader();
+
+        /**
          * Create a namespace if it doesn't exists and returns it.
          */
         namespace = OpenScript.namespace;
@@ -1904,7 +1993,12 @@ const {
     /**
      * The router object
      */
-    route
+    route,
+
+    /**
+     * Used to Autoload Files
+     */
+    autoload
 
 } = new OpenScript.Initializer();
 
