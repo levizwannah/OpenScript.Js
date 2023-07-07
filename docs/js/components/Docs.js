@@ -134,6 +134,7 @@ class Docs extends OpenScript.Component {
   async mount() {
     await super.mount();
     req("Sections.Header");
+    req("Groups.Markup");
   }
 
   render(...args) {
@@ -146,7 +147,7 @@ class Docs extends OpenScript.Component {
       arrangements: []
     });
 
-    return h.wrapper(
+    return [
 
       h.MainHeader('docs'),
 
@@ -173,7 +174,7 @@ class Docs extends OpenScript.Component {
         ),
       ),
       
-      ...args
-    );
+      args
+    ];
   }
 }
