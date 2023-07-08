@@ -167,3 +167,53 @@ class Alert extends OpenScript.Component {
     }
 }
 
+class RowTable extends OpenScript.Component {
+    
+    /**
+     * Creates a custom table
+     * @param {object<Array>} data {}
+     * @param  {...any} args 
+     */
+    render(data, ...args){
+        let rows = [];
+
+        for(let r in data){
+            rows.push(
+                h.tr(
+                    h.call(() => {
+                        let tds = [];
+                        for(let i in data[r]){
+                            if(i == 0){
+                                tds.push(
+                                    h.th(
+                                        {class: 'theme-bg-light'},
+                                        h.ThemeLink('#', data[r][i])
+                                    )
+                                );
+
+                                continue;
+                            }
+
+                            tds.push(
+                                h.td(
+                                    data[r][i]
+                                )
+                            );
+                        }
+
+                        return tds;
+                    })
+                )
+            );
+        }
+
+        return h.div(
+            {class: 'table-responsive my-4'},
+            h.table(
+                {class: 'table table-bordered'},
+
+                h.tbody(rows)
+            )
+        );
+    }
+}
