@@ -7,7 +7,6 @@ class DocsData extends OpenScript.Context {
 
         this.has('arrangements').value = [
             'introduction',
-            'installation',
             'gettingStarted',
             'usingOpenScript',
             'designMarkup',
@@ -32,12 +31,6 @@ class DocsData extends OpenScript.Context {
     async introduction() {
         await autoload.req('data.Introduction');
         this.has('data').introduction = new data.Introduction.Introduction();
-    }
-
-    installation() {
-        autoload.req('data.Installation').then(() => {
-            this.has('data').installation = new data.Installation.Installation();
-        });
     }
 
     usingOpenScript(){

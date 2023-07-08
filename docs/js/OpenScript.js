@@ -1455,25 +1455,7 @@ var OpenScript = {
          * @param {string|HTMLElement} value 
          */
         toElement = (value) => {
-
-            if(value instanceof DocumentFragment || value instanceof HTMLElement) {
-                return value;
-            }
-
-            if(value?.length === 0) return this.dom.createTextNode('');
-
-            let tmp = this.dom.createElement("ojs-group");
-            tmp.innerHTML = value;
-    
-            if(tmp.children.length > 1) return tmp;
-    
-            if(tmp.children.length === 0 
-                && 
-               tmp.firstChild.nodeName === "#text"
-            ) return this.dom.createTextNode(value);
-    
-            
-            return tmp.children[0];
+            return value;
         }
     },
     

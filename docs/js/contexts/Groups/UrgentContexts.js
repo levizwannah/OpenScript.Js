@@ -25,13 +25,6 @@ class IndexData extends OpenScript.Context {
             },
 
             {
-                icon: 'fa-arrow-down',
-                title: 'Installation',
-                body: 'Easily add OpenScript to your project and start making reactive UIs all with the familiar JavaScript you know. Nothing Fancy!',
-                link: 'docs.html#ojs-installation'
-            },
-
-            {
                 icon: 'fa-person-walking',
                 title: 'Getting Started',
                 body: 'Know the simple concept of JS-Markup, the router, components, contexts, states, autoloading, and namespacing. Again, sounds fancy, but are not...',
