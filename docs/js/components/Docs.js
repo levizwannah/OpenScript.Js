@@ -172,9 +172,7 @@ class Docs extends OpenScript.Component {
           h.DocsSections(docs.data, docs.arrangements),
           h.Footer()
         ),
-      ),
-      
-      args
+      )
     ];
   }
 }

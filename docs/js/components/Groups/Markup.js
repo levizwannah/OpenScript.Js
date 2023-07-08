@@ -217,3 +217,93 @@ class RowTable extends OpenScript.Component {
         );
     }
 }
+
+class StripeTable extends OpenScript.Component {
+    
+    /**
+     * Creates a custom table
+     * @param {object<Array>} data {}
+     * @param  {...any} args 
+     */
+    render(data, ...args){
+        let rows = [];
+        let header = [];
+        let body = [];
+
+        for(let row in data){
+            if(row == 0){
+                
+                for(let d of data[row]){
+                    header.push(
+                        h.th({scope: 'col'}, d)
+                    );
+                }
+
+                continue;
+            }
+
+            for(let d of data[row]){
+                rows.push(h.td(d));
+            }
+
+            body.push(h.tr(rows));
+            rows = [];
+        }
+
+        return h.div(
+            {class: 'table-responsive my-4'},
+            h.table(
+                {class: 'table table-striped'},
+                h.thead(header),
+                h.tbody(body)
+            ),
+
+            ...args
+        );
+    }
+}
+
+class DarkTable extends OpenScript.Component {
+    
+    /**
+     * Creates a custom table
+     * @param {object<Array>} data {}
+     * @param  {...any} args 
+     */
+    render(data, ...args){
+        let rows = [];
+        let header = [];
+        let body = [];
+
+        for(let row in data){
+            if(row == 0){
+                
+                for(let d of data[row]){
+                    header.push(
+                        h.th({scope: 'col'}, d)
+                    );
+                }
+
+                continue;
+            }
+
+            for(let d of data[row]){
+                rows.push(h.td(d));
+            }
+
+            body.push(h.tr(rows));
+            rows = [];
+        }
+
+        return h.div(
+            {class: 'table-responsive my-4'},
+            h.table(
+                {class: 'table table-bordered table-dark'},
+                h.thead(header),
+                h.tbody(body)
+            ),
+
+            ...args
+        );
+    }
+}
