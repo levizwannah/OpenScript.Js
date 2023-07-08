@@ -125,7 +125,7 @@ class Config extends OpenScript.Context {
     siteInfo() {
         this.has('site').value =  {
             name: 'OpenScript.Js',
-            description: 'Handling UI in an open JavaScript Environment'
+            description: 'OpenScript.Js is a lightweight web frontend framework that enables developers to create reactive and elegant user interfaces using standard browser JavaScript without the need for bundling or modules.'
         };
     }
 
