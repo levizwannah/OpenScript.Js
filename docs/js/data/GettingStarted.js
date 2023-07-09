@@ -71,7 +71,28 @@ class GettingStarted {
                     ],
 
                     [
-                        "Next, visit the JsDelivr website at https://www.jsdelivr.com/."
+                        "Next, visit the JsDelivr website at ", 
+                        h.ExternalLink(" https://www.jsdelivr.com/")
+                    ],
+
+                    [
+                        "On the JsDelivr website, enter the URL of the OpenScript.Js file in the '",
+                        h.b("Find resources"),
+                        "' search box and press ",
+                        h.kbd("Enter")
+                    ],
+
+                    [
+                        "JsDelivr will generate a URL for you to use. It should look something like this: ",
+                        h.code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.Js"),
+
+                        h.Callout('warning', {title: 'Heads Up', content: "This URL represents the latest version of OpenScript.Js available on JsDelivr's CDN."})
+                    ],
+                    [
+                        "Include the generated JsDelivr URL in your HTML pages using a <script> tag, as shown below: ",
+                        h.br(),
+                        h.code(`<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.Js"></script>
+                        `)
                     ]
                 ])
             ]

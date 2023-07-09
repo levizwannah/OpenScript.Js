@@ -31,6 +31,8 @@ class ThemeLink extends OpenScript.Component {
 
 class ExternalLink extends ThemeLink {
     render(href, ...args) {
+        if(args.length === 0) args.push(href);
+        
         return [
             h.i({class: 'fas fa-external-link-alt'}),
             super.render(href, ...args)
