@@ -211,23 +211,38 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
         {
             id: 'ojs-getting-started-2',
             title: 'Hello OpenScript.Js',
-            heading: 'Hello OpenScript.Js',
+            heading: 'Hello World',
             content: [
                 h.p(
-                    'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
-                )
-            ]
-        },
-        {
-            id: 'ojs-getting-started-3',
-            title: 'Keyboard 1.1',
-            heading: 'Section one point one',
-            content: [
-                h.p(
-                    'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
-                )
-            ]
-        },
+                    `Welcome to the "Hello World" section of the OpenScript.Js documentation. In this section, we will cover the fundamental aspects of OpenScript.Js by creating a simple "Hello World" example. This example will serve as a starting point to understand the basic usage of OpenScript.Js components, logic, markup generation, state management, and context usage.
+                    `,
+                    h.br(),
+                    h.br(),
+                    `By following along with this example, you will gain insights into how OpenScript.Js simplifies the process of building reactive web UIs with ease and elegance. We will demonstrate how to create components, generate dynamic markup, manage state, and utilize context for efficient data sharing.
+                    `,
+                    h.br(),
+                    h.br(),
+                    `Whether you are new to OpenScript.Js or already familiar with its concepts, this section will provide a solid foundation for understanding the core principles of the framework. So let's dive in and get started with our "Hello World" example, where we'll showcase the key features and capabilities of OpenScript.Js.
+                    `,
+                    h.br(),
+                    h.br(),
+                    `In the subsequent sections, we will gradually build upon this "Hello World" example to explore more advanced concepts and techniques in OpenScript.Js. So let's begin our journey into the world of OpenScript.Js and start building beautiful and interactive web UIs!`
+                ),
 
+                h.p(
+                    `In OpenScript.Js, you can create HTML elements using the h object followed by the element name. For example, to create a div element, you can use h.div(...args).`,
+
+                    h.br(),
+                    h.br(),
+
+                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a 'class' attribute with the value of "container" to a div element, you can use h.div({ class: "container" }, ...args).`,
+                    
+                    h.br(),
+                    h.br(),
+
+                    `By nesting elements and passing multiple attributes, you can create complex and structured markup with ease. Here's an example of how you can nest elements and add multiple attributes to a div element:`
+                )
+            ]
+        }
     ];
 }

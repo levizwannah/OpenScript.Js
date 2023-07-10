@@ -1,7 +1,6 @@
 "use strict";
 
 
-
 function responsiveSidebar() {
   
   let sidebar = document.getElementById("docs-sidebar");
@@ -19,14 +18,14 @@ function responsiveSidebar() {
     sidebar.classList.add("sidebar-hidden");
   }
 }
-
-
 h?.on('Docs.bound', responsiveSidebar);
 
 h?.on('Docs.bound', () => {
   window.onresize = function () {
     responsiveSidebar();
   };
+
+  window.addEventListener('popstate', responsiveSidebar);
 });
 
 h?.on('MainHeader.bound', () => {
