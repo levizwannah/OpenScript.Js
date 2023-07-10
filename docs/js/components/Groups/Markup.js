@@ -1,4 +1,4 @@
-class CodeBlock extends OpenScript.Component {
+class ExternalScript extends OpenScript.Component {
 
     render(src, ...args){
         return h.div(
@@ -10,6 +10,18 @@ class CodeBlock extends OpenScript.Component {
         );
     }
 
+}
+
+class Code extends OpenScript.Component {
+
+    render(...args){
+        return h.pre(
+            {class: 'rounded my-4'},
+            h.code(
+                ...args
+            )
+        );
+    }
 }
 
 class ThemeLink extends OpenScript.Component {
@@ -32,7 +44,7 @@ class ThemeLink extends OpenScript.Component {
 class ExternalLink extends ThemeLink {
     render(href, ...args) {
         if(args.length === 0) args.push(href);
-        
+
         return [
             h.i({class: 'fas fa-external-link-alt'}),
             super.render(href, ...args)
