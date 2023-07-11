@@ -228,6 +228,8 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     h.br(),
                     `In the subsequent sections, we will gradually build upon this "Hello World" example to explore more advanced concepts and techniques in OpenScript.Js. So let's begin our journey into the world of OpenScript.Js and start building beautiful and interactive web UIs!`
                 ),
+                
+                h.h3('Markup'),
 
                 h.p(
                     `In OpenScript.Js, you can create HTML elements using the h object followed by the element name. For example, to create a div element, you can use h.div(...args).`,
