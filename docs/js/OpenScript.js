@@ -1542,6 +1542,137 @@ var OpenScript = {
             }
             return text.replace(/\./g, "/");
         }
+
+        /**
+         * Splits a file into smaller strings
+         * based on the class in that file
+         */
+        Splitter = class Splitter {
+            
+            /**
+             * Gets the class Signature
+             * @param {string} content 
+             * @param {int} start 
+             * @param {object<>} signature {name: string, signature: string, start: number, end: number}
+             */
+            classSignature(content, start) {
+                const signature = {name: '', definition: '', start: -1, end: -1};
+                
+                let startAt = start;
+
+                let output = [];
+                let tmp = '';
+
+                let pushTmp = (index) => {
+                    if(tmp.length === 0) return;
+
+                    if(output.length === 0) startAt = index;
+
+                    output.push(tmp);
+                    tmp = '';
+                }
+
+                for(let i = start; i < content.length; i++){
+                    let ch = content[i];
+
+                    if(/[\s\r\t\n]/.test(ch)) {
+                        pushTmp(i);
+
+                        continue;
+                    }
+
+                    if(/\{/.test(ch)) {
+                        pushTmp(i);
+                        signature.end = i;
+
+                        break;
+                    }
+
+                    tmp += ch;
+                }
+
+                signature.start = startAt;
+
+                if(output.length % 2 !== 0) throw Error(`Invalid Class File. Could not parse \`${content}\` from index ${start} because it doesn't have the proper syntax. ${content.substring(start)}`);
+
+                signature.name = output[1];
+                signature.definition = output.join(' ');
+
+                return signature;
+            }
+
+            /**
+             * Splits the content of the file by
+             * class
+             * @param {string} content file content
+             * @return {Map<string,string>} class map 
+             */
+            classes(content) {
+
+                content = content.trim();
+                content = content.replace(/\/\/.*\n+/g, "\n")
+                            .replace(/\/\*+[.\n\t\r\s\w\W]*\*\//g, "\n")
+                            .replace(/\n+/g, "\n");
+
+                const stack = [];
+                const map = new Map();
+
+                let index = 0;
+                let code = '';
+
+                while(index < content.length){
+                    let signature = this.classSignature(content, index);
+                    index = signature.end;
+                    
+                    stack.push(content[index]);
+                    code += signature.definition;
+
+                    let text = [];
+
+                    while(stack.length && index < content.length){
+                        let ch = content[index];
+
+                        code += ch;
+
+                        if(/["'`]/.test(ch)){
+                            text.push(ch);
+                            index++;
+
+                            while(text.length && index < content.length){
+                                ch = content[index];
+                                code += ch;
+                            
+                                if(/["'`]/.test(ch)) {
+                                    let last = text.length - 1;
+
+                                    if(
+                                        text[last] === ch || /\\/.test(text[last])
+                                    ) text.pop();
+
+                                    else text.push(ch);
+                                }
+
+                                if(/\\/.test(ch)) text.push(ch);
+
+                                if(/[\s\n\t\r]/.test(ch) && /\\/.test(text[text.length - 1])) text.pop();
+                                
+                                index++;
+                            }
+
+                        }
+                        
+                        if(/\{/.test(ch)) stack.push(ch);
+                        if(/\}/.test(ch)) stack.pop();
+
+                        index++;
+                    }
+
+                    map.set(signature.name, code);
+                    code = '';
+                    
+                }
+            }
+        }
     
         /**
             * 
