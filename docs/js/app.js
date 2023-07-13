@@ -1,4 +1,4 @@
-ojs(async e => {
+          ojs(async e => {
     // init global components
     req('Groups.Common');
 

@@ -245,13 +245,29 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     `By nesting elements and passing multiple attributes, you can create complex and structured markup with ease. Here's an example of how you can nest elements and add multiple attributes to a div element:`,
                     h.br(),
                     h.br(),
-                    h.code(
-                        `h.div(
-                            { class: 'container', id: 'myDiv' },
-                            h.h1('Hello World'),
-                            h.p('This is a paragraph.'),
-                            h.button({ type: 'button' }, 'Click Me')
-                          );`
+                    h.Code(
+`h.div(
+    { class: 'container', id: 'myDiv' },
+    h.h1('Hello World'),
+    h.p('This is a paragraph.'),
+    h.button({ type: 'button' }, 'Click Me')                                     
+);` , 
+                    
+                {class: 'language-js'}  
+                ),
+                    h.br(),
+                    h.br(),       
+                ),
+                
+                
+                h.p(
+                 
+                    h.Code(
+ `<div class="container" id="myDiv">
+     <h1>Hello World</h1>
+     <p>This is a paragraph.</p>
+     <button type="button">Click Me</button>
+ </div>`
                     )
                 )
                

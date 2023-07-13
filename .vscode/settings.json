@@ -3,5 +3,6 @@
         "openscript",
         "prebind",
         "premount"
-    ]
+    ],
+    "liveServer.settings.port": 5502
 }
