@@ -232,17 +232,17 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                 h.h3('Markup'),
 
                 h.p(
-                    `In OpenScript.Js, you can create HTML elements using the h object followed by the element name. For example, to create a div element, you can use h.div(...args).`,
+                    `In OpenScript.Js, you can create HTML elements using the`,h.code(`h`), `object followed by the element name. For example, to create a div element, you can use`, h.code(`h.div`),`(...args).`,
 
                     h.br(),
                     h.br(),
 
-                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a div element, you can use h.div({ class: "container" }, ...args).`,
+                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a`, h.code(`div`), `element, you can use`,h.code(`h.div({ class: "container" })`),`, ...args).`,
                     
                     h.br(),
                     h.br(),
 
-                    `By nesting elements and passing multiple attributes, you can create complex and structured markup with ease. Here's an example of how you can nest elements and add multiple attributes to a div element:`,
+                    `By nesting elements and passing multiple attributes, you can create complex and structured markup with ease. Here's an example of how you can nest elements and add multiple attributes to a`,h.code(`div`), ` element:`,
                     h.br(),
                     h.br(),
                     h.Code(
@@ -253,10 +253,14 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
     h.button({ type: 'button' }, 'Click Me')                                     
 );` , 
                     
-                {class: 'language-js'}  
-                ),
+                        {class: 'language-js'}  
+                    ),
+                         
+                    `In the above example, we create a`,h.code(`div`),  ` element with the class attribute set to 'container' and the`,h.code(`id`), ` attribute set to 'myDiv'. Inside the`,h.code(`div`),` , we nest an`,h.code('h1'),`  element with the text 'Hello World', a`,h.code(`p`), ` element with the text 'This is a paragraph.', and a`,h.code(`button`), ` element with the attribute type set to 'button' and the text 'Click Me'.`,
                     h.br(),
-                    h.br(),       
+                    `This will generate the following HTML markup:`
+
+
                 ),
                 
                 
@@ -268,7 +272,10 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
      <p>This is a paragraph.</p>
      <button type="button">Click Me</button>
  </div>`
-                    )
+                    ),
+                    h.br(),
+                    h.br(),
+                    `With OpenScript.Js's concise syntax for element creation and attribute assignment, you can easily construct dynamic and interactive web UIs.`
                 )
                
         
