@@ -1556,7 +1556,7 @@ var OpenScript = {
              * @param {object<>} signature {name: string, signature: string, start: number, end: number}
              */
             classSignature(content, start) {
-                const signature = {name: '', definition: '', start: -1, end: -1};
+                const signature = {name: '', definition: '', start: -1, end: -1, parent: null};
                 
                 let startAt = start;
 
@@ -1595,6 +1595,10 @@ var OpenScript = {
 
                 if(output.length % 2 !== 0) throw Error(`Invalid Class File. Could not parse \`${content}\` from index ${start} because it doesn't have the proper syntax. ${content.substring(start)}`);
 
+                if(output.length > 2) {
+                    signature.parent = output[3];
+                }
+
                 signature.name = output[1];
                 signature.definition = output.join(' ');
 
@@ -1610,67 +1614,67 @@ var OpenScript = {
             classes(content) {
 
                 content = content.trim();
-                content = content.replace(/\/\/.*\n+/g, "\n")
-                            .replace(/\/\*+[.\n\t\r\s\w\W]*\*\//g, "\n")
-                            .replace(/\n+/g, "\n");
 
                 const stack = [];
                 const map = new Map();
+                const qMap = new Map([[`'`, true], [`"`, true], ["`", true]]);
+                
 
                 let index = 0;
                 let code = '';
 
                 while(index < content.length){
+                    
                     let signature = this.classSignature(content, index);
                     index = signature.end;
-                    
-                    stack.push(content[index]);
-                    code += signature.definition;
+
+                    let ch = content[index];
+                    stack.push(ch);
+
+                    code += signature.definition + ' ';
+                    code += ch;
 
                     let text = [];
 
-                    while(stack.length && index < content.length){
-                        let ch = content[index];
+                    index++;
 
+                    while(stack.length && index < content.length){
+                        ch = content[index];
                         code += ch;
 
-                        if(/["'`]/.test(ch)){
+                        if(qMap.has(ch)){
+
                             text.push(ch);
                             index++;
 
                             while(text.length && index < content.length){
                                 ch = content[index];
                                 code += ch;
-                            
-                                if(/["'`]/.test(ch)) {
-                                    let last = text.length - 1;
 
-                                    if(
-                                        text[last] === ch || /\\/.test(text[last])
-                                    ) text.pop();
+                                let last = text.length - 1;
 
-                                    else text.push(ch);
+                                if(qMap.has(ch) && ch === text[last]) {
+                                    text.pop();
                                 }
-
-                                if(/\\/.test(ch)) text.push(ch);
-
-                                if(/[\s\n\t\r]/.test(ch) && /\\/.test(text[text.length - 1])) text.pop();
+                                else if(ch === '\n' && (text[last] === '"' || text[last] === "'")) {
+                                    text.pop();
+                                }
                                 
                                 index++;
                             }
-
+                            continue;
                         }
-                        
                         if(/\{/.test(ch)) stack.push(ch);
                         if(/\}/.test(ch)) stack.pop();
 
                         index++;
                     }
 
-                    map.set(signature.name, code);
+                    map.set(signature.name, {extends: signature.parent, code, name: signature.name, signature: signature.definition});
                     code = '';
-                    
                 }
+
+                return map;
             }
         }
     
@@ -1687,14 +1691,7 @@ var OpenScript = {
             let response = await fetch(`${this.dir}/${this.normalize(fileName)}${this.extension}?v=${this.version}`);
     
             let classes = await response.text();
-
-            let matches = classes.match(/class\s+[A-Za-z]+/g);
-            
-
-            // checking if there is only one class
-            if(matches && matches.index) matches = [matches[0]];
-
-            classes = classes.split(/class\s+[A-Za-z]+/g);
+            let content = classes;
 
             let classMap = new Map();
             let codeMap = new Map();
@@ -1704,31 +1701,20 @@ var OpenScript = {
             let prefix = prefixArray.join('.');
             if(prefix.length > 0 && !/^\s+$/.test(prefix)) prefix += '.';
             
-            classes.shift();
+            let splitter = new this.Splitter();
 
-            for(let k in classes){
-                if(classes[k].length === 0 || /^[\s+\n+\r+\t+]*$/.test(classes[k])) continue;
-                
-                classes[k] = classes[k].trim();
-                matches[k] = matches[k].trim();
-                
-                let m = matches[k].match(/\s+/);
-                let name = matches[k].substring(m['index'])?.trim();
-            
-                let key = prefix + name;
-                
-                classMap.set(key, [name, `${matches[k]} ${classes[k]}`]);
+            classes = splitter.classes(content);
 
+            for(let [k, v] of classes){
+                let key = prefix + k;
+                classMap.set(key, [k, v.code]);
             }
 
             for(let [k, arr] of classMap){
                 
-                let inheritance = arr[1].match(/extends[\s\n]+\s*.+\s*[\s\n]+\{/);
+                let parent = classes.get(arr[0]).extends;
 
-                if(inheritance) {
-
-                    let parent = inheritance[0].replace(/[\n\s\{]+/g, " ");
-                    parent = parent.replace(/extends/g, "").trim();
+                if(parent) {
 
                     let original = parent;
 
@@ -1752,10 +1738,12 @@ var OpenScript = {
                         }
                     }
                     else {
-                        let replacement = inheritance[0].replace(original, parent);
+                        let signature = classes.get(arr[0]).signature;
+
+                        let replacement = signature.replace(original, parent);
                         //console.log(k, arr[1]);
 
-                        let c = arr[1].replace(inheritance[0], replacement);
+                        let c = arr[1].replace(signature, replacement);
                         arr[1] = c;
                     }
                 }
