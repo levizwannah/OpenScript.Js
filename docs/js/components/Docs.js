@@ -131,6 +131,7 @@ class Sections extends OpenScript.Component {
 }
 
 class Docs extends OpenScript.Component {
+  
   async mount() {
     await super.mount();
     req("Sections.Header");
