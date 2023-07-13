@@ -237,7 +237,7 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     h.br(),
                     h.br(),
 
-                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a 'class' attribute with the value of "container" to a div element, you can use h.div({ class: "container" }, ...args).`,
+                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a div element, you can use h.div({ class: "container" }, ...args).`,
                     
                     h.br(),
                     h.br(),
