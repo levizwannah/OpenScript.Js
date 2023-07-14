@@ -273,7 +273,48 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     ),
                     h.br(),
                     `With OpenScript.Js's concise syntax for element creation and attribute assignment, you can easily construct dynamic and interactive web UIs.`
+                ),
+
+                h.h3(`Components`),
+
+                h.p(
+                    `In OpenScript.Js, a component is a reusable and modular UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components in OpenScript.Js serve as building blocks for constructing the user interface of a web application. They allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. By separating UI components into individual classes, components can be reused across multiple parts of an application, providing consistency and reducing code duplication. Components in OpenScript.Js promote a more structured and efficient development process, enabling developers to build modular, maintainable, and reusable UI elements.`
+                ),
+                h.Code(
+`class Comment extends OpenScript.Component {
+    /**
+     * @param {string} content 
+     */
+    render(content) {
+        return h.div(
+            { class: 'comment' },
+            h.div({ class: 'comment-content' }, content),
+            h.i({ class: 'fa fa-thumbs-up' }),
+            h.i({ class: 'fa fa-reply' })
+        );
+    }
+}`
+                ),
+
+                h.br(),
+
+                h.p(
+                    `In the example above, we define a new component called Comment by extending the OpenScript.Component class. The render method is responsible for rendering the structure and content of the Comment component.`,
+                    h.br(),
+                    
+                    `The render method takes a content parameter, which represents the comment text to be displayed. Inside the render method, we create a div element with the class 'comment'.`,
+                    
+                    
+                    `Within the div, we nest two child elements. The first child element is another div with the class 'comment-content', which will display the comment text passed as the content parameter.`,
+                    h.br(),
+                    h.br(),
+                  
+                    `The second and third child elements are i elements representing icons. In this example, we use Font Awesome icons with classes 'fa fa-thumbs-up' and 'fa fa-reply'. You can adjust these classes or use different icon libraries based on your requirements.`
+                   
+
                 )
+
+
                
             ]
         }
