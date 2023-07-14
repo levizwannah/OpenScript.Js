@@ -229,15 +229,16 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     `In the subsequent sections, we will gradually build upon this "Hello World" example to explore more advanced concepts and techniques in OpenScript.Js. So let's begin our journey into the world of OpenScript.Js and start building beautiful and interactive web UIs!`
                 ),
                 
-                h.h3('Markup'),
+                h.h3('Markup Generation'),
 
                 h.p(
-                    `In OpenScript.Js, you can create HTML elements using the`,h.code(`h`), `object followed by the element name. For example, to create a div element, you can use`, h.code(`h.div`),`(...args).`,
+                    `In OpenScript.Js, you can create HTML elements using the `,h.code(`h`), ` object followed by the element name. For example, to create a div element, you can use`, h.code(`h.div(...args)`),`.`,
 
                     h.br(),
                     h.br(),
 
-                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a`, h.code(`div`), `element, you can use`,h.code(`h.div({ class: "container" })`),`, ...args).`,
+                    `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a `, h.code(`div`), ` element, you can use `, 
+                    h.code(`h.div({ class: "container" }, ...args)`), '.',
                     
                     h.br(),
                     h.br(),
@@ -256,16 +257,13 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                         {class: 'language-js'}  
                     ),
                          
-                    `In the above example, we create a`,h.code(`div`),  ` element with the class attribute set to 'container' and the`,h.code(`id`), ` attribute set to 'myDiv'. Inside the`,h.code(`div`),` , we nest an`,h.code('h1'),`  element with the text 'Hello World', a`,h.code(`p`), ` element with the text 'This is a paragraph.', and a`,h.code(`button`), ` element with the attribute type set to 'button' and the text 'Click Me'.`,
+                    `In the above example, we create a `, h.code(`div`),  ` element with the `, h.code('class'), ` attribute set to `, h.code('container'), ` and the`,h.code(`id`), ` attribute set to `, h.code('myDiv'), `. Inside the`, h.code(`div`),` , we nest an`, h.code('h1'),`  element with the text 'Hello World', a `, h.code(`p`), ` element with the text 'This is a paragraph.', and a `, h.code(`button`), ` element with the attribute type set to 'button' and the text 'Click Me'.`,
                     h.br(),
                     `This will generate the following HTML markup:`
-
-
                 ),
                 
                 
                 h.p(
-                 
                     h.Code(
  `<div class="container" id="myDiv">
      <h1>Hello World</h1>
@@ -274,11 +272,9 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
  </div>`
                     ),
                     h.br(),
-                    h.br(),
                     `With OpenScript.Js's concise syntax for element creation and attribute assignment, you can easily construct dynamic and interactive web UIs.`
                 )
                
-        
             ]
         }
     ];

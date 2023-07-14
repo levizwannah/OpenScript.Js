@@ -78,7 +78,6 @@ class Callout extends OpenScript.Component {
         success: 'fa-thumbs-up',
         danger: 'fa-exclamation-triangle'
     };
-    // comments here
     /**
      * 
      * @param {string} type - info, warning, success, danger 

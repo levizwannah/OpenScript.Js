@@ -1317,6 +1317,10 @@ var OpenScript = {
             }
 
             root.append(rootFrag);
+            
+            root.toString = function(){
+                return this.outerHTML;
+            }
 
             if(parent) {
                 
