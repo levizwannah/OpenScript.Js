@@ -49,7 +49,7 @@ h?.on('MainHeader.bound', () => {
 
 });
 
-h?.on('DocsNav.rerendered', () => {
+h?.onAll('DocsNav.rerendered', () => {
   const sidebarLinks = document.querySelectorAll("#docs-sidebar .scrollto");
   const sidebar = document.getElementById("docs-sidebar");
 

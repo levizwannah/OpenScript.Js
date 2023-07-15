@@ -325,6 +325,11 @@ var OpenScript = {
      */
     Emitter: class {
         listeners = {}
+
+        /**
+         * List of emitted events
+         */
+        emitted = {};
         
         addListener(eventName, fn) {
           this.listeners[eventName] = this.listeners[eventName] || [];
@@ -366,7 +371,9 @@ var OpenScript = {
       
         // Fire the event
         emit(eventName, ...args) {
-    
+
+          this.emitted[eventName] = true;
+
           let fns = this.listeners[eventName];
           if (!fns) return false;
           fns.forEach((f) => {
@@ -490,6 +497,19 @@ var OpenScript = {
         }
 
         /**
+         * Deletes all the component's markup from the DOM
+         */
+        unmount(){
+            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
+
+            for(let elem of all) {
+                elem.remove();
+            }
+
+            return true;
+        }
+
+        /**
          * Emits an event
          * @param {string} event 
          * @param {Array<*>} args 
@@ -513,6 +533,7 @@ var OpenScript = {
             for(let elem of all) {
 
                 let hId = elem.getAttribute('ojs-key');
+
                 let args = [...h.compArgs.get(hId)];
 
                 this.wrap(...args, {parent: elem, replaceParent: true});
@@ -526,6 +547,21 @@ var OpenScript = {
         }
 
         /**
+         * Converts camel case to kebab case
+         * @param {string} name 
+         */
+        kebab(name){
+            let newName = "";
+
+            for(const c of name){
+                if(c.toLocaleUpperCase() === c && newName.length > 1) newName += "-";
+                newName += c.toLocaleLowerCase();
+            }
+
+            return newName;
+        }
+
+        /**
          * Hides all the markup of this component
          * @emits before-hidden 
          * @emits hidden
@@ -534,7 +570,7 @@ var OpenScript = {
         hide(){
             this.emit(this.EVENTS.beforeHidden);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
+            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}`);
 
             for(let elem of all) {
                 elem.style.display = 'none';
@@ -554,7 +590,7 @@ var OpenScript = {
         show() {
             this.emit(this.EVENTS.beforeVisible);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
+            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
 
             for(let elem of all) {
                 elem.style.display = '';
@@ -563,6 +599,34 @@ var OpenScript = {
             this.emit(this.EVENTS.visible);
 
             return true;
+        }
+
+        /**
+         * Ensure that the action will get called
+         * even if the event was emitted previous
+         * @param {string} event 
+         * @param {...function} listeners
+         */
+        onAll(event, ...listeners) {
+
+            // check if we have previously emitted this event
+            listeners.forEach(a => {
+                if(this.emitter.emitted[event]) a();
+
+                this.emitter.on(event, a); 
+            });
+        }
+
+        /**
+         * Add Event Listeners to that component
+         * @param {string} event 
+         * @param {...function} listeners
+         */
+        on(event, ...listeners) {
+            // check if we have previously emitted this event
+            listeners.forEach(a => {
+                this.emitter.on(event, a); 
+            });
         }
 
         /**
@@ -575,13 +639,14 @@ var OpenScript = {
             let events = h.eventsMap.get(this.name);
 
             for(let event in events) {
+                
+                events[event].forEach((listener) => {
+                    let func = listener.function;
 
-                if(!this.emitter.listeners[event]) {
-                    this.emitter.listeners[event] = events[event];
-                    continue;
-                } 
+                    if(listener.type === 'all') this.onAll(event, func);
+                    else this.on(event, func);
+                });
 
-                this.emitter.listeners[event].push(...events[event]);
             }
 
             h.eventsMap.delete(this.name);
@@ -654,7 +719,7 @@ var OpenScript = {
 
                 delete args[index];
 
-                let current = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}[s-${state.id}="${state.id}"]`) ?? [];
+                let current = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}[s-${state.id}="${state.id}"]`) ?? [];
 
                 current.forEach(e => {
                     e.textContent = "";
@@ -679,10 +744,11 @@ var OpenScript = {
 
             if(!this.visible) attr.style = 'display: none;';
 
-            return h[`ojs-${this.name}`](attr, this.render(...args), {
+            return h[`ojs-${this.kebab(this.name)}`](attr, this.render(...args), {
                 component: this, 
                 event: this.EVENTS.rendered,
-                eventParams: []});
+                eventParams: []
+            });
         }
 
         /**
@@ -1263,7 +1329,7 @@ var OpenScript = {
          * as well.
          * @returns {boolean}
          */
-        deleteComponent = (name, withMarkup = false) => {
+        deleteComponent = (name, withMarkup = true) => {
             
             if(!this.has(name)){
                 console.info(`Trying to delete an unregistered component {${name}}. Please ensure that the component is registered before deleting it.`);
@@ -1271,7 +1337,7 @@ var OpenScript = {
                 return false;
             }
 
-            if(withMarkup) this.hide(name);
+            if(withMarkup) this.getComponent(name).unmount();
 
             this.getComponent(name)
             .emit('unmount');
@@ -1318,6 +1384,11 @@ var OpenScript = {
             return true;
         }
 
+        /**
+         * make all the component visible
+         * @param {string} name component name 
+         * @returns 
+         */
         show = (name) => {
             if(!this.isRegistered(name, 'show')) return false;
             
@@ -1520,6 +1591,21 @@ var OpenScript = {
             return final;
         }
 
+        __addToEventsMap = (component, event, listeners) => {
+            
+            if(!this.eventsMap.has(component)){
+                this.eventsMap.set(component, {});
+                this.eventsMap.get(component)[event] = listeners;
+                return;
+            }
+
+            if(!this.eventsMap.get(component)[event]) {
+                this.eventsMap.get(component)[event] = [];  
+            }
+
+            this.eventsMap.get(component)[event].push(...listeners);
+        }
+
         /**
          * Adds an event listener to a component
          * @param {string|Array<string>} component component name 
@@ -1540,27 +1626,55 @@ var OpenScript = {
                     event = tmp[1];
                 }
 
-                if(this.compMap.has(component)) {
+
+                if(this.has(component)) {
                     
-                    if(!this.emitter(component).listeners[event]) {
-                        this.emitter(component).listeners[event] = [];
-                    }
+                    this.getComponent(component)
+                        .on(event, listeners);
 
-                    this.emitter(component).listeners[event].push(...listeners);
                     continue;
                 }
+
+                listeners.forEach((f, i) => {
+                    listeners[i] = {type: 'after', function: f};
+                });
+
+                this.__addToEventsMap(component, event, listeners);
+            }
+        }
+
+        /**
+         * Add events listeners to a component that will
+         * execute even after the event has been emitted
+         * @param {string|Array<string>} component 
+         * @param {string} event 
+         * @param  {...function} listeners 
+         */
+        onAll = (component, event, ...listeners) => {
+            let components = component;
+
+            if(!Array.isArray(component)) components = [component];
+
+            for(let component of components) {
+                
+                if(/\./.test(component)){
+                    let tmp = component.split('.').filter(e => e);
+                    component = tmp[0];
+                    listeners.push(event);
+                    event = tmp[1];
+                }
+
+                if(this.has(component)) {
+                    this.getComponent(component)
+                        .onAll(event, listeners);
+                    continue;
+                }
+
+                listeners.forEach((f, i) => {
+                    listeners[i] = {type: 'all', function: f};
+                });
     
-                if(!this.eventsMap.has(component)){
-                    this.eventsMap.set(component, {});
-                    this.eventsMap.get(component)[event] = listeners;
-                    continue;
-                }
-
-                if(!this.eventsMap.get(component)[event]) {
-                    this.eventsMap.get(component)[event] = [];  
-                }
-
-                this.eventsMap.get(component)[event].push(...listeners);
+                this.__addToEventsMap(component, event, listeners);
             }
         }
 
