@@ -70,6 +70,39 @@ class DocsNav extends OpenScript.Component {
       ...args
     );
   }
+
+  onRerendered(...args) {
+
+    const sidebarLinks = document.querySelectorAll("#docs-sidebar .scrollto");
+    const sidebar = document.getElementById("docs-sidebar");
+
+    sidebarLinks.forEach((sidebarLink) => {
+      sidebarLink.addEventListener("click", (e) => {
+        let target = sidebarLink.getAttribute("link");
+
+        document.getElementById(target)?.scrollIntoView({ behavior: "smooth" });
+
+        //Collapse sidebar after clicking
+        if (
+          sidebar.classList.contains("sidebar-visible") &&
+          window.innerWidth < 1200
+        ) {
+          sidebar.classList.remove("sidebar-visible");
+          sidebar.classList.add("sidebar-hidden");
+        }
+      });
+    });
+
+    try{
+      /* ===== Gumshoe SrollSpy ===== */
+      /* Ref: https://github.com/cferdinandi/gumshoe  */
+      // Initialize Gumshoe
+      window.spy = new Gumshoe("#docs-nav a", {
+        offset: 69, //sticky header height
+      });
+    }
+    catch(e){}
+  }
 }
 
 class Sections extends OpenScript.Component {
@@ -77,6 +110,10 @@ class Sections extends OpenScript.Component {
   constructor(){
     super();
     this.name = 'DocsSections';
+  }
+
+  onRerendered(...args) {
+    document.getElementById(route.hash())?.scrollIntoView({ behavior: "smooth" });
   }
 
   render(data, arrangements, ...args) {
@@ -136,6 +173,36 @@ class Docs extends OpenScript.Component {
     await super.mount();
     req("Sections.Header");
     req("Groups.Markup");
+  }
+
+  responsiveSidebar() {
+  
+    let sidebar = document.getElementById("docs-sidebar");
+  
+    let w = window.innerWidth;
+    if (w >= 1200) {
+      // if larger
+      console.log("larger");
+      sidebar.classList.remove("sidebar-hidden");
+      sidebar.classList.add("sidebar-visible");
+    } else {
+      // if smaller
+      console.log("smaller");
+      sidebar.classList.remove("sidebar-visible");
+      sidebar.classList.add("sidebar-hidden");
+    }
+  }
+
+  onBound(component){
+    this.responsiveSidebar();
+
+    window.onresize = function () {
+      component.responsiveSidebar();
+    };
+  
+    window.addEventListener('popstate', function() {
+      component.responsiveSidebar();
+    });
   }
 
   render(...args) {

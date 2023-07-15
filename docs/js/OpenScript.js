@@ -344,8 +344,8 @@ var OpenScript = {
         // Attach event handler only once. Automatically removed.
         once(eventName, fn) {
           this.listeners[eventName] = this.listeners[eventName] || [];
-          const onceWrapper = () => {
-            fn();
+          const onceWrapper = (...args) => {
+            fn(...args);
             this.off(eventName, onceWrapper);
           }
           this.listeners[eventName].push(onceWrapper);
@@ -474,13 +474,23 @@ var OpenScript = {
         constructor() {
             this.name = this.constructor.name;
 
-            this.emitter.once(this.EVENTS.rendered, _ => this.rendered = true);
-            this.emitter.on(this.EVENTS.hidden, _ => this.visible = false);
-            this.emitter.on(this.EVENTS.rerendered, _ => this.rerendered = true);
-            this.emitter.on(this.EVENTS.bound, _ => this.bound = true);
-            this.emitter.on(this.EVENTS.mounted, _ => this.mounted = true);
-            this.emitter.on(this.EVENTS.visible, _ => this.visible = true);
+            this.emitter.once(this.EVENTS.rendered, (th) => th.rendered = true);
+            this.emitter.on(this.EVENTS.hidden, (th) => th.visible = false);
+            this.emitter.on(this.EVENTS.rerendered, (th) => th.rerendered = true);
+            this.emitter.on(this.EVENTS.bound, (th) => th.bound = true);
+            this.emitter.on(this.EVENTS.mounted, (th) => th.mounted = true);
+            this.emitter.on(this.EVENTS.visible, (th) => th.visible = true);
+
+            for(const event in this.EVENTS){
+                let name = 'on' + event[0].toUpperCase() + event.substring(1);
+                
+                if(!this[name]) continue;
+                
+                this.on(event, (component, event, ...args) => component[name](component, event, ...args));
+            }
         }
+
+
 
         /**
          * Initializes the component and adds it to
@@ -488,7 +498,7 @@ var OpenScript = {
          * @emits mounted
          * @emits pre-mount
          */
-        async mount(){
+        async mount() {
             this.claimListeners();
             this.emit(this.EVENTS.premount);
             h.component(this.name, this);
@@ -499,7 +509,7 @@ var OpenScript = {
         /**
          * Deletes all the component's markup from the DOM
          */
-        unmount(){
+        unmount() {
             let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
 
             for(let elem of all) {
@@ -528,7 +538,7 @@ var OpenScript = {
             
             this.emit(this.EVENTS.prebind);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}-tmp`);
+            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}-tmp--`);
 
             for(let elem of all) {
 
@@ -743,6 +753,8 @@ var OpenScript = {
             });
 
             if(!this.visible) attr.style = 'display: none;';
+
+            attr.class = '__ojs-c-class__';
 
             return h[`ojs-${this.kebab(this.name)}`](attr, this.render(...args), {
                 component: this, 
@@ -1130,7 +1142,7 @@ var OpenScript = {
                 yield this.value;
             }
             else {
-                for(let k in this.value ){
+                for(let k in this.value ) {
                     yield this.value[k];
                 }
             }
@@ -1263,6 +1275,49 @@ var OpenScript = {
             }
 
             setTimeout(iterate, 0);
+        }
+
+        /**
+         * Converts kebab case to camel case
+         * @param {string} name 
+         * @param {boolean} upperFirst
+         */
+        static camel(name, upperFirst = false){
+            
+            let _name = "";
+            let upper = upperFirst;
+
+            for(const c of name){
+                
+                if(c === '-') {
+                    upper = true;
+                    continue;
+                }
+                if(upper) {
+                    _name += c.toUpperCase();
+                    upper = false;
+                }
+                else {
+                    _name += c;
+                }
+            }
+
+            return _name;
+        }
+
+        /**
+         * Converts camel case to kebab case
+         * @param {string} name 
+         */
+        static kebab(name){
+            let newName = "";
+
+            for(const c of name){
+                if(c.toLocaleUpperCase() === c && newName.length > 1) newName += "-";
+                newName += c.toLocaleLowerCase();
+            }
+
+            return newName;
         }
     },
 
@@ -1417,6 +1472,20 @@ var OpenScript = {
             let event = '';
             let eventParams = [];
 
+            const isComponentName = (tag) => {
+                return /^ojs-.*$/.test(tag);
+            }
+
+            /**
+             * 
+             * @param {string} tag 
+             */
+            const getComponentName = (tag) => {
+                let name = tag.toLowerCase().replace(/^ojs-/, '').replace(/-tmp--$/, '');
+                
+                return ojsUtils.camel(name, true);
+            }
+
             /**
              * @type {DocumentFragment|HTMLElement}
              */
@@ -1435,10 +1504,12 @@ var OpenScript = {
              * save the argument for async rendering
              */
             if(isComponent) {
-                root = this.dom.createElement(`ojs-${name}-tmp`);
+                root = this.dom.createElement(`ojs-${ojsUtils.kebab(name)}-tmp--`);
 
-                let id = `ojs-${name}-${OpenScript.MarkupEngine.ID++}`;
+                let id = `ojs-${ojsUtils.kebab(name)}-${OpenScript.MarkupEngine.ID++}`;
+
                 root.setAttribute('ojs-key', id);
+                root.setAttribute('class', '__ojs-c-class__');
 
                 this.compArgs.set(id, args);
             }
@@ -1498,7 +1569,7 @@ var OpenScript = {
             }
 
 
-            for(let arg of args){
+            for(let arg of args) {
 
                 if(isComponent && parent) break;
 
@@ -1506,12 +1577,15 @@ var OpenScript = {
 
                 if(Array.isArray(arg)) {
                     if(isComponent) continue;
-                    arg.forEach(e => rootFrag.append(this.toElement(e)));
+                    arg.forEach(e => {
+                        rootFrag.append(this.toElement(e));
+                    });
                     continue;
                 }
     
                 if(arg instanceof DocumentFragment || arg instanceof HTMLElement) {
                     if(isComponent) continue;
+
                     rootFrag.append(arg);
                     continue;   
                 }
@@ -1545,7 +1619,20 @@ var OpenScript = {
                 else {
                     parent.append(root);
                 }
-                if(component) component.emit(event, eventParams);
+                if(component){
+                    component.emit(event, eventParams);
+                    
+                    let sc = root.querySelectorAll('.__ojs-c-class__');
+
+                    sc.forEach(c => {
+                        if(!isComponentName(c.tagName.toLowerCase())) return;
+                        
+                        let cName = getComponentName(c.tagName);
+
+                        component.onAll(event, () => h.getComponent(cName)?.emit(event));
+                        
+                    });
+                } 
                 return root;
             } 
     
@@ -1580,7 +1667,7 @@ var OpenScript = {
          * param passing
          */
         _escape = (args) => {
-            let final= [];
+            let final = [];
 
             for(let e of args) {
                 if(typeof e === "number") final.push(e);
@@ -2133,6 +2220,11 @@ var OpenScript = {
         state = (value) => OpenScript.State.state(value);
 
         /**
+         * The Utility Class
+         */
+        Utils = OpenScript.Utils;
+
+        /**
          * Creates an anonymous component around a state
          * @param {OpenScript.State} state 
          * @param {Function<OpenScript.State>} callback the function that returns
@@ -2357,7 +2449,12 @@ const {
     /**
      * Used to Autoload Files
      */
-    autoload
+    autoload,
+
+    /**
+     * The OJS utility class
+     */
+    Utils: ojsUtils
 
 } = new OpenScript.Initializer();
 

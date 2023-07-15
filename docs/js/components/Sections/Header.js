@@ -5,8 +5,23 @@ class Header extends OpenScript.Component {
         this.name = 'MainHeader';
     }
 
-    async mount(){
-        await super.mount();
+    onBound(){
+        /* ====== Define JS Constants ====== */
+        const sidebarToggler = document.getElementById("docs-sidebar-toggler");
+        const sidebar = document.getElementById("docs-sidebar");
+
+        sidebarToggler?.addEventListener("click", () => {
+            if(!sidebar) return;
+
+            if (sidebar.classList.contains("sidebar-visible")) {
+                sidebar.classList.remove("sidebar-visible");
+                sidebar.classList.add("sidebar-hidden");
+            } 
+            else {
+                sidebar.classList.remove("sidebar-hidden");
+                sidebar.classList.add("sidebar-visible");
+            }
+        });
     }
 
     render(type) {
