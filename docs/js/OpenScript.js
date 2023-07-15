@@ -395,7 +395,7 @@ var OpenScript = {
     Component: class {
 
         /**
-         * List of events that a component emits
+         * List of events that the component emits
          */
         EVENTS = {
             rendered: 'rendered', // component is visible on the dom
@@ -404,12 +404,44 @@ var OpenScript = {
             mounted: 'mounted', // the component is now registered
             prebind: 'prebind', // the component is ready to bind
             bound: 'bound', // the component has bound
-            markupBound: 'markup-bound' // a temporary markup has bound
+            markupBound: 'markup-bound', // a temporary markup has bound
+
+            beforeHidden: 'before-hidden',
+            hidden: 'hidden',
+            unmounted: 'unmounted', // removed from the markup engine memory
+            beforeVisible: 'before-visible', // before the markup is made visible
+            visible: 'visible' // the markup is now made visible
         }
+
         /**
          * Name of the component
          */
         name;
+
+        /**
+         * Has the component being mounted
+         */
+        mounted = false;
+
+        /**
+         * Has the component bound
+         */
+        bound = false;
+
+        /**
+         * Has the component rendered
+         */
+        rendered = false;
+
+        /**
+         * Has the component rerendered
+         */
+        rerendered = false;
+
+        /**
+         * Is the component visible
+         */
+        visible = true;
 
 
         /**
@@ -434,6 +466,13 @@ var OpenScript = {
 
         constructor() {
             this.name = this.constructor.name;
+
+            this.emitter.once(this.EVENTS.rendered, _ => this.rendered = true);
+            this.emitter.on(this.EVENTS.hidden, _ => this.visible = false);
+            this.emitter.on(this.EVENTS.rerendered, _ => this.rerendered = true);
+            this.emitter.on(this.EVENTS.bound, _ => this.bound = true);
+            this.emitter.on(this.EVENTS.mounted, _ => this.mounted = true);
+            this.emitter.on(this.EVENTS.visible, _ => this.visible = true);
         }
 
         /**
@@ -482,6 +521,46 @@ var OpenScript = {
             }
 
             this.emit(this.EVENTS.bound);
+
+            return true;
+        }
+
+        /**
+         * Hides all the markup of this component
+         * @emits before-hidden 
+         * @emits hidden
+         * @returns {bool}
+         */
+        hide(){
+            this.emit(this.EVENTS.beforeHidden);
+
+            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
+
+            for(let elem of all) {
+                elem.style.display = 'none';
+            }
+
+            this.emit(this.EVENTS.hidden);
+
+            return true;
+        }
+
+        /**
+         * Remove style-display-none from all this component's markup
+         * @emits before-visible 
+         * @emits visible
+         * @returns bool
+         */
+        show() {
+            this.emit(this.EVENTS.beforeVisible);
+
+            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}`);
+
+            for(let elem of all) {
+                elem.style.display = '';
+            }
+
+            this.emit(this.EVENTS.visible);
 
             return true;
         }
@@ -597,6 +676,8 @@ var OpenScript = {
             states.forEach((s) => {
                 attr[`s-${s.id}`] = s.id;
             });
+
+            if(!this.visible) attr.style = 'display: none;';
 
             return h[`ojs-${this.name}`](attr, this.render(...args), {
                 component: this, 
@@ -1174,17 +1255,76 @@ var OpenScript = {
         }
     
         /**
+         * Deletes the component from the Markup Engine Map.
          * @emits unmount
          * Removes an already registered company
          * @param {string} name 
+         * @param {string} withMarkup remove the markup of this component
+         * as well.
          * @returns {boolean}
          */
-        deleteComponent(name){
-            this.compMap.get(name)
-            .emitter
-            .emit('unmount', this.compMap.get(name));
+        deleteComponent = (name, withMarkup = false) => {
+            
+            if(!this.has(name)){
+                console.info(`Trying to delete an unregistered component {${name}}. Please ensure that the component is registered before deleting it.`);
+
+                return false;
+            }
+
+            if(withMarkup) this.hide(name);
+
+            this.getComponent(name)
+            .emit('unmount');
 
             return this.compMap.delete(name);
+        }
+
+        /**
+         * Checks if a component is registered with the
+         * markup engine.
+         * @param {string} name 
+         * @returns 
+         */
+        has = (name) => {
+            return this.compMap.has(name);
+        }
+
+        /**
+         * Checks if a component is registered
+         * @param {string} name 
+         * @param {string} method method name 
+         * @returns 
+         */
+        isRegistered = (name, method = 'access') => {
+            if(this.has(name)) return true;
+
+            console.info(`Trying to ${method} an unregistered component {${name}}. Please ensure that the component is registered by using h.has(componentName)`);
+
+            return false;
+        }
+
+        /**
+         * Removes all a component's markup
+         * from the DOM 
+         * @param {string} name 
+         */
+        hide = (name) => {
+            
+            if(!this.isRegistered(name, 'hide')) return false;
+            
+            const c = this.getComponent(name);
+            c.hide();
+
+            return true;
+        }
+
+        show = (name) => {
+            if(!this.isRegistered(name, 'show')) return false;
+            
+            const c = this.getComponent(name);
+            c.show();
+
+            return true;
         }
     
         /**

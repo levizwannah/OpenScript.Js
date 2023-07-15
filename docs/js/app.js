@@ -36,6 +36,7 @@
     route.orOn(['/', 'index.html', 'index'], () => {
         req('Index');
         rc.root.classList.remove('docs-page');
+
         h.Index({
             parent: rc.root,
             resetParent: route.reset
@@ -47,9 +48,9 @@
         rc.root.classList.add('docs-page');
         h.Docs({
             parent: rc.root,
-            resetParent: route.reset
+            resetParent: route.reset,
         });
     });
-    
+
     route.listen();
 });
