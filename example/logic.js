@@ -1,7 +1,7 @@
 ojs(async e => {
 
     fetchContext("rootCxt", "RootContext");
-    putContext("blogCxt", "Blog.Context");
+    fetchContext("blogCxt", "Blog.Context");
 
     req("App");
 
