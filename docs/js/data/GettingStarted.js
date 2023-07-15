@@ -302,17 +302,64 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     `In the example above, we define a new component called Comment by extending the OpenScript.Component class. The render method is responsible for rendering the structure and content of the Comment component.`,
                     h.br(),
                     
-                    `The render method takes a content parameter, which represents the comment text to be displayed. Inside the render method, we create a div element with the class 'comment'.`,
+                    `The render method takes a content parameter, which represents the comment text to be displayed. Inside the render method, we create a`,h.code(`div`),`element with the class 'comment'.`,
                     
                     
-                    `Within the div, we nest two child elements. The first child element is another div with the class 'comment-content', which will display the comment text passed as the content parameter.`,
+                    `Within the`,h.code('div') `, we nest two child elements. The first child element is another`,h.code('div'),` with the class 'comment-content', which will display the comment text passed as the content parameter.`,
                     h.br(),
                     h.br(),
                   
-                    `The second and third child elements are i elements representing icons. In this example, we use Font Awesome icons with classes 'fa fa-thumbs-up' and 'fa fa-reply'. You can adjust these classes or use different icon libraries based on your requirements.`
+                    `The second and third child elements are`,h.code('i'),`elements representing icons. In this example, we use Font Awesome icons with classes 'fa fa-thumbs-up' and 'fa fa-reply'. You can adjust these classes or use different icon libraries based on your requirements.`,
+                    h.br(),
+                    h.br(),
+
+                    `To use the Comment component in your application, you can instantiate it and include it within your OpenScript.Js markup. For example:`,
+
+                    h.Code(
+`class App extends OpenScript.Component {
+    render(...args) {
+        return h.div( { class: 'app' },
+                  h.h1('My App'),
+                  h.Comment('This is a comment.'),
+                   ...args
+        );
+    }
+}                      
+h.App({ parent: h.dom.getElementById('root'), resetParent: true });`
+                    ),
+                    h.br(),
+                    
+
+                    `We define a component called App by extending the OpenScript.Component class. The render method of the App component returns the OpenScript.Js markup for the application UI. Inside the render method, we include the h.Comment('This is a comment.') element to render the Comment component with the specified comment content.`,
+                    h.br(),
+
+                    `To render the App component and mount it to the DOM, we use h.App({ parent: h.dom.getElementById('root'), resetParent: true }). This will find the element with the ID 'root' and render the App component within it.`,
+                    h.br(),
+                    
+
+                    `The resulting HTML markup will be:`,
+
+                    h.Code(
+`<div class="app">
+     <h1>My App</h1>
+     <div class="comment">
+        <div class="comment-content">This is a comment.</div>
+        <i class="fa fa-thumbs-up"></i>
+         <i class="fa fa-reply"></i>
+     </div>
+ </div>`
+                    ),
+                    h.br(),
+                    
+
+                    `By creating components like Comment in OpenScript.Js, you can encapsulate the structure and functionality of your UI elements, making them reusable and modular within your application.`
+
+
                    
 
-                )
+                ),
+
+                h.h3('Context')
 
 
                
