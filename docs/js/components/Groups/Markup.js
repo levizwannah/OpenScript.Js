@@ -9,7 +9,6 @@ class ExternalScript extends OpenScript.Component {
             ...args
         );
     }
-
 }
 
 class Code extends OpenScript.Component {
@@ -67,7 +66,7 @@ class List extends OpenScript.Component {
             ...args
         );
 
-    } 
+    }
 }
 
 class Callout extends OpenScript.Component {

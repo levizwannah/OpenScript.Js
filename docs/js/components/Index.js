@@ -1,4 +1,5 @@
 class SearchForm extends OpenScript.Component {
+    
     constructor() {
         super();
 

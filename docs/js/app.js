@@ -1,4 +1,4 @@
-          ojs(async e => {
+ojs(async e => {
     // init global components
     req('Groups.Common');
 
@@ -13,23 +13,6 @@
         footer: {}
     });
 
-    function responsiveSidebar() {
-  
-        let sidebar = document.getElementById("docs-sidebar");
-      
-        let w = window.innerWidth;
-        if (w >= 1200) {
-          // if larger
-          console.log("larger");
-          sidebar.classList.remove("sidebar-hidden");
-          sidebar.classList.add("sidebar-visible");
-        } else {
-          // if smaller
-          console.log("smaller");
-          sidebar.classList.remove("sidebar-visible");
-          sidebar.classList.add("sidebar-hidden");
-        }
-    }
 
     rc.root = h.dom.querySelector('#root');
     
