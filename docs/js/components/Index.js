@@ -43,6 +43,10 @@ class SearchForm extends OpenScript.Component {
 }
 
 class Overview extends OpenScript.Component {
+    
+    goto(docId) {
+        route.to('docs.html', {id: docId});
+    }
 
     render(contents, ...args) {
 
@@ -80,10 +84,14 @@ class Overview extends OpenScript.Component {
                                 content.body
                             ),
 
-                            h.a({
-                                class: 'card-link-mask',
-                                href: content.link
-                            })
+                            {
+                                onclick: h.func(this, 'goto', content.link.split('#')[1])
+                            }
+
+                            // h.a({
+                            //     class: 'card-link-mask',
+                            //     href: content.link
+                            // })
                         )
                     )
                 )

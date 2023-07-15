@@ -4,13 +4,17 @@ class Logo extends OpenScript.Component {
         super();
     }
 
+    goHome(){
+        route.to('home');
+    }
+
     render(...args) {
         return h.div(
             { class: 'site-logo' },
-            h.a(
+            h.span(
                 {
                     class: 'navbar-brand',
-                    href: 'index.html'
+                    onclick: h.func(this, 'goHome')
                 },
 
                 h.img(

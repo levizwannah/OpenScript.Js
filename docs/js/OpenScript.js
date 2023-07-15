@@ -736,6 +736,8 @@ var OpenScript = {
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
+
+
                     this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [] });
                 });
 
@@ -2139,6 +2141,10 @@ var OpenScript = {
             // component
 
             if(content.prototype instanceof OpenScript.Component) {
+                let c = new content();
+                
+                if(h.has(content.name)) return;
+
                 await (new content()).mount();
             } 
 

@@ -16,8 +16,11 @@ ojs(async e => {
 
     rc.root = h.dom.querySelector('#root');
     
-    route.orOn(['/', 'index.html', 'index'], () => {
-        req('Index');
+    req('Index');
+    req('Docs');
+
+    route.orOn(['/', 'index.html', 'index', 'home', 'home.html'], () => {
+        
         rc.root.classList.remove('docs-page');
 
         h.Index({
@@ -27,7 +30,7 @@ ojs(async e => {
     })
 
     .orOn([ 'docs', 'docs.html'], () => {
-        req('Docs');
+        
         rc.root.classList.add('docs-page');
         h.Docs({
             parent: rc.root,

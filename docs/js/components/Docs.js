@@ -103,6 +103,10 @@ class DocsNav extends OpenScript.Component {
     }
     catch(e){}
   }
+
+  onRendered(comp, ev, ...args) {
+    console.log('docs rendered');
+  }
 }
 
 class Sections extends OpenScript.Component {
@@ -113,7 +117,7 @@ class Sections extends OpenScript.Component {
   }
 
   onRerendered(...args) {
-    document.getElementById(route.hash())?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById(route.qs.get('id'))?.scrollIntoView({ behavior: "smooth" });
   }
 
   render(data, arrangements, ...args) {
