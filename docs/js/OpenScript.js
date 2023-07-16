@@ -421,6 +421,18 @@ var OpenScript = {
         }
 
         /**
+         * List of all components that are listening to
+         * specific events
+         */
+        listening = {};
+
+        /**
+         * List of components that this component is listening
+         * to.
+         */
+        listeningTo = {};
+
+        /**
          * Name of the component
          */
         name;
@@ -481,15 +493,119 @@ var OpenScript = {
             this.emitter.on(this.EVENTS.mounted, (th) => th.mounted = true);
             this.emitter.on(this.EVENTS.visible, (th) => th.visible = true);
 
-            for(const event in this.EVENTS){
-                let name = 'on' + event[0].toUpperCase() + event.substring(1);
+            let obj = this;
+            let seen = new Set();
+
+            do {
+                if(!(obj instanceof OpenScript.Component)) break;
                 
-                if(!this[name]) continue;
-                
-                this.on(event, (component, event, ...args) => component[name](component, event, ...args));
+                for(let method of Object.getOwnPropertyNames(obj)){    
+                    if(seen.has(method)) continue;
+
+                    if(typeof this[method] !== "function") continue;
+                    if(method.length < 3) continue;
+    
+                    if(method[0] !== '$' && method[1] !== "_") continue;
+                    
+                    let events = method.split(/_/g);
+    
+                    for(let i = 1; i < events.length; i++) {
+                        let ev = events[i];
+                        
+                        if(!ev.length) continue;
+    
+                        this.on(ev, (component, event, ...args) => {
+                            component[method](component, event, ...args);
+                        });
+                    }
+
+                    seen.add(method);
+                }
             }
+            while (obj = Object.getPrototypeOf(obj));   
         }
 
+        /**
+         * Adds a Listening component
+         * @param {event} event 
+         * @param {OpenScript.Component} component 
+         */
+        addListeningComponent(component, event) {
+
+            if(this.emitsTo(component, event)) return;
+
+            if(!this.listening[event]) this.listening[event] = new Map();
+            this.listening[event].set(component.name, component);
+
+            component.addEmittingComponent(this, event);
+        }
+
+        /**
+         * Adds a component that this component is listening to
+         * @param {string} event 
+         * @param {OpenScript.Component} component 
+         */
+        addEmittingComponent(component, event){
+
+            if(this.listensTo(component, event)) return;
+
+            if(!this.listeningTo[component.name]) this.listeningTo[component.name] = new Map();
+
+            this.listeningTo[component.name].set(event, component);
+
+            component.addListeningComponent(this, event);
+        }
+
+        /**
+         * Checks if this component is listening
+         * @param {string} event
+         * @param {OpenScript.Component} component 
+         */
+        emitsTo(component, event){
+            return this.listening[event]?.has(component.name) ?? false;
+        }
+
+        /**
+         * Checks if this component is listening to the other
+         * component
+         * @param {*} event 
+         * @param {*} component 
+         */
+        listensTo(component, event){
+            return this.listeningTo[component.name]?.has(event) ?? false;
+        }
+
+        /**
+         * Deletes a component from the listening array
+         * @param {string} event 
+         * @param {OpenScript.Component} component 
+         */
+        doNotListenTo(component, event) {
+            
+            this.listeningTo[component.name]?.delete(event);
+
+            if(this.listeningTo[component.name].size == 0){
+                delete this.listeningTo[component.name];
+            } 
+
+            if(!component.emitsTo(this, event)) return;
+
+            component.doNotEmitTo(this, event);
+        }
+
+        /**
+         * Stops this component from emitting to the other component
+         * @param {string} event 
+         * @param {OpenScript.Component} component 
+         * @returns 
+         */
+        doNotEmitTo(component, event){
+            
+            this.listening[event]?.delete(component.name);
+
+            if(!component.listensTo(this, event)) return;
+            component.doNotListenTo(this, event);
+        }
 
 
         /**
@@ -510,10 +626,16 @@ var OpenScript = {
          * Deletes all the component's markup from the DOM
          */
         unmount() {
-            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
+            let all = this.markup();
 
             for(let elem of all) {
                 elem.remove();
+            }
+
+            for(let event in this.listening) {
+                for(let [_name, component] of this.listening[event]) {
+                    component.doNotListenTo(this, event);
+                }
             }
 
             return true;
@@ -572,6 +694,18 @@ var OpenScript = {
         }
 
         /**
+         * Return all the current DOM elements for this component
+         * From the parent.
+         * @param {HTMLElement | null} parent 
+         * @returns 
+         */
+        markup(parent = null){
+            if(!parent) parent = h.dom;
+
+            return parent.querySelectorAll(`ojs-${this.kebab(this.name)}`);
+        }
+
+        /**
          * Hides all the markup of this component
          * @emits before-hidden 
          * @emits hidden
@@ -580,7 +714,7 @@ var OpenScript = {
         hide(){
             this.emit(this.EVENTS.beforeHidden);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}`);
+            let all = this.markup();
 
             for(let elem of all) {
                 elem.style.display = 'none';
@@ -600,7 +734,7 @@ var OpenScript = {
         show() {
             this.emit(this.EVENTS.beforeVisible);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
+            let all = this.markup();
 
             for(let elem of all) {
                 elem.style.display = '';
@@ -712,6 +846,16 @@ var OpenScript = {
         }
 
         /**
+         * Gets the value of object
+         * @param {any|OpenScript.State} object 
+         * @returns 
+         */
+        getValue(object){
+            if(object instanceof OpenScript.State) return object.value;
+            return object;
+        }
+
+        /**
          * Wraps the rendered content
          * @emits re-rendered
          * @param  {...any} args 
@@ -736,19 +880,31 @@ var OpenScript = {
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
-
-
-                    this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [] });
+                    this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [e] });
                 });
 
                 return;
+            }
+            
+            let event = this.EVENTS.rendered;
+
+            if(parent && (this.getValue(resetParent) || this.getValue(replaceParent))){
+                if(!this.markup().length) this.argsMap.clear();
+                else {
+
+                    let all = this.markup(parent);
+    
+                    all.forEach(elem => this.argsMap.delete(elem.getAttribute('uuid')));
+                }
+                
+                if(this.argsMap.size) event = this.EVENTS.rerendered;
             }
 
             let uuid = `${OpenScript.Component.uid++}-${(new Date()).getTime()}`;
 
             this.argsMap.set(uuid, args ?? []);
 
-            let attr = {uuid, parent, resetParent, replaceParent};
+            let attr = {uuid, parent, resetParent, replaceParent, class: '__ojs-c-class__'};
 
             states.forEach((s) => {
                 attr[`s-${s.id}`] = s.id;
@@ -756,12 +912,12 @@ var OpenScript = {
 
             if(!this.visible) attr.style = 'display: none;';
 
-            attr.class = '__ojs-c-class__';
+            const markup = this.render(...args);
 
-            return h[`ojs-${this.kebab(this.name)}`](attr, this.render(...args), {
+            return h[`ojs-${this.kebab(this.name)}`](attr, markup, {
                 component: this, 
-                event: this.EVENTS.rendered,
-                eventParams: []
+                event,
+                eventParams: [markup]
             });
         }
 
@@ -1629,10 +1785,15 @@ var OpenScript = {
                     sc.forEach(c => {
                         if(!isComponentName(c.tagName.toLowerCase())) return;
                         
-                        let cName = getComponentName(c.tagName);
+                        let cmp = h.getComponent(getComponentName(c.tagName));
 
-                        component.onAll(event, () => h.getComponent(cName)?.emit(event));
-                        
+                        if(!cmp || cmp.listensTo(component, event)) return;
+
+                        h.onAll(component, event, () => {
+                            cmp.emit(event, eventParams);
+                        });
+
+                        component.addListeningComponent(cmp, event);
                     });
                 } 
                 return root;
@@ -2143,9 +2304,9 @@ var OpenScript = {
             if(content.prototype instanceof OpenScript.Component) {
                 let c = new content();
                 
-                if(h.has(content.name)) return;
+                if(h.has(c.name)) return;
 
-                await (new content()).mount();
+                await c.mount();
             } 
 
             return content;

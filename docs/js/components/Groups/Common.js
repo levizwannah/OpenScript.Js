@@ -5,7 +5,7 @@ class Logo extends OpenScript.Component {
     }
 
     goHome(){
-        route.to('home');
+        route.to('index.html');
     }
 
     render(...args) {

@@ -1,16 +1,22 @@
-class Header extends OpenScript.Component {
+class Test extends OpenScript.Component{
+    $_visible_hidden(){
+        console.log('x');
+    }
+}
+class Header extends Test {
     constructor() {
         super();
 
         this.name = 'MainHeader';
     }
 
-    onBound(){
-        /* ====== Define JS Constants ====== */
+    $_bound_rendered_rerendered(){
+
         const sidebarToggler = document.getElementById("docs-sidebar-toggler");
         const sidebar = document.getElementById("docs-sidebar");
+        if(!sidebar) return;
 
-        sidebarToggler?.addEventListener("click", () => {
+        sidebarToggler.onclick = () => {
             if(!sidebar) return;
 
             if (sidebar.classList.contains("sidebar-visible")) {
@@ -21,7 +27,8 @@ class Header extends OpenScript.Component {
                 sidebar.classList.remove("sidebar-hidden");
                 sidebar.classList.add("sidebar-visible");
             }
-        });
+        };
+        
     }
 
     render(type) {

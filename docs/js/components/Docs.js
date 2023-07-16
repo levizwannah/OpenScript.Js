@@ -1,4 +1,7 @@
 class DocsNav extends OpenScript.Component {
+  constructor(){
+    super();
+  }
 
   render(data, arrangements, ...args) {
     let navItems = [];
@@ -71,13 +74,13 @@ class DocsNav extends OpenScript.Component {
     );
   }
 
-  onRerendered(...args) {
+  $_rerendered_rendered(...args) {
 
     const sidebarLinks = document.querySelectorAll("#docs-sidebar .scrollto");
     const sidebar = document.getElementById("docs-sidebar");
 
-    sidebarLinks.forEach((sidebarLink) => {
-      sidebarLink.addEventListener("click", (e) => {
+    sidebarLinks?.forEach((sidebarLink) => {
+      sidebarLink?.addEventListener("click", (e) => {
         let target = sidebarLink.getAttribute("link");
 
         document.getElementById(target)?.scrollIntoView({ behavior: "smooth" });
@@ -104,9 +107,6 @@ class DocsNav extends OpenScript.Component {
     catch(e){}
   }
 
-  onRendered(comp, ev, ...args) {
-    console.log('docs rendered');
-  }
 }
 
 class Sections extends OpenScript.Component {
@@ -116,7 +116,7 @@ class Sections extends OpenScript.Component {
     this.name = 'DocsSections';
   }
 
-  onRerendered(...args) {
+  $_rerendered_rendered() {
     document.getElementById(route.qs.get('id'))?.scrollIntoView({ behavior: "smooth" });
   }
 
@@ -197,8 +197,8 @@ class Docs extends OpenScript.Component {
     }
   }
 
-  onBound(component){
-    this.responsiveSidebar();
+  $_bound_rendered(component){
+    component.responsiveSidebar();
 
     window.onresize = function () {
       component.responsiveSidebar();
