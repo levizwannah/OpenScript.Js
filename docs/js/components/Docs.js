@@ -109,8 +109,7 @@ class DocsNav extends OpenScript.Component {
 class Sections extends OpenScript.Component {
 
   constructor(){
-    super();
-    this.name = 'DocsSections';
+    super('DocsSections');
   }
 
   $_rerendered_rendered() {

@@ -1,9 +1,7 @@
 class Social extends OpenScript.Component {
     
     constructor() {
-        super();
-
-        this.name = 'SocialIcon';
+        super('SocialIcon');
     }
 
     render(link, icon, ...args) {

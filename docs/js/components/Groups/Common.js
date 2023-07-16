@@ -71,9 +71,7 @@ class SocialList extends OpenScript.Component {
 
 class SearchForm extends OpenScript.Component {
     constructor() {
-        super();
-
-        this.name = 'Search';
+        super('Search');
     }
 
     render(type, ...args) {
