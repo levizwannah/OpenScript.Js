@@ -1,13 +1,7 @@
-class Test extends OpenScript.Component{
-    $_visible_hidden(){
-        console.log('x');
-    }
-}
-class Header extends Test {
-    constructor() {
-        super();
 
-        this.name = 'MainHeader';
+class Header extends OpenScript.Component {
+    constructor() {
+        super('MainHeader');
     }
 
     $_bound_rendered_rerendered(){
@@ -31,6 +25,27 @@ class Header extends Test {
         
     }
 
+    $_rendered_rerendered$DocsNav(){
+
+        const sidebarToggler = document.getElementById("docs-sidebar-toggler");
+        const sidebar = document.getElementById("docs-sidebar");
+        if(!sidebar) return;
+
+        sidebarToggler.onclick = () => {
+            if(!sidebar) return;
+
+            if (sidebar.classList.contains("sidebar-visible")) {
+                sidebar.classList.remove("sidebar-visible");
+                sidebar.classList.add("sidebar-hidden");
+            } 
+            else {
+                sidebar.classList.remove("sidebar-hidden");
+                sidebar.classList.add("sidebar-visible");
+            }
+        };
+        
+    }
+    
     render(type) {
         return h.header(
             { class: 'header fixed-top' },

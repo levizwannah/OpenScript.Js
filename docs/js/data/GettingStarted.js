@@ -305,7 +305,7 @@ autoload.version = '1.0.0';`, {class: 'language-js'}),
                     `The render method takes a content parameter, which represents the comment text to be displayed. Inside the render method, we create a`,h.code(`div`),`element with the class 'comment'.`,
                     
                     
-                    `Within the`,h.code('div') `, we nest two child elements. The first child element is another`,h.code('div'),` with the class 'comment-content', which will display the comment text passed as the content parameter.`,
+                    `Within the`,h.code('div'), `, we nest two child elements. The first child element is another`,h.code('div'),` with the class 'comment-content', which will display the comment text passed as the content parameter.`,
                     h.br(),
                     h.br(),
                   

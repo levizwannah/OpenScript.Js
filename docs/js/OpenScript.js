@@ -377,7 +377,12 @@ var OpenScript = {
           let fns = this.listeners[eventName];
           if (!fns) return false;
           fns.forEach((f) => {
-            f(...args);
+            try{
+                f(...args);
+            }
+            catch(e){
+                console.error(e);
+            }
           });
           return true;
 
@@ -483,8 +488,8 @@ var OpenScript = {
          */
         emitter = new OpenScript.Emitter();
 
-        constructor() {
-            this.name = this.constructor.name;
+        constructor(name = null) {
+            this.name = name ?? this.constructor.name;
 
             this.emitter.once(this.EVENTS.rendered, (th) => th.rendered = true);
             this.emitter.on(this.EVENTS.hidden, (th) => th.visible = false);
@@ -507,15 +512,20 @@ var OpenScript = {
     
                     if(method[0] !== '$' && method[1] !== "_") continue;
                     
-                    let events = method.split(/_/g);
-    
+                    let meta = method.substring(1).split(/\$/g);
+                    
+                    let events = meta[0].split(/_/g);
+                    let m = meta[2] ?? 'on';
+                    let subject = meta[1] ?? this.name; 
+                    let cmpName = this.name;
+
                     for(let i = 1; i < events.length; i++) {
                         let ev = events[i];
                         
                         if(!ev.length) continue;
-    
-                        this.on(ev, (component, event, ...args) => {
-                            component[method](component, event, ...args);
+
+                        h[m](subject, ev, (component, event, ...args) => {
+                            h.getComponent(cmpName)[method](component, event, ...args);
                         });
                     }
 
@@ -769,6 +779,12 @@ var OpenScript = {
         on(event, ...listeners) {
             // check if we have previously emitted this event
             listeners.forEach(a => {
+
+                if(Array.isArray(a)){
+                    a.forEach(f => this.emitter.on(event, f));
+                    return;
+                }
+
                 this.emitter.on(event, a); 
             });
         }
@@ -1779,7 +1795,7 @@ var OpenScript = {
                 }
                 if(component){
                     component.emit(event, eventParams);
-                    
+
                     let sc = root.querySelectorAll('.__ojs-c-class__');
 
                     sc.forEach(c => {
@@ -1789,7 +1805,7 @@ var OpenScript = {
 
                         if(!cmp || cmp.listensTo(component, event)) return;
 
-                        h.onAll(component, event, () => {
+                        h.onAll(component.name, event, () => {
                             cmp.emit(event, eventParams);
                         });
 
@@ -1863,6 +1879,7 @@ var OpenScript = {
          * @param  {...function} listeners listeners
          */
         on = (component, event, ...listeners) =>{
+            
             let components = component;
 
             if(!Array.isArray(component)) components = [component];
@@ -1880,7 +1897,7 @@ var OpenScript = {
                 if(this.has(component)) {
                     
                     this.getComponent(component)
-                        .on(event, listeners);
+                        .on(event, ...listeners);
 
                     continue;
                 }
@@ -1916,7 +1933,7 @@ var OpenScript = {
 
                 if(this.has(component)) {
                     this.getComponent(component)
-                        .onAll(event, listeners);
+                        .onAll(event, ...listeners);
                     continue;
                 }
 

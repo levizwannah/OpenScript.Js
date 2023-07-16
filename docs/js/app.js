@@ -26,7 +26,7 @@ ojs(async e => {
         });
     })
 
-    .orOn([ 'docs', 'docs.html'], () => {
+    .orOn([ 'docs', 'docs.html', 'instructions'], () => {
         req('Docs');
         rc.root.classList.add('docs-page');
         h.Docs({

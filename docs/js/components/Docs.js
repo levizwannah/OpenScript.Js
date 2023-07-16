@@ -1,7 +1,4 @@
 class DocsNav extends OpenScript.Component {
-  constructor(){
-    super();
-  }
 
   render(data, arrangements, ...args) {
     let navItems = [];
@@ -97,7 +94,7 @@ class DocsNav extends OpenScript.Component {
     });
 
     try{
-      /* ===== Gumshoe SrollSpy ===== */
+      /* ===== Gumshoe ScrollSpy ===== */
       /* Ref: https://github.com/cferdinandi/gumshoe  */
       // Initialize Gumshoe
       window.spy = new Gumshoe("#docs-nav a", {
@@ -197,7 +194,12 @@ class Docs extends OpenScript.Component {
     }
   }
 
+  /**
+   * 
+   * @param {Docs} component 
+   */
   $_bound_rendered(component){
+
     component.responsiveSidebar();
 
     window.onresize = function () {
@@ -208,6 +210,7 @@ class Docs extends OpenScript.Component {
       component.responsiveSidebar();
     });
   }
+
 
   render(...args) {
     fetchContext("docs", "DocsData");
