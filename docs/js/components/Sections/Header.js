@@ -25,7 +25,7 @@ class Header extends OpenScript.Component {
         
     }
 
-    $_rendered_rerendered$DocsNav(){
+    $_rendered_rerendered$DocsNav(self, caller, event, ...args){
 
         const sidebarToggler = document.getElementById("docs-sidebar-toggler");
         const sidebar = document.getElementById("docs-sidebar");

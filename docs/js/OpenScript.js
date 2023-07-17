@@ -515,18 +515,54 @@ var OpenScript = {
                     let meta = method.substring(1).split(/\$/g);
                     
                     let events = meta[0].split(/_/g);
-                    let m = meta[2] ?? 'on';
-                    let subject = meta[1] ?? this.name; 
+                    events.shift();
                     let cmpName = this.name;
 
-                    for(let i = 1; i < events.length; i++) {
-                        let ev = events[i];
-                        
-                        if(!ev.length) continue;
+                    let subjects = meta.slice(1);
 
-                        h[m](subject, ev, (component, event, ...args) => {
-                            h.getComponent(cmpName)[method](component, event, ...args);
-                        });
+                    if(!subjects?.length) subjects = [this.name, 'on'];
+                    
+                    let methods = {on: true, onAll: true};
+
+                    let stack = [];
+
+                    for(let i = 0; i < subjects.length; i++){
+                        
+                        let current = subjects[i];
+                        stack.push(current);
+
+                        while(stack.length){
+                            i++;
+                            current = subjects[i] ?? null;
+
+                            if(current && methods[current]){
+                                stack.push(current);
+                            }
+                            else {
+                                stack.push('on');
+                                i--;
+                            }
+                            
+                            let m = stack.pop();
+                            let cmp = stack.pop();
+                            
+                            for(let j = 0; j < events.length; j++) {
+                                let ev = events[j];
+                                
+                                if(!ev.length) continue;
+
+                                h[m](cmp, ev, (component, event, ...args) => {
+                                    
+                                    try{
+                                        h.getComponent(cmpName)[method](h.getComponent(cmpName), component, event, ...args);
+                                    }
+                                    catch(e){
+                                        console.error(e);
+                                    }
+                                    
+                                });
+                            }
+                        }
                     }
 
                     seen.add(method);
