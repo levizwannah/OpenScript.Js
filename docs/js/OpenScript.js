@@ -854,7 +854,7 @@ var OpenScript = {
          * @returns {DocumentFragment|HTMLElement|String|Array<DocumentFragment|HTMLElement|String>}
          */
         render(...args) {
-            return h.toElement("<ojs></ojs>");
+            return h.ojs(...args);
         }
 
         /**
