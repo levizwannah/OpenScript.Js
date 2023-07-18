@@ -170,7 +170,7 @@ var OpenScript = {
             }
             
             this.qs = new URLSearchParams(url.search);
-
+            
             map.get('->')[1]();
             
             this.reset.value = false;
@@ -496,79 +496,7 @@ var OpenScript = {
             this.emitter.on(this.EVENTS.rerendered, (th) => th.rerendered = true);
             this.emitter.on(this.EVENTS.bound, (th) => th.bound = true);
             this.emitter.on(this.EVENTS.mounted, (th) => th.mounted = true);
-            this.emitter.on(this.EVENTS.visible, (th) => th.visible = true);
-
-            let obj = this;
-            let seen = new Set();
-
-            do {
-                if(!(obj instanceof OpenScript.Component)) break;
-                
-                for(let method of Object.getOwnPropertyNames(obj)){    
-                    if(seen.has(method)) continue;
-
-                    if(typeof this[method] !== "function") continue;
-                    if(method.length < 3) continue;
-    
-                    if(method[0] !== '$' && method[1] !== "_") continue;
-                    
-                    let meta = method.substring(1).split(/\$/g);
-                    
-                    let events = meta[0].split(/_/g);
-                    events.shift();
-                    let cmpName = this.name;
-
-                    let subjects = meta.slice(1);
-
-                    if(!subjects?.length) subjects = [this.name, 'on'];
-                    
-                    let methods = {on: true, onAll: true};
-
-                    let stack = [];
-
-                    for(let i = 0; i < subjects.length; i++){
-                        
-                        let current = subjects[i];
-                        stack.push(current);
-
-                        while(stack.length){
-                            i++;
-                            current = subjects[i] ?? null;
-
-                            if(current && methods[current]){
-                                stack.push(current);
-                            }
-                            else {
-                                stack.push('on');
-                                i--;
-                            }
-                            
-                            let m = stack.pop();
-                            let cmp = stack.pop();
-                            
-                            for(let j = 0; j < events.length; j++) {
-                                let ev = events[j];
-                                
-                                if(!ev.length) continue;
-
-                                h[m](cmp, ev, (component, event, ...args) => {
-                                    
-                                    try{
-                                        h.getComponent(cmpName)[method](h.getComponent(cmpName), component, event, ...args);
-                                    }
-                                    catch(e){
-                                        console.error(e);
-                                    }
-                                    
-                                });
-                            }
-                        }
-                    }
-
-                    seen.add(method);
-                }
-            }
-            while (obj = Object.getPrototypeOf(obj));   
+            this.emitter.on(this.EVENTS.visible, (th) => th.visible = true);  
         }
 
         /**
@@ -661,11 +589,84 @@ var OpenScript = {
          * @emits pre-mount
          */
         async mount() {
+            h.component(this.name, this);
+
             this.claimListeners();
             this.emit(this.EVENTS.premount);
-            h.component(this.name, this);
             await this.bind();
             this.emit(this.EVENTS.mounted);
+
+            let obj = this;
+            let seen = new Set();
+
+            do {
+                if(!(obj instanceof OpenScript.Component)) break;
+                
+                for(let method of Object.getOwnPropertyNames(obj)){    
+                    if(seen.has(method)) continue;
+
+                    if(typeof this[method] !== "function") continue;
+                    if(method.length < 3) continue;
+    
+                    if(method[0] !== '$' && method[1] !== "_") continue;
+                    
+                    let meta = method.substring(1).split(/\$/g);
+                    
+                    let events = meta[0].split(/_/g);
+                    events.shift();
+                    let cmpName = this.name;
+
+                    let subjects = meta.slice(1);
+
+                    if(!subjects?.length) subjects = [this.name, 'on'];
+                    
+                    let methods = {on: true, onAll: true};
+
+                    let stack = [];
+
+                    for(let i = 0; i < subjects.length; i++){
+                        
+                        let current = subjects[i];
+                        stack.push(current);
+
+                        while(stack.length){
+                            i++;
+                            current = subjects[i] ?? null;
+
+                            if(current && methods[current]){
+                                stack.push(current);
+                            }
+                            else {
+                                stack.push('on');
+                                i--;
+                            }
+                            
+                            let m = stack.pop();
+                            let cmp = stack.pop();
+                            
+                            for(let j = 0; j < events.length; j++) {
+                                let ev = events[j];
+                                
+                                if(!ev.length) continue;
+
+                                h[m](cmp, ev, (component, event, ...args) => {
+                                    
+                                    try{
+                                        h.getComponent(cmpName)[method](h.getComponent(cmpName), component, event, ...args);
+                                    }
+                                    catch(e){
+                                        console.error(e);
+                                    }
+                                    
+                                });
+                            }
+                        }
+                    }
+
+                    seen.add(method);
+                }
+            }
+            while (obj = Object.getPrototypeOf(obj)); 
         }
 
         /**
@@ -801,7 +802,7 @@ var OpenScript = {
 
             // check if we have previously emitted this event
             listeners.forEach(a => {
-                if(this.emitter.emitted[event]) a();
+                if(this.emitter.emitted[event]) a(this, event);
 
                 this.emitter.on(event, a); 
             });
