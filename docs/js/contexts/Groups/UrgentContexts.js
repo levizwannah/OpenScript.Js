@@ -25,11 +25,20 @@ class IndexData extends OpenScript.Context {
             },
 
             {
+                icon: 'fa-pen',
+                title: 'Take a quick look',
+                body: 'Get a glimpse of the time saving powers that openScript puts in the hands of web developers',
+                link: 'docs.html#ojs-take-a-quick-look',
+            },
+
+            {
                 icon: 'fa-person-walking',
                 title: 'Getting Started',
                 body: 'Know the simple concept of JS-Markup, the router, components, contexts, states, autoloading, and namespacing. Again, sounds fancy, but are not...',
                 link: 'docs.html#ojs-getting-started',
             },
+
+            
 
             {
                 icon: 'fa-pen',

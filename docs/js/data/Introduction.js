@@ -61,7 +61,22 @@ class Introduction {
                     [
                         h.b("Router:"), 
                         " Provides a flexible routing system for creating single-page applications with multiple views."
-                    ]
+                    ],
+                     
+                    [
+                        h.b("Late Reaction:"),
+                        "This ensures that conponents that are dependent on certain events that have not occured can remain in the DOM and wait for the event that they listen to to be emited."
+                    ],
+
+                    [
+                        h.b("Anonymous components:")
+                    ],
+
+                    [
+                        h.b("Segmeted reaction:")
+                    ],
+
+                    
                 ])
             ]
         },
