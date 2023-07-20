@@ -170,7 +170,7 @@ var OpenScript = {
             }
             
             this.qs = new URLSearchParams(url.search);
-
+            
             map.get('->')[1]();
             
             this.reset.value = false;
@@ -344,8 +344,8 @@ var OpenScript = {
         // Attach event handler only once. Automatically removed.
         once(eventName, fn) {
           this.listeners[eventName] = this.listeners[eventName] || [];
-          const onceWrapper = () => {
-            fn();
+          const onceWrapper = (...args) => {
+            fn(...args);
             this.off(eventName, onceWrapper);
           }
           this.listeners[eventName].push(onceWrapper);
@@ -377,7 +377,12 @@ var OpenScript = {
           let fns = this.listeners[eventName];
           if (!fns) return false;
           fns.forEach((f) => {
-            f(...args);
+            try{
+                f(...args);
+            }
+            catch(e){
+                console.error(e);
+            }
           });
           return true;
 
@@ -419,6 +424,18 @@ var OpenScript = {
             beforeVisible: 'before-visible', // before the markup is made visible
             visible: 'visible' // the markup is now made visible
         }
+
+        /**
+         * List of all components that are listening to
+         * specific events
+         */
+        listening = {};
+
+        /**
+         * List of components that this component is listening
+         * to.
+         */
+        listeningTo = {};
 
         /**
          * Name of the component
@@ -471,16 +488,99 @@ var OpenScript = {
          */
         emitter = new OpenScript.Emitter();
 
-        constructor() {
-            this.name = this.constructor.name;
+        constructor(name = null) {
+            this.name = name ?? this.constructor.name;
 
-            this.emitter.once(this.EVENTS.rendered, _ => this.rendered = true);
-            this.emitter.on(this.EVENTS.hidden, _ => this.visible = false);
-            this.emitter.on(this.EVENTS.rerendered, _ => this.rerendered = true);
-            this.emitter.on(this.EVENTS.bound, _ => this.bound = true);
-            this.emitter.on(this.EVENTS.mounted, _ => this.mounted = true);
-            this.emitter.on(this.EVENTS.visible, _ => this.visible = true);
+            this.emitter.once(this.EVENTS.rendered, (th) => th.rendered = true);
+            this.emitter.on(this.EVENTS.hidden, (th) => th.visible = false);
+            this.emitter.on(this.EVENTS.rerendered, (th) => th.rerendered = true);
+            this.emitter.on(this.EVENTS.bound, (th) => th.bound = true);
+            this.emitter.on(this.EVENTS.mounted, (th) => th.mounted = true);
+            this.emitter.on(this.EVENTS.visible, (th) => th.visible = true);  
         }
+
+        /**
+         * Adds a Listening component
+         * @param {event} event 
+         * @param {OpenScript.Component} component 
+         */
+        addListeningComponent(component, event) {
+
+            if(this.emitsTo(component, event)) return;
+
+            if(!this.listening[event]) this.listening[event] = new Map();
+            this.listening[event].set(component.name, component);
+
+            component.addEmittingComponent(this, event);
+        }
+
+        /**
+         * Adds a component that this component is listening to
+         * @param {string} event 
+         * @param {OpenScript.Component} component 
+         */
+        addEmittingComponent(component, event){
+
+            if(this.listensTo(component, event)) return;
+
+            if(!this.listeningTo[component.name]) this.listeningTo[component.name] = new Map();
+
+            this.listeningTo[component.name].set(event, component);
+
+            component.addListeningComponent(this, event);
+        }
+
+        /**
+         * Checks if this component is listening
+         * @param {string} event
+         * @param {OpenScript.Component} component 
+         */
+        emitsTo(component, event){
+            return this.listening[event]?.has(component.name) ?? false;
+        }
+
+        /**
+         * Checks if this component is listening to the other
+         * component
+         * @param {*} event 
+         * @param {*} component 
+         */
+        listensTo(component, event){
+            return this.listeningTo[component.name]?.has(event) ?? false;
+        }
+
+        /**
+         * Deletes a component from the listening array
+         * @param {string} event 
+         * @param {OpenScript.Component} component 
+         */
+        doNotListenTo(component, event) {
+            
+            this.listeningTo[component.name]?.delete(event);
+
+            if(this.listeningTo[component.name].size == 0){
+                delete this.listeningTo[component.name];
+            } 
+
+            if(!component.emitsTo(this, event)) return;
+
+            component.doNotEmitTo(this, event);
+        }
+
+        /**
+         * Stops this component from emitting to the other component
+         * @param {string} event 
+         * @param {OpenScript.Component} component 
+         * @returns 
+         */
+        doNotEmitTo(component, event){
+            
+            this.listening[event]?.delete(component.name);
+
+            if(!component.listensTo(this, event)) return;
+            component.doNotListenTo(this, event);
+        }
+
 
         /**
          * Initializes the component and adds it to
@@ -488,22 +588,101 @@ var OpenScript = {
          * @emits mounted
          * @emits pre-mount
          */
-        async mount(){
+        async mount() {
+            h.component(this.name, this);
+
             this.claimListeners();
             this.emit(this.EVENTS.premount);
-            h.component(this.name, this);
             await this.bind();
             this.emit(this.EVENTS.mounted);
+
+            let obj = this;
+            let seen = new Set();
+
+            do {
+                if(!(obj instanceof OpenScript.Component)) break;
+                
+                for(let method of Object.getOwnPropertyNames(obj)){    
+                    if(seen.has(method)) continue;
+
+                    if(typeof this[method] !== "function") continue;
+                    if(method.length < 3) continue;
+    
+                    if(method[0] !== '$' && method[1] !== "_") continue;
+                    
+                    let meta = method.substring(1).split(/\$/g);
+                    
+                    let events = meta[0].split(/_/g);
+                    events.shift();
+                    let cmpName = this.name;
+
+                    let subjects = meta.slice(1);
+
+                    if(!subjects?.length) subjects = [this.name, 'on'];
+                    
+                    let methods = {on: true, onAll: true};
+
+                    let stack = [];
+
+                    for(let i = 0; i < subjects.length; i++){
+                        
+                        let current = subjects[i];
+                        stack.push(current);
+
+                        while(stack.length){
+                            i++;
+                            current = subjects[i] ?? null;
+
+                            if(current && methods[current]){
+                                stack.push(current);
+                            }
+                            else {
+                                stack.push('on');
+                                i--;
+                            }
+                            
+                            let m = stack.pop();
+                            let cmp = stack.pop();
+                            
+                            for(let j = 0; j < events.length; j++) {
+                                let ev = events[j];
+                                
+                                if(!ev.length) continue;
+
+                                h[m](cmp, ev, (component, event, ...args) => {
+                                    
+                                    try{
+                                        h.getComponent(cmpName)[method](h.getComponent(cmpName), component, event, ...args);
+                                    }
+                                    catch(e){
+                                        console.error(e);
+                                    }
+                                    
+                                });
+                            }
+                        }
+                    }
+
+                    seen.add(method);
+                }
+            }
+            while (obj = Object.getPrototypeOf(obj)); 
         }
 
         /**
          * Deletes all the component's markup from the DOM
          */
-        unmount(){
-            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
+        unmount() {
+            let all = this.markup();
 
             for(let elem of all) {
                 elem.remove();
+            }
+
+            for(let event in this.listening) {
+                for(let [_name, component] of this.listening[event]) {
+                    component.doNotListenTo(this, event);
+                }
             }
 
             return true;
@@ -528,7 +707,7 @@ var OpenScript = {
             
             this.emit(this.EVENTS.prebind);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.name.toLowerCase()}-tmp`);
+            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}-tmp--`);
 
             for(let elem of all) {
 
@@ -562,6 +741,18 @@ var OpenScript = {
         }
 
         /**
+         * Return all the current DOM elements for this component
+         * From the parent.
+         * @param {HTMLElement | null} parent 
+         * @returns 
+         */
+        markup(parent = null){
+            if(!parent) parent = h.dom;
+
+            return parent.querySelectorAll(`ojs-${this.kebab(this.name)}`);
+        }
+
+        /**
          * Hides all the markup of this component
          * @emits before-hidden 
          * @emits hidden
@@ -570,7 +761,7 @@ var OpenScript = {
         hide(){
             this.emit(this.EVENTS.beforeHidden);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}`);
+            let all = this.markup();
 
             for(let elem of all) {
                 elem.style.display = 'none';
@@ -590,7 +781,7 @@ var OpenScript = {
         show() {
             this.emit(this.EVENTS.beforeVisible);
 
-            let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}}`);
+            let all = this.markup();
 
             for(let elem of all) {
                 elem.style.display = '';
@@ -611,7 +802,7 @@ var OpenScript = {
 
             // check if we have previously emitted this event
             listeners.forEach(a => {
-                if(this.emitter.emitted[event]) a();
+                if(this.emitter.emitted[event]) a(this, event);
 
                 this.emitter.on(event, a); 
             });
@@ -625,6 +816,12 @@ var OpenScript = {
         on(event, ...listeners) {
             // check if we have previously emitted this event
             listeners.forEach(a => {
+
+                if(Array.isArray(a)){
+                    a.forEach(f => this.emitter.on(event, f));
+                    return;
+                }
+
                 this.emitter.on(event, a); 
             });
         }
@@ -658,7 +855,7 @@ var OpenScript = {
          * @returns {DocumentFragment|HTMLElement|String|Array<DocumentFragment|HTMLElement|String>}
          */
         render(...args) {
-            return h.toElement("<ojs></ojs>");
+            return h.ojs(...args);
         }
 
         /**
@@ -702,6 +899,16 @@ var OpenScript = {
         }
 
         /**
+         * Gets the value of object
+         * @param {any|OpenScript.State} object 
+         * @returns 
+         */
+        getValue(object){
+            if(object instanceof OpenScript.State) return object.value;
+            return object;
+        }
+
+        /**
          * Wraps the rendered content
          * @emits re-rendered
          * @param  {...any} args 
@@ -726,17 +933,31 @@ var OpenScript = {
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
 
-                    this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [] });
+                    this.render(...arg, { parent: e, component: this, event: this.EVENTS.rerendered, eventParams: [e] });
                 });
 
                 return;
+            }
+            
+            let event = this.EVENTS.rendered;
+
+            if(parent && (this.getValue(resetParent) || this.getValue(replaceParent))){
+                if(!this.markup().length) this.argsMap.clear();
+                else {
+
+                    let all = this.markup(parent);
+    
+                    all.forEach(elem => this.argsMap.delete(elem.getAttribute('uuid')));
+                }
+                
+                if(this.argsMap.size) event = this.EVENTS.rerendered;
             }
 
             let uuid = `${OpenScript.Component.uid++}-${(new Date()).getTime()}`;
 
             this.argsMap.set(uuid, args ?? []);
 
-            let attr = {uuid, parent, resetParent, replaceParent};
+            let attr = {uuid, parent, resetParent, replaceParent, class: '__ojs-c-class__'};
 
             states.forEach((s) => {
                 attr[`s-${s.id}`] = s.id;
@@ -744,10 +965,12 @@ var OpenScript = {
 
             if(!this.visible) attr.style = 'display: none;';
 
-            return h[`ojs-${this.kebab(this.name)}`](attr, this.render(...args), {
+            const markup = this.render(...args);
+
+            return h[`ojs-${this.kebab(this.name)}`](attr, markup, {
                 component: this, 
-                event: this.EVENTS.rendered,
-                eventParams: []
+                event,
+                eventParams: [markup]
             });
         }
 
@@ -1130,7 +1353,7 @@ var OpenScript = {
                 yield this.value;
             }
             else {
-                for(let k in this.value ){
+                for(let k in this.value ) {
                     yield this.value[k];
                 }
             }
@@ -1263,6 +1486,49 @@ var OpenScript = {
             }
 
             setTimeout(iterate, 0);
+        }
+
+        /**
+         * Converts kebab case to camel case
+         * @param {string} name 
+         * @param {boolean} upperFirst
+         */
+        static camel(name, upperFirst = false){
+            
+            let _name = "";
+            let upper = upperFirst;
+
+            for(const c of name){
+                
+                if(c === '-') {
+                    upper = true;
+                    continue;
+                }
+                if(upper) {
+                    _name += c.toUpperCase();
+                    upper = false;
+                }
+                else {
+                    _name += c;
+                }
+            }
+
+            return _name;
+        }
+
+        /**
+         * Converts camel case to kebab case
+         * @param {string} name 
+         */
+        static kebab(name){
+            let newName = "";
+
+            for(const c of name){
+                if(c.toLocaleUpperCase() === c && newName.length > 1) newName += "-";
+                newName += c.toLocaleLowerCase();
+            }
+
+            return newName;
         }
     },
 
@@ -1417,6 +1683,20 @@ var OpenScript = {
             let event = '';
             let eventParams = [];
 
+            const isComponentName = (tag) => {
+                return /^ojs-.*$/.test(tag);
+            }
+
+            /**
+             * 
+             * @param {string} tag 
+             */
+            const getComponentName = (tag) => {
+                let name = tag.toLowerCase().replace(/^ojs-/, '').replace(/-tmp--$/, '');
+                
+                return ojsUtils.camel(name, true);
+            }
+
             /**
              * @type {DocumentFragment|HTMLElement}
              */
@@ -1435,10 +1715,12 @@ var OpenScript = {
              * save the argument for async rendering
              */
             if(isComponent) {
-                root = this.dom.createElement(`ojs-${name}-tmp`);
+                root = this.dom.createElement(`ojs-${ojsUtils.kebab(name)}-tmp--`);
 
-                let id = `ojs-${name}-${OpenScript.MarkupEngine.ID++}`;
+                let id = `ojs-${ojsUtils.kebab(name)}-${OpenScript.MarkupEngine.ID++}`;
+
                 root.setAttribute('ojs-key', id);
+                root.setAttribute('class', '__ojs-c-class__');
 
                 this.compArgs.set(id, args);
             }
@@ -1498,7 +1780,7 @@ var OpenScript = {
             }
 
 
-            for(let arg of args){
+            for(let arg of args) {
 
                 if(isComponent && parent) break;
 
@@ -1506,12 +1788,15 @@ var OpenScript = {
 
                 if(Array.isArray(arg)) {
                     if(isComponent) continue;
-                    arg.forEach(e => rootFrag.append(this.toElement(e)));
+                    arg.forEach(e => {
+                        rootFrag.append(this.toElement(e));
+                    });
                     continue;
                 }
     
                 if(arg instanceof DocumentFragment || arg instanceof HTMLElement) {
                     if(isComponent) continue;
+
                     rootFrag.append(arg);
                     continue;   
                 }
@@ -1545,7 +1830,25 @@ var OpenScript = {
                 else {
                     parent.append(root);
                 }
-                if(component) component.emit(event, eventParams);
+                if(component){
+                    component.emit(event, eventParams);
+
+                    let sc = root.querySelectorAll('.__ojs-c-class__');
+
+                    sc.forEach(c => {
+                        if(!isComponentName(c.tagName.toLowerCase())) return;
+                        
+                        let cmp = h.getComponent(getComponentName(c.tagName));
+
+                        if(!cmp || cmp.listensTo(component, event)) return;
+
+                        h.onAll(component.name, event, () => {
+                            cmp.emit(event, eventParams);
+                        });
+
+                        component.addListeningComponent(cmp, event);
+                    });
+                } 
                 return root;
             } 
     
@@ -1580,7 +1883,7 @@ var OpenScript = {
          * param passing
          */
         _escape = (args) => {
-            let final= [];
+            let final = [];
 
             for(let e of args) {
                 if(typeof e === "number") final.push(e);
@@ -1613,6 +1916,7 @@ var OpenScript = {
          * @param  {...function} listeners listeners
          */
         on = (component, event, ...listeners) =>{
+            
             let components = component;
 
             if(!Array.isArray(component)) components = [component];
@@ -1630,7 +1934,7 @@ var OpenScript = {
                 if(this.has(component)) {
                     
                     this.getComponent(component)
-                        .on(event, listeners);
+                        .on(event, ...listeners);
 
                     continue;
                 }
@@ -1666,7 +1970,7 @@ var OpenScript = {
 
                 if(this.has(component)) {
                     this.getComponent(component)
-                        .onAll(event, listeners);
+                        .onAll(event, ...listeners);
                     continue;
                 }
 
@@ -2052,7 +2356,11 @@ var OpenScript = {
             // component
 
             if(content.prototype instanceof OpenScript.Component) {
-                await (new content()).mount();
+                let c = new content();
+                
+                if(h.has(c.name)) return;
+
+                await c.mount();
             } 
 
             return content;
@@ -2131,6 +2439,11 @@ var OpenScript = {
          * Creates a new State Object
          */
         state = (value) => OpenScript.State.state(value);
+
+        /**
+         * The Utility Class
+         */
+        Utils = OpenScript.Utils;
 
         /**
          * Creates an anonymous component around a state
@@ -2357,7 +2670,12 @@ const {
     /**
      * Used to Autoload Files
      */
-    autoload
+    autoload,
+
+    /**
+     * The OJS utility class
+     */
+    Utils: ojsUtils
 
 } = new OpenScript.Initializer();
 
