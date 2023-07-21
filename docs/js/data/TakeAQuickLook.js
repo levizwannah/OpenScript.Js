@@ -7,7 +7,7 @@ class TakeAQuickLook{
         h.section(
             {class: 'docs-intro'},
           h.p(
-            'This is a way to just have a small glimpse of OpenScript before you get to actually gain a deeper understandin of its underlining concepts.',
+            'This is a way to just have a small glimpse of OpenScript before you get to actually gain a deeper understanding of its underlining concepts.',
           )
         )
     ]; 
@@ -20,7 +20,7 @@ class TakeAQuickLook{
            content: [
         h.p(
 
-         'come...test the sweetness of openscipt',h.a({href:"https://levizwannah.github.io/html-to-openscript "}, ' here '), ' before you go enjoy !!',
+         'come...test the sweetness of openscript',h.a({href:"https://levizwannah.github.io/html-to-ojs/"}, ' here '), ' before you go enjoy !!',
 
         )
            ]
