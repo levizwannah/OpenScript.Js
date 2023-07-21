@@ -76,6 +76,11 @@ class Introduction {
                         h.b("Segmeted reaction:")
                     ],
 
+                    [
+                        h.b("Mediation:")
+                        
+                    ]
+
                     
                 ])
             ]
