@@ -7,7 +7,7 @@ class TakeAQuickLook{
         h.section(
             {class: 'docs-intro'},
           h.p(
-            'This is a way to just have a small glimpse of OpenScript before you get to actually gain a deeper understanding of its underlining concepts.',
+            ' Get a small glimpse of OpenScript before you get to actually gain a deeper understanding of its underlining concepts.',
           )
         )
     ]; 
