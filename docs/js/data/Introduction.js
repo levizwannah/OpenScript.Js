@@ -62,18 +62,13 @@ class Introduction {
                         h.b("Router:"), 
                         " Provides a flexible routing system for creating single-page applications with multiple views."
                     ],
-                     
+                    
                     [
-                        h.b("Late Reaction:"),
-                        
+                        h.b("Listener:")
                     ],
 
                     [
-                        h.b("Anonymous components:")
-                    ],
-
-                    [
-                        h.b("Segmeted reaction:")
+                        h.b("Broker:")
                     ],
 
                     [
