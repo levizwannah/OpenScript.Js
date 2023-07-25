@@ -20,7 +20,7 @@ class TakeAQuickLook{
            content: [
         h.p(
 
-         'come...test the sweetness of openscript',h.a({href:"https://levizwannah.github.io/html-to-ojs/",target:"_blank"}, ' here '), ' before you go enjoy !!',
+         'come...test the automation that OpenScript puts in the hands of Web Developers ',h.a({href:"https://levizwannah.github.io/html-to-ojs/",target:"_blank"}, ' here '), ' before you go enjoy !!',
 
         )
            ]
