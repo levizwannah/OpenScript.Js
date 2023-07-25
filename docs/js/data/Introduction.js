@@ -64,7 +64,8 @@ class Introduction {
                     ],
                     
                     [
-                        h.b("Listener:")
+                        h.b("Listener:"),
+                        "This is an object that receives an event that has been emitted and then transmits it to the mediator the event"
                     ],
 
                     [
