@@ -69,6 +69,7 @@ class Introduction {
 
                     [
                         h.b("Broker:")
+                        `These in summary serve as the message queue for the components,views and the mediators.The main work for this is to persist events and notify the mediator when they are present on the DOM`
                     ],
 
                     [
