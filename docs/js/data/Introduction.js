@@ -61,7 +61,26 @@ class Introduction {
                     [
                         h.b("Router:"), 
                         " Provides a flexible routing system for creating single-page applications with multiple views."
+                    ],
+                    
+                    [
+                        h.b("Listener:"),
+                        "This is an object that receives an event that has been emitted and then transmits it to the mediator the event"
+                    ],
+
+                    [
+                        h.b("Broker:"),
+                        "These in summary serve as the message queue for the components,views and the mediators.The main work for this is to persist events and notify the mediator when they are present on the DOM"
+                        
+                    ],
+
+                    [
+                        h.b("Mediation:"),
+                        `Mediators essentially connect the frontend to the system backend through the network.`,h.a({href:"https://levizwannah.medium.com/"},` Delve depper into the idea of a mediator`)
+                        
                     ]
+
+                    
                 ])
             ]
         },

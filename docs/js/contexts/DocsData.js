@@ -7,6 +7,7 @@ class DocsData extends OpenScript.Context {
 
         this.has('arrangements').value = [
             'introduction',
+            'takeAQuickLook',
             'gettingStarted',
             'usingOpenScript',
             'designMarkup',
@@ -84,6 +85,12 @@ class DocsData extends OpenScript.Context {
     gettingStarted(){
         autoload.req('data.GettingStarted').then( () => {
             this.has('data').gettingStarted = new data.GettingStarted.GettingStarted();
+        });
+    }
+
+    takeAQuickLook(){
+        autoload.req('data.TakeAQuickLook').then( () => {
+            this.has('data').takeAQuickLook = new data.TakeAQuickLook.TakeAQuickLook();
         });
     }
 
