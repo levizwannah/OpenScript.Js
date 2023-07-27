@@ -3,6 +3,8 @@ A frontend framework for developing and Managing Reactive UIs in the most elegan
 
 Full documentation at: https://levizwannah.github.io/OpenScript.Js
 
-Developed by: Levi Kamara Zwannah
+Author: Levi Kamara Zwannah
+Contributors
+Jesse Richard
 
 
