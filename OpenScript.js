@@ -740,6 +740,12 @@ var OpenScript = {
         listening = {};
 
         /**
+         * All the states that this component is listening to
+         * @type {object<OpenScript.State>}
+         */
+        states = {};
+
+        /**
          * List of components that this component is listening
          * to.
          */
@@ -774,12 +780,6 @@ var OpenScript = {
          * Is the component visible
          */
         visible = true;
-
-        /**
-         * Keeps track of why the
-         * component is made visible or hidden
-         */
-        visibleBy = 'parent';
 
         /**
          * Anonymous component ID
@@ -1044,6 +1044,11 @@ var OpenScript = {
                 }
             }
 
+            for(let id in this.states){
+                this.states[id]?.off(this);
+                delete this.states[id];
+            }
+
             return true;
         }
 
@@ -1293,6 +1298,7 @@ var OpenScript = {
 
                 if(args[i] instanceof OpenScript.State) {
                     args[i].listener(this);
+                    this.states[args[i].id] = args[i];
                     final.states.push(args[i]);
                 } 
             }
@@ -2302,7 +2308,7 @@ var OpenScript = {
          * @returns 
          */
         func = (component, method, ...args) => {
-            return `h.compMap.get('${component.name}')['${method}'](${this._escape(args)})`;
+            return `component('${component.name}')['${method}'](${this._escape(args)})`;
         }
 
         /**
