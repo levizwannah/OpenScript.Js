@@ -1846,6 +1846,8 @@ var OpenScript = {
                             return target.value[prop];
                         }
 
+                        if(!target[prop] && typeof target.value === "object" && target.value[prop]) return target.value[prop];
+
                         return Reflect.get(...arguments);
                     }
 
