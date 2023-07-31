@@ -2203,10 +2203,28 @@ var OpenScript = {
     
                     k = k.replace(/_/g, "-");
 
-                    if(k === "class" || k === "Class") val = root.getAttribute(k) ?? "" + ` ${val}`;
+                    if(k === "class" || k === "Class"){
+                        val = (root.getAttribute(k) ?? "") + ` ${val}`;
+                    } 
 
                     root.setAttribute(k, val);
                 }
+            }
+
+            const parse = (arg, isComp) => {
+                if(arg instanceof DocumentFragment || arg instanceof HTMLElement) {
+                    if(isComp) return true;
+
+                    rootFrag.append(arg);
+                    return true;   
+                }
+    
+                if(typeof arg === "object") {
+                    parseAttr(arg); 
+                    return true;
+                }
+
+                return false;
             }
 
 
@@ -2217,24 +2235,17 @@ var OpenScript = {
                 if(arg instanceof OpenScript.State) continue;
 
                 if(Array.isArray(arg)) {
-                    if(isComponent) continue;
-                    arg.forEach(e => {
-                        if(e) rootFrag.append(this.toElement(e));
-                    });
-                    continue;
-                }
-    
-                if(arg instanceof DocumentFragment || arg instanceof HTMLElement) {
+                    
                     if(isComponent) continue;
 
-                    rootFrag.append(arg);
-                    continue;   
-                }
-    
-                if(typeof arg === "object") {
-                    parseAttr(arg); 
+                    arg.forEach(e => { 
+                        if(e) parse(e, isComponent);
+                    });
+
                     continue;
                 }
+    
+                if(parse(arg, isComponent)) continue;
 
                 if(isComponent) continue;
                 
@@ -2261,7 +2272,7 @@ var OpenScript = {
                     parent.append(root);
                 }
 
-                checkComponentsVisibility();
+                // checkComponentsVisibility();
 
                 if(component){
                     component.emit(event, eventParams);
@@ -2297,7 +2308,7 @@ var OpenScript = {
          * @param {function} f - This function should return an HTMLElement or a string or an Array of either
          * @returns {HTMLElement|string|Array<HTMLElement|string>}
          */
-        call = (f = () => `<ojs-group></ojs-group>`) => {
+        call = (f = () => h['ojs-group']()) => {
             return f();
         }
 
