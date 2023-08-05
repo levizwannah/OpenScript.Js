@@ -81,7 +81,7 @@ class GettingStarted {
 
                     [
                         "JsDelivr will generate a URL for you to use. It should look something like this: ",
-                        h.Code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.Js"),
+                        h.Code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.js"),
 
                         h.Callout('warning', {title: 'Heads Up', content: "This URL represents the latest version of OpenScript.Js available on JsDelivr's CDN."})
                     ],
@@ -90,7 +90,7 @@ class GettingStarted {
                         h.br(),
                         h.Code(
                             {class: 'language-html'},
-                            `<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.Js"></script>`
+                            `<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.js"></script>`
                         )
                     ]
                 ]),
