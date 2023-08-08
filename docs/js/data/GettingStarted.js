@@ -367,7 +367,7 @@ h.App({ parent: h.dom.getElementById('root'), resetParent: true });`
                     h.br(),
                     h.br(),
 
-                    `Contexts are used to store and manage shared data, making it accessible to different components within a specific part of the component tree. This enables components to access and use data without the need for manual data passing through props, simplifying data sharing and promoting a more modular and flexible application architecture.`,
+                    `Contexts are used to store and manage shared data, making it accessible to different components within a specific part of the component tree. This enables components to access and use data without the need for manual data passing through parameters, simplifying data sharing and promoting a more modular and flexible application architecture.`,
 
                     `We could maybe create a context for the app component that we used above`,
 
