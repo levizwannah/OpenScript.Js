@@ -388,7 +388,7 @@ h.App({ parent: h.dom.getElementById('root'), resetParent: true });`
                           
                     ),
 
-                    `In the above example the AppContext class is a custom context in OpenScript.Js is serves  as a data-sharing mechanism for the app component. It contains two crucial data items: the application's current theme and user information. The theme property holds the application's theme, initially set to 'dark', allowing components to access and apply theme-specific styles or layouts. The user property stores an object with user-related details like name, role, and login status, facilitating UI personalization and conditional rendering based on the user's information.`, 
+                    `In the above example the AppContext class is a custom context in OpenScript.Js  serves  as a data-sharing mechanism for the app component. It contains two crucial data items: the application's current theme and user information. The theme property holds the application's theme, initially set to 'dark', allowing components to access and apply theme-specific styles or layouts. The user property stores an object with user-related details like name, role, and login status, facilitating UI personalization and conditional rendering based on the user's information.`, 
 
                     h.br(),
                     h.br(), 
