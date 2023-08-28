@@ -1,7 +1,7 @@
 ojs(async e => {
 
-    fetchContext("rootCxt", "RootContext");
-    fetchContext("blogCxt", "Blog.Context");
+    fetchContext("rootCxt", "Root");
+    putContext("blogCxt", "Blog.Context");
 
     req("App");
 
@@ -24,6 +24,8 @@ ojs(async e => {
 
     bc.put("counter", state(0));
     bc.put("blogs", blog);
+
+    bc.number = state(0);
 
     let rc = context("rootCxt");
     rc.domRoot = h.dom.querySelector("#root");
@@ -50,6 +52,11 @@ ojs(async e => {
         bc.counter.value++;
 
     }, 1000);
+
+    setInterval(() => {
+        bc.number.value++;
+        broker.send('numberChanged')
+    }, 500);
 
 });
 

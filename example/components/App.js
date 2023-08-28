@@ -9,6 +9,7 @@ class App extends OpenScript.Component {
         req("MainNav");
         req("Blog.List");
         req("Counter");
+        req('Chart');
     }
 
     render(...args) {
@@ -60,6 +61,10 @@ class App extends OpenScript.Component {
 
                 h.BlogCounter(context("blogCxt").counter, {
                     class: "p-1"
+                }),
+
+                h.Chart(200, {
+                    class: "mb-3"
                 }),
             
                 h.BlogList(context("blogCxt").blogs, context('blogCxt').counter, "I am a blog List. I re-render when counter changes"),
