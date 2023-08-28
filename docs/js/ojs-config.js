@@ -8,14 +8,15 @@
  * Set the default route path here
  * ----------------------------------
  */
-route.basePath(ojsConf.path.assets);
+route.basePath('');
+if(route.url().hostname !== '127.0.0.1') route.basePath('OpenScript.Js');
 
 /*-----------------------------------
  | set the directories in which we
  | can find the context files
  |-----------------------------------
 */
-ContextProvider.directory = route.baseUrl(ojsConf.path.contexts);
+ContextProvider.directory = route.baseUrl('docs/js/contexts');
 
 /*-----------------------------------
  | set the version number of the
@@ -24,7 +25,7 @@ ContextProvider.directory = route.baseUrl(ojsConf.path.contexts);
  | files change
  |-----------------------------------
 */
-ContextProvider.version = ojsConf.versions.cxt;
+ContextProvider.version = '1.0.0';
 
 /*-----------------------------------
  | Set the Mediators directory
@@ -32,7 +33,7 @@ ContextProvider.version = ojsConf.versions.cxt;
  | from that directory
  |-----------------------------------
 */
-MediatorManager.directory = route.baseUrl(ojsConf.path.mediators);
+MediatorManager.directory = route.baseUrl('docs/js/mediators');
 
 /*-----------------------------------
  | Set the version number of the 
@@ -41,14 +42,14 @@ MediatorManager.directory = route.baseUrl(ojsConf.path.mediators);
  | mediators files upon changes.
  |----------------------------------
 */
-MediatorManager.version = ojsConf.versions.mtr;
+MediatorManager.version = '1.0.0';
 
 /*-----------------------------------
  | Set the default component
  | directory for the loader
  |-----------------------------------
 */
-loader.dir = route.baseUrl(ojsConf.path.components);
+loader.dir = route.baseUrl('docs/js/components');
 
 /*-----------------------------------
  | set the version number of the
@@ -56,7 +57,7 @@ loader.dir = route.baseUrl(ojsConf.path.components);
  | a fresh file when they change
  |-----------------------------------
 */
-loader.version = ojsConf.versions.cmp;
+loader.version = '1.0.0';
 
 /*-----------------------------------
  | Set the default directory of the
@@ -65,7 +66,7 @@ loader.version = ojsConf.versions.cmp;
  |-----------------------------------
 */
 
-autoload.dir = route.baseUrl(ojsConf.path.files);
+autoload.dir = route.baseUrl('docs/js');
 
 /*-----------------------------------
  | set the version number of the
@@ -73,7 +74,7 @@ autoload.dir = route.baseUrl(ojsConf.path.files);
  | a fresh file when they change
  |-----------------------------------
 */
-autoload.version = ojsConf.versions.file;
+autoload.version = '1.0.0';
 
 /*--------------------------------
  | Set the logs clearing interval

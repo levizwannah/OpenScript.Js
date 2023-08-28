@@ -38,8 +38,6 @@ class IndexData extends OpenScript.Context {
                 link: 'docs.html#ojs-getting-started',
             },
 
-            
-
             {
                 icon: 'fa-pen',
                 title: 'Using OpenScript',
@@ -87,6 +85,13 @@ class IndexData extends OpenScript.Context {
                 title: 'OJS - Autoloading',
                 body: '(Deep dive) Remember we are in a non-modularized and unbundled JavaScript environment, and we need to load our JS files from other JS files during runtime. Learn how that was done. Also, learn the automatic namespacing.',
                 link: 'docs.html#ojs-design-autoloading'
+            },
+
+            {
+                icon: 'fa-gears ',
+                title: 'OJS - Mediation',
+                body: '(Deep dive) How the mediators, broker, listeners, and component events work to enable modularized frontend logic',
+                link: 'docs.html#ojs-mediation'
             },
 
             {

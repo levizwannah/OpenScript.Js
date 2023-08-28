@@ -50,7 +50,7 @@ class Overview extends OpenScript.Component {
 
         let cards = [];
 
-        each(contents, (content) => {
+        each(contents.value, (content) => {
             cards.push(
                 h.div(
                     { class: 'col-12 col-lg-4 py-3'},
@@ -83,7 +83,7 @@ class Overview extends OpenScript.Component {
                             ),
 
                             {
-                                onclick: h.func(this, 'goto', content.link.split('#')[1])
+                                onclick: this.method('goto', content.link.split('#')[1])
                             }
 
                             // h.a({
