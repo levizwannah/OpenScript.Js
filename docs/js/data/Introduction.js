@@ -75,8 +75,8 @@ class Introduction {
                     ],
 
                     [
-                        h.b("Mediation:"),
-                        `Mediators essentially connect the frontend to the system backend through the network.`,h.a({href:"https://levizwannah.medium.com/"},` Delve depper into the idea of a mediator`)
+                        h.b("Mediater:"),
+                        `Mediators essentially connect the frontend to the system backend through the network.`,h.a({href:"https://levizwannah.medium.com/", target:"_blank"},` Delve depper into the idea of a mediator`)
                         
                     ]
 

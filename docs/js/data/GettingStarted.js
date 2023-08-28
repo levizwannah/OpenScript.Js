@@ -81,7 +81,7 @@ class GettingStarted {
 
                     [
                         "JsDelivr will generate a URL for you to use. It should look something like this: ",
-                        h.Code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.Js"),
+                        h.Code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.js"),
 
                         h.Callout('warning', {title: 'Heads Up', content: "This URL represents the latest version of OpenScript.Js available on JsDelivr's CDN."})
                     ],
@@ -90,7 +90,7 @@ class GettingStarted {
                         h.br(),
                         h.Code(
                             {class: 'language-html'},
-                            `<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.Js"></script>`
+                            `<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.js"></script>`
                         )
                     ]
                 ]),
@@ -359,7 +359,47 @@ h.App({ parent: h.dom.getElementById('root'), resetParent: true });`
 
                 ),
 
-                h.h3('Context')
+                h.h3('Context'), 
+
+                h.p(
+                    `In OpenScript.Js, contexts provide a powerful mechanism for sharing data across components in a hierarchical manner. To create a context in OpenScript.Js, you can define a class that extends the OpenScript.Context class. Within the context class, you can define methods to initialize and manage the data that needs to be shared. Each data item is stored as a context value, which can be accessed and modified by components that consume the context.`,
+
+                    h.br(),
+                    h.br(),
+
+                    `Contexts are used to store and manage shared data, making it accessible to different components within a specific part of the component tree. This enables components to access and use data without the need for manual data passing through parameters, simplifying data sharing and promoting a more modular and flexible application architecture.`,
+
+                    `We could maybe create a context for the app component that we used above`,
+
+                    h.Code(
+`class AppContext extends OpenScript.Context {
+         theme;
+         user;
+    constructor() {
+        super();                    
+        this.has('theme').value = ' dark'
+        this.has('user').value = {
+            name: 'John Doe',
+            role: 'User',
+            loggedIn: false
+        };
+    }
+}`
+                          
+                    ),
+
+                    `In the above example the AppContext class is a custom context in OpenScript.Js  serves  as a data-sharing mechanism for the app component. It contains two crucial data items: the application's current theme and user information. The theme property holds the application's theme, initially set to 'dark', allowing components to access and apply theme-specific styles or layouts. The user property stores an object with user-related details like name, role, and login status, facilitating UI personalization and conditional rendering based on the user's information.`, 
+
+                    h.br(),
+                    h.br(), 
+
+                    `By using contexts  like AppContext fosters a modular and efficient approach to managing shared data, promoting reusability and consistency across the application's components. The context encapsulates the essential data and provides a seamless way to share it with components at different levels of the component tree.`
+
+                    
+
+                ),
+
+                h.h3('Router'),
 
 
                
