@@ -424,7 +424,7 @@ h.App({ parent: h.dom.getElementById('root'), resetParent: true });`
                     });
                     
  // Define a route for the contact view
- router.orOn(['contact', 'contact.html'], function() {
+ route.orOn(['contact', 'contact.html'], function() {
     req('GroupsContactView.');
        h.ContactView(
           {
