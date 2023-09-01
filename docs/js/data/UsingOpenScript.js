@@ -7,7 +7,7 @@ class UsingOpenScript {
         h.section(
             {class: 'docs-intro'},
             h.p(
-                'Section intro goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque finibus condimentum nisl id vulputate. Praesent aliquet varius eros interdum suscipit. Donec eu purus sed nibh convallis bibendum quis vitae turpis. Duis vestibulum diam lorem, vitae dapibus nibh facilisis a. Fusce in malesuada odio.'
+                'In this section we  will be taking a closer look at each of the major concepts of openscript paying attention to exactly how each of the concepts work together to achieve the desired effect for any application you would like to develop using OpenScript.js.It is important to note that this section assumes that all the steps for installing OpenScript have been followed '
             )
         )
     ];
