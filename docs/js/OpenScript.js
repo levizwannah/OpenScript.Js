@@ -2768,12 +2768,14 @@ var OpenScript = {
          * @param {string} fileName script name without the .js.
          */
         async req(fileName) {
+            console.log(this.dir, fileName);
             let names = fileName.split(/\./);
 
             if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
                 return OpenScript.AutoLoader.history.get(
                     `${this.dir}.${fileName}`
                 );
+           
 
             let response = await fetch(
                 `${this.dir}/${this.normalize(fileName)}${this.extension}?v=${
