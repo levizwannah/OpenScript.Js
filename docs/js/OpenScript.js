@@ -8,9 +8,16 @@ var OpenScript = {
     Router: class {
         /**
          * Current Prefix
+         * @type {Array<string>}
+         */
+        __prefix = [""];
+
+        /**
+         * Prefix to append
+         * To all the runtime URL changes
          * @type {string}
          */
-        __prefix = "";
+        __runtimePrefix = "";
 
         /**
          * The routes Map
@@ -61,6 +68,15 @@ var OpenScript = {
         }
 
         /**
+         * Sets the global runtime prefix
+         * to use when resolving routes
+         * @param {string} prefix
+         */
+        runtimePrefix(prefix) {
+            this.__runtimePrefix = prefix;
+        }
+
+        /**
          * Sets the default path
          * @param {string} path
          * @returns
@@ -84,7 +100,9 @@ var OpenScript = {
          * @param {function} action action to perform
          */
         on(path, action) {
-            const paths = `${this.path}/${this.__prefix}/${path}`.split("/");
+            const paths = `${this.path}/${this.__prefix.join(
+                "/"
+            )}/${path}`.split("/");
 
             let key = null;
             let map = this.map;
@@ -124,7 +142,7 @@ var OpenScript = {
          * @param {string} name
          */
         prefix(name) {
-            this.__prefix = name;
+            this.__prefix.push(name);
 
             return new this.PrefixRoute(this);
         }
@@ -165,6 +183,8 @@ var OpenScript = {
 
             this.reset.value = false;
 
+            broker.send("routeChanged");
+
             return this;
         }
 
@@ -174,7 +194,7 @@ var OpenScript = {
          * @param {object} qs Query string
          */
         to(path, qs = {}) {
-            path = `${this.path}/${path}`.trim();
+            path = `${this.path}/${this.__runtimePrefix}/${path}`.trim();
 
             let paths = path.split("/");
 
@@ -305,7 +325,7 @@ var OpenScript = {
             group(func = () => {}) {
                 func();
 
-                this.router.__prefix = "";
+                this.router.__prefix.pop();
 
                 return this.router;
             }
@@ -395,6 +415,11 @@ var OpenScript = {
      */
     Broker: class Broker {
         /**
+         * Should the events be logged as they are fired?
+         */
+        #shouldLog = false;
+
+        /**
          * TIME DIFFERENCE BEFORE GARBAGE
          * COLLECTION
          */
@@ -464,6 +489,7 @@ var OpenScript = {
 
             this.#logs[event] = this.#logs[event] ?? [];
             this.#logs[event].push({ timestamp: currentTime(), args: args });
+            if (this.#shouldLog) console.log(`fired ${event}: args`, args);
 
             return this.#emitter.emit(event, ...args);
         }
@@ -498,6 +524,14 @@ var OpenScript = {
          */
         removeStaleEvents() {
             setInterval(this.clearLogs.bind(this), this.CLEAR_LOGS_AFTER);
+        }
+
+        /**
+         * If the broker should display events as they are fired
+         * @param {boolean} shouldLog
+         */
+        withLogs(shouldLog) {
+            this.#shouldLog = shouldLog;
         }
     },
 
@@ -686,11 +720,11 @@ var OpenScript = {
 
         /**
          * JSON.parse
-         * @param {string} string
+         * @param {string} str
          * @returns {EventData}
          */
-        static decode(string) {
-            return JSON.parse(string);
+        static decode(str) {
+            return JSON.parse(str);
         }
         /**
          * Parse and Event Data
@@ -700,9 +734,36 @@ var OpenScript = {
         static parse(eventData) {
             let ed = OpenScript.EventData.decode(eventData);
 
+            if (!"_meta" in ed) ed._meta = {};
+            if (!"_message" in ed) ed._message = {};
+
             return {
-                meta: ed?._meta,
-                message: ed?._message,
+                meta: {
+                    ...ed._meta,
+                    has: function (key) {
+                        return key in this;
+                    },
+                    get: function (key, def = null) {
+                        return this[key] ?? def;
+                    },
+                    put: function (key, value) {
+                        this[key] = value;
+                        return this;
+                    },
+                },
+                message: {
+                    ...ed._message,
+                    has: function (key) {
+                        return key in this;
+                    },
+                    get: function (key, def = null) {
+                        return this[key] ?? def;
+                    },
+                    put: function (key, value) {
+                        this[key] = value;
+                        return this;
+                    },
+                },
                 encode: function () {
                     return eData(this.meta, this.message);
                 },
@@ -1418,11 +1479,19 @@ var OpenScript = {
 
             if (!this.visible) attr.style = "display: none;";
 
-            const markup = this.render(...args);
+            let markup = this.render(...args, { withCAttr: true });
+            let cAttributes = {};
+
+            if (markup instanceof HTMLElement) {
+                cAttributes = JSON.parse(
+                    markup?.getAttribute("c-attr") ?? "{}"
+                );
+                markup.setAttribute("c-attr", "");
+            }
 
             attr = { ...attr, component: this, event, eventParams: [markup] };
 
-            return h[`ojs-${this.kebab(this.name)}`](attr, markup);
+            return h[`ojs-${this.kebab(this.name)}`](attr, markup, cAttributes);
         }
 
         /**
@@ -2179,6 +2248,9 @@ var OpenScript = {
             let isComponent = isUpperCase(name[0]);
             let root = null;
 
+            let componentAttribute = {};
+            let withCAttr = false;
+
             /**
              * When dealing with a component
              * save the argument for async rendering
@@ -2238,6 +2310,16 @@ var OpenScript = {
                         v instanceof OpenScript.Component
                     ) {
                         component = v;
+                        continue;
+                    }
+
+                    if (k === "c_attr") {
+                        componentAttribute = v;
+                        continue;
+                    }
+
+                    if (k === "withCAttr") {
+                        withCAttr = true;
                         continue;
                     }
 
@@ -2302,6 +2384,10 @@ var OpenScript = {
             }
 
             root.append(rootFrag);
+
+            if (withCAttr) {
+                root.setAttribute("c-attr", JSON.stringify(componentAttribute));
+            }
 
             root.toString = function () {
                 return this.outerHTML;
@@ -2501,8 +2587,12 @@ var OpenScript = {
          * @param {Array<string>} attribute attribute path
          * @returns
          */
-        $anonymous = (state, callback = (state) => state.value) => {
-            return h[OpenScript.Component.anonymous()](state, callback);
+        $anonymous = (state, callback = (state) => state.value, ...args) => {
+            return h[OpenScript.Component.anonymous()](
+                state,
+                callback,
+                ...args
+            );
         };
 
         /**
@@ -2768,14 +2858,12 @@ var OpenScript = {
          * @param {string} fileName script name without the .js.
          */
         async req(fileName) {
-            console.log(this.dir, fileName);
             let names = fileName.split(/\./);
 
             if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
                 return OpenScript.AutoLoader.history.get(
                     `${this.dir}.${fileName}`
                 );
-           
 
             let response = await fetch(
                 `${this.dir}/${this.normalize(fileName)}${this.extension}?v=${
@@ -2991,10 +3079,11 @@ var OpenScript = {
          * @param {OpenScript.State} state
          * @param {Function<OpenScript.State>} callback the function that returns
          * the value to put in the anonymous markup created
+         * @param {...} args
          * @returns
          */
-        v = (state, callback = (state) => state.value) =>
-            h.$anonymous(state, callback);
+        v = (state, callback = (state) => state.value, ...args) =>
+            h.$anonymous(state, callback, ...args);
         /**
          * The markup engine for OpenScript.Js
          */
