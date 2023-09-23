@@ -485,11 +485,21 @@ var OpenScript = {
          * @returns
          */
         async emit(event, ...args) {
+            let events = event.split(/\s+/g);
+
+            for(let i = 0; i < events.length; i++){
+                let evt = events[i];
+                if(evt.length < 1) continue;
+                this.#emit(evt, ...args);
+            }
+        }
+
+        async #emit(event, ...args){
             const currentTime = () => new Date().getTime();
 
             this.#logs[event] = this.#logs[event] ?? [];
             this.#logs[event].push({ timestamp: currentTime(), args: args });
-            if (this.#shouldLog) console.log(`fired ${event}: args`, args);
+            if (this.#shouldLog) console.log(`fired ${event}: args: `, args);
 
             return this.#emitter.emit(event, ...args);
         }
@@ -2858,8 +2868,10 @@ var OpenScript = {
          * @param {string} fileName script name without the .js.
          */
         async req(fileName) {
-            let names = fileName.split(/\./);
+            if(!/^[\w\._-]+$/.test(fileName)) throw Error(`OJS-INVALID-FILE: '${fileName}' is an invalid file name`);
 
+            let names = fileName.split(/\./);
+            
             if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
                 return OpenScript.AutoLoader.history.get(
                     `${this.dir}.${fileName}`
@@ -2870,6 +2882,7 @@ var OpenScript = {
                     this.version
                 }`
             );
+            
 
             let classes = await response.text();
             let content = classes;
