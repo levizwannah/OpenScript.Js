@@ -1,31 +1,34 @@
-class TakeAQuickLook{
-    icon = 'fa-pen'; 
-    id = 'ojs-take-a-quick-look';  
-    title = 'Take a quick look';
+class TakeAQuickLook {
+  icon = "fa-pen";
+  id = "ojs-take-a-quick-look";
+  title = "Take a quick look";
 
-    content=[
-        h.section(
-            {class: 'docs-intro'},
-          h.p(
-            ' Get a small glimpse of OpenScript before you get to actually gain a deeper understanding of its underlining concepts.',
-          )
-        )
-    ]; 
+  content = [
+    h.section(
+      { class: "docs-intro" },
+      h.p(
+        "Take a look at the OpenScript Markup before going deeper."
+      )
+    ),
+  ];
 
-    sections = [
-        {
-           id: 'ojs-take-a-quick-look',
-           title: 'Where to take a look',
-           heading: 'where to take a look',
-           content: [
+  sections = [
+    {
+      id: "ojs-take-a-quick-look",
+      title: "Markup Generator",
+      heading: "Markup Generator",
+      content: [
         h.p(
-
-         'come...test the automation that OpenScript puts in the hands of Web Developers ',h.a({href:"https://levizwannah.github.io/html-to-ojs/",target:"_blank"}, ' here '), ' before you go enjoy !!',
-
-        )
-           ]
-        }
-
-
-    ];
+          "To convert your HTML to OJS markup, use this tool. ",
+          h.a(
+            {
+              href: "https://levizwannah.github.io/html-to-ojs/",
+              target: "_blank",
+            },
+            " Markup Generator."
+          )
+        ),
+      ],
+    },
+  ];
 }
