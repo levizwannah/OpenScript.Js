@@ -54,5 +54,5 @@ ojs(async (e) => {
   setInterval(() => {
     bc.number.value++;
     broker.send("numberChanged");
-  }, 500);
+  }, 1000);
 });
