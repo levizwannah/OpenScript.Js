@@ -77,12 +77,31 @@ class Introduction {
             `Mediators essentially connect the frontend to the system backend through the network.`,
             h.a(
               { href: "https://levizwannah.medium.com/", target: "_blank" },
-              ` Delve depper into the idea of a mediator`
+              ` Delve deeper into the idea of a mediator`
             ),
           ],
         ]),
       ],
     },
+
+    {
+      id: "ojs-take-a-quick-look",
+      title: "Markup Generator",
+      heading: "Markup Generator",
+      content: [
+        h.p(
+          "To convert your HTML to OJS markup, use this tool. ",
+          h.a(
+            {
+              href: "https://levizwannah.github.io/html-to-ojs/",
+              target: "_blank",
+            },
+            " Markup Generator."
+          )
+        ),
+      ],
+    },
+
     {
       id: "ojs-introduction-2",
       title: "Conclusion",
@@ -101,10 +120,7 @@ class Introduction {
         ),
 
         h.p(
-          "If you have any questions or need assistance, please refer to the relevant sections of this documentation or reach out to our vibrant community for support.",
-          h.br(),
-          h.br(),
-          "Happy coding with OpenScript.Js!"
+          "If you have any questions or need assistance, please refer to the relevant sections of this documentation or reach out to our vibrant community for support."
         ),
       ],
     },

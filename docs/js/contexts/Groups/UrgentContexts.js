@@ -20,12 +20,12 @@ class IndexData extends OpenScript.Context {
         link: "docs.html#ojs-introduction",
       },
 
-      {
-        icon: "fa-pen",
-        title: "Take a quick look",
-        body: "Get a glimpse of the time saving powers that openScript puts in the hands of web developers",
-        link: "docs.html#ojs-take-a-quick-look",
-      },
+      // {
+      //   icon: "fa-pen",
+      //   title: "Take a quick look",
+      //   body: "Get a glimpse of the time saving powers that openScript puts in the hands of web developers",
+      //   link: "docs.html#ojs-take-a-quick-look",
+      // },
 
       {
         icon: "fa-person-walking",

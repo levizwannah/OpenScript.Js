@@ -8,7 +8,7 @@ class DocsData extends OpenScript.Context {
 
         this.has('arrangements').value = [
             'introduction',
-            'takeAQuickLook',
+            // 'takeAQuickLook',
             'gettingStarted',
             'usingOpenScript',
             'designMarkup',
