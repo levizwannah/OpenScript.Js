@@ -102,7 +102,7 @@ class GettingStarted {
             "Open the ojs-config.js file and add the following configurations:",
 
             h.Code(
-`/*----------------------------------
+              `/*----------------------------------
 | Do OpenScript Configurations Here
 |----------------------------------
 */
@@ -290,12 +290,58 @@ broker.withLogs(false);
       heading: "Hello OpenScript",
       content: [
         h.p(
-          `In this section, we cover the fundamental aspects of OpenScript.Js by creating a simple "Hello World" example. This example will serve as a starting point to understand the basic usage of OpenScript.Js components, state, context, mediators.`,
+          `In this section, we cover the fundamental aspects of OpenScript.Js by creating a simple "Hello World" example. This example will serve as a starting point to understand the basic usage of OpenScript.Js components, state, context, mediators.`
         ),
-        h.h3('Setting up'),
-        h.p('Create an index.html file and place these contents in it.'),
+        h.h3("Setting up"),
+        h.p(
+          "Create an",
+          h.code("index.html"),
+          " file and an ",
+          h.code("js/app.js"),
+          ". Put the below content in the HTML file. We will gradually build the ",
+          h.code("app.js"),
+          " file as we progress through the Hello World Section. Ensure you already have the ",
+          h.code("OpenScript.js"),
+          ", ",
+          h.code("ojs-config.js"),
+          " files in the ",
+          h.code("js"),
+          " directory"
+        ),
         h.Code(
+          `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenScript.js</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+</head>
+<body>
+
+    <div id="root">
+            <!-- We will render our content in this div -->
+    </div>
+
+    <footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+
+        <script src="./js/OpenScript.js"></script>
+        <script src="./js/ojs-config.js"></script>
+        <script src="./js/app.js"></script>
+    </footer>
+
+</body>
+
+
+
+</html>
+`
         ),
         h.h3("Markup Generation"),
 
