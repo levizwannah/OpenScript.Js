@@ -4,7 +4,7 @@ class GettingStarted {
     title = 'Getting Started';
     content = [
         h.p(
-            'This guide will walk you through the process of getting started with OpenScript.Js. By the end of this section, you will have OpenScript.Js set up in your project and ready to build reactive web UIs with ease.'
+            'This guide will walk you through the process of getting started with OpenScript.Js. By the end of this section, you will have OpenScript.Js set up in your project.'
         )
     ];
 
@@ -31,17 +31,19 @@ class GettingStarted {
                     [
                         "Once you have downloaded the source code, locate the ",
                         h.code("OpenScript.Js"),
-                        " file in the repository. This file contains the main logic and functionality of the OpenScript.Js framework."
+                        " file in the repository and the ", h.code("ojs-config.js"), " file as well. ",
+                        "The OpenScript.Js file contains the main logic and functionality of the OpenScript.Js framework. And the config file enables you to configure the OJS."
                     ],
 
                     [
-                        "You are now ready to start using OpenScript.Js in your project. You can include the OpenScript.Js file in your HTML pages using a  <script> tag like this:",
+                        "You can include the OpenScript.Js file in your HTML pages using a  <script> tag like this:",
 
-                        h.Code(
-                            '<script src="js/libs/OpenScript.Js"></script>'
-                        ),
+h.Code(
+`<script src="js/path/to/OpenScript.js"></script>
+<script src="js/path/to/ojs-config.js"></script>`
+),
 
-                        "Make sure to adjust the src attribute value according to the location where you copied the OpenScript.Js file."
+                        "Make sure to adjust the src attribute value according to the location where you placed the OpenScript.Js and the ojs-config files."
 
                     ]
                 ]),
@@ -53,45 +55,24 @@ class GettingStarted {
                 ),
 
                 h.List('ol', [
-                    [
-                        "To generate the JsDelivr link for OpenScript.Js, navigate to the GitHub repository at: ",
-                        h.br(),
-                        h.ExternalLink("https://github.com/levizwannah/OpenScript.Js", " https://github.com/levizwannah/OpenScript.Js")
-                    ],
 
                     [
-                        `On the repository page, click on the "Code" button and select "Download ZIP" to download the source code.`
-                    ],
+                        "Use this link to get the latest version or use a specific version to avoid breaking your code on updates to OJS. To get a specific version, replace `latest` with for example, 4.2.1. Here is the CDN link: ",
+                        h.Code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js@latest/OpenScript.js"),
 
-                    [
-                        "Extract the downloaded ZIP file and locate the OpenScript.Js file."
-                    ],
-
-                    [
-                        "Next, visit the JsDelivr website at ",
-                        h.ExternalLink(" https://www.jsdelivr.com/")
-                    ],
-
-                    [
-                        "On the JsDelivr website, enter the URL of the OpenScript.Js file in the '",
-                        h.b("Find resources"),
-                        "' search box and press ",
-                        h.kbd("Enter")
-                    ],
-
-                    [
-                        "JsDelivr will generate a URL for you to use. It should look something like this: ",
-                        h.Code("https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.js"),
-
-                        h.Callout('warning', { title: 'Heads Up', content: "This URL represents the latest version of OpenScript.Js available on JsDelivr's CDN." })
+                        h.Callout('warning', { title: 'Heads Up', content: "This URL represents the latest version of OpenScript.Js available on JsDelivr's CDN. To use a specific version, change the 'latest' to the version number. e.g. 4.2.1" })
                     ],
                     [
                         "Include the generated JsDelivr URL in your HTML pages using a <script> tag, as shown below: ",
                         h.br(),
                         h.Code(
                             { class: 'language-html' },
-                            `<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js/OpenScript.js"></script>`
-                        )
+                            `<script src="https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js@latest/OpenScript.js"></script>`
+                        ),
+                        h.Callout('info', {
+                            title: 'Configuration',
+                            content: 'You must create a file for configuring OJS and include it right below the OJS script tag. Use the OJS template below for your config file.'
+                        })
                     ]
                 ]),
 
@@ -280,8 +261,8 @@ autoload.version = '1.0.0';`, { class: 'language-js' }),
                 h.p(
                     `In OpenScript.Js, a component is a reusable and modular UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components in OpenScript.Js serve as building blocks for constructing the user interface of a web application. They allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. By separating UI components into individual classes, components can be reused across multiple parts of an application, providing consistency and reducing code duplication. Components in OpenScript.Js promote a more structured and efficient development process, enabling developers to build modular, maintainable, and reusable UI elements.`
                 ),
-                h.Code(
-                    `class Comment extends OpenScript.Component {
+h.Code(
+`class Comment extends OpenScript.Component {
     /**
      * @param {string} content 
      */

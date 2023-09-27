@@ -1,10 +1,11 @@
 class ExternalScript extends OpenScript.Component {
 
     render(src, ...args){
+
         return h.div(
             { class: 'docs-code-block' },
 
-            h.script({src}),
+            h.script({src, defer: true}),
 
             ...args
         );

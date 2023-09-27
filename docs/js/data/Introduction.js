@@ -90,7 +90,7 @@ class Introduction {
       heading: "Markup Generator",
       content: [
         h.p(
-          "To convert your HTML to OJS markup, use this tool. ",
+          "You can play around with OJS markup. To convert your HTML to OJS markup, use this tool. ",
           h.a(
             {
               href: "https://levizwannah.github.io/html-to-ojs/",
