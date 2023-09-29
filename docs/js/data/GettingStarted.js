@@ -447,7 +447,7 @@ h.App(
         h.h3(`Components`),
 
         h.p(
-          `In OJS a component is a reusable and UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. In this hello world example, we will create a post that has comments. Let's create the comments component`
+          `In OJS a component is a reusable UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. In this hello world example, we will create a post that has comments. Let's create the comments component`
         ),
         h.Code(
 `class Comment extends OpenScript.Component {
