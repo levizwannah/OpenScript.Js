@@ -308,6 +308,7 @@ broker.withLogs(false);
           h.code("js"),
           " directory"
         ),
+        h.h4("The Index.html file"),
         h.Code(
           `
 <!DOCTYPE html>
@@ -316,7 +317,7 @@ broker.withLogs(false);
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenScript.js</title>
+    <title>Hello OpenScript.js</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 
@@ -328,21 +329,44 @@ broker.withLogs(false);
     </div>
 
     <footer>
-
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-
         <script src="./js/OpenScript.js"></script>
         <script src="./js/ojs-config.js"></script>
         <script src="./js/app.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     </footer>
 
 </body>
-
-
-
 </html>
 `
         ),
+
+        h.h4("The app.js file"),
+        h.p(
+          "In the app.js file, we will render our components. Due to Asynchronous rendering, you can use a component before creating the component. In OJS, you render a component by using the h.ComponentName(...arguments). We are going to render our an App component in the root div of the index.html. Notice that nothing happens except that we have an <ojs-app-tmp--> element in the root div when you inspect it."
+        ),
+
+        h.Code(
+          `
+const rootElement = document.getElementById('root');
+
+// render the App in the root element
+h.App(
+    {
+      parent: rootElement,
+      resetParent: true
+    }
+);
+`
+        ),
+
+        h.QuickNote([
+          h.b("`parent`"),
+          " tells OJS the HTML element to put the generated HTML markup in. This can be used on a normal html element or an OJS component.",
+          h.br(),
+          h.b("`resetParent`"),
+          " tells OJS to remove all the current inner HTML of the parent before placing the generated HTML in it. By default, OJS will append the generated markup to the parent inner HTML.",
+        ]),
+
         h.h3("Markup Generation"),
 
         h.p(
@@ -370,14 +394,12 @@ broker.withLogs(false);
           h.br(),
           h.br(),
           h.Code(
-            `h.div(
+`h.div(
     { class: 'container', id: 'myDiv' },
     h.h1('Hello World'),
     h.p('This is a paragraph.'),
     h.button({ type: 'button' }, 'Click Me')                                     
-);`,
-
-            { class: "language-js" }
+);`
           ),
 
           `In the above example, we create a `,
@@ -390,9 +412,9 @@ broker.withLogs(false);
           h.code(`id`),
           ` attribute set to `,
           h.code("myDiv"),
-          `. Inside the`,
+          `. Inside the `,
           h.code(`div`),
-          ` , we nest an`,
+          ` , we nest an `,
           h.code("h1"),
           `  element with the text 'Hello World', a `,
           h.code(`p`),
@@ -405,35 +427,46 @@ broker.withLogs(false);
 
         h.p(
           h.Code(
-            `<div class="container" id="myDiv">
+`<div class="container" id="myDiv">
      <h1>Hello World</h1>
      <p>This is a paragraph.</p>
      <button type="button">Click Me</button>
  </div>`
           ),
-          h.br(),
-          `With OpenScript.Js's concise syntax for element creation and attribute assignment, you can easily construct dynamic and interactive web UIs.`
+        ),
+
+        h.CodeOutput(
+          h.div(
+            { class: 'container', id: 'myDiv' },
+            h.h1('Hello World'),
+            h.p('This is a paragraph.'),
+            h.button({ type: 'button' }, 'Click Me')                                     
+          )
         ),
 
         h.h3(`Components`),
 
         h.p(
-          `In OpenScript.Js, a component is a reusable and modular UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components in OpenScript.Js serve as building blocks for constructing the user interface of a web application. They allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. By separating UI components into individual classes, components can be reused across multiple parts of an application, providing consistency and reducing code duplication. Components in OpenScript.Js promote a more structured and efficient development process, enabling developers to build modular, maintainable, and reusable UI elements.`
+          `In OJS a component is a reusable and UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. In this hello world example, we will create a post that has comments. Let's create the comments component`
         ),
         h.Code(
-          `class Comment extends OpenScript.Component {
+`class Comment extends OpenScript.Component {
     /**
      * @param {string} content 
      */
-    render(content) {
+    render(content, ...args) {
         return h.div(
             { class: 'comment' },
             h.div({ class: 'comment-content' }, content),
             h.i({ class: 'fa fa-thumbs-up' }),
-            h.i({ class: 'fa fa-reply' })
+            h.i({ class: 'fa fa-reply' }),
+            ...args
         );
     }
 }`
+        ),
+        h.QuickNote(
+          ['Always remember to put the ', h.code('...args'), ' at the end of the render method parameters. It is used by OJS to pass metadata to the component when the it reacts to changes in state (data). For the above component, ...args is not necessary because there is no state.']
         ),
 
         h.br(),
