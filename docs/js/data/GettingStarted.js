@@ -370,7 +370,7 @@ h.App(
         h.h3("Markup Generation"),
 
         h.p(
-          `In OpenScript.Js, you can create HTML elements using the `,
+          `You can create HTML elements using the `,
           h.code(`h`),
           ` object followed by the element name. For example, to create a div element, you can use`,
           h.code(`h.div(...args)`),
@@ -379,7 +379,7 @@ h.App(
           h.br(),
           h.br(),
 
-          `To add attributes to the created element, you can pass an object as a literal argument to the element function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a `,
+          `To add attributes to the created element, pass an object as a literal argument to the element's function. Each key-value pair in the object represents an attribute and its corresponding value. For example, if you want to add a class attribute with the value of "container" to a `,
           h.code(`div`),
           ` element, you can use `,
           h.code(`h.div({ class: "container" }, ...args)`),
@@ -447,8 +447,13 @@ h.App(
         h.h3(`Components`),
 
         h.p(
-          `In OJS a component is a reusable UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. In this hello world example, we will create a post that has comments. Let's create the comments component`
+          `In OJS a component is a reusable UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. In this hello world example, we will create a post that has comments. Let's create the comments component.`
         ),
+
+        h.p('create a folder called components in your js folder. Add a file called AllComponents.js. We will put all components in that file for this simple hello world example.'),
+
+        h.QuickNote("You can put your components in many files, but ensure to group them so that when you include a single file, you have many components mounted to avoid the multiple network calls. Putting every component in a single file can lead to a junky rendering due to Asynchronous rendering"),
+
         h.Code(
 `class Comment extends OpenScript.Component {
     /**
@@ -456,10 +461,10 @@ h.App(
      */
     render(content, ...args) {
         return h.div(
-            { class: 'comment' },
-            h.div({ class: 'comment-content' }, content),
-            h.i({ class: 'fa fa-thumbs-up' }),
-            h.i({ class: 'fa fa-reply' }),
+            { class: 'container p-3' },
+            h.div({ class: 'fw-300' }, content),
+            h.i({ class: 'fas fa-thumbs-up' }),
+            h.i({ class: 'fas fa-reply' }),
             ...args
         );
     }
@@ -472,64 +477,41 @@ h.App(
         h.br(),
 
         h.p(
-          `In the example above, we define a new component called Comment by extending the OpenScript.Component class. The render method is responsible for rendering the structure and content of the Comment component.`,
-          h.br(),
-
-          `The render method takes a content parameter, which represents the comment text to be displayed. Inside the render method, we create a`,
-          h.code(`div`),
-          `element with the class 'comment'.`,
-
-          `Within the`,
-          h.code("div"),
-          `, we nest two child elements. The first child element is another`,
-          h.code("div"),
-          ` with the class 'comment-content', which will display the comment text passed as the content parameter.`,
-          h.br(),
-          h.br(),
-
-          `The second and third child elements are`,
-          h.code("i"),
-          `elements representing icons. In this example, we use Font Awesome icons with classes 'fa fa-thumbs-up' and 'fa fa-reply'. You can adjust these classes or use different icon libraries based on your requirements.`,
-          h.br(),
-          h.br(),
-
-          `To use the Comment component in your application, you can instantiate it and include it within your OpenScript.Js markup. For example:`,
+          `Let's use the Comment component in our App component. To do so, create the App Component in the AllComponents.js file following the code below. You can include components in your markup just like any other element. Just remember to capitalize components' names.`,
 
           h.Code(
-            `class App extends OpenScript.Component {
+`class App extends OpenScript.Component {
     render(...args) {
         return h.div( { class: 'app' },
-                  h.h1('My App'),
-                  h.Comment('This is a comment.'),
-                   ...args
+            h.h1('My App'),
+            h.Comment('This is a comment.'),
+              ...args
         );
     }
-}                      
-h.App({ parent: h.dom.getElementById('root'), resetParent: true });`
-          ),
-          h.br(),
+}`
+          )
+        ),
 
-          `We define a component called App by extending the OpenScript.Component class. The render method of the App component returns the OpenScript.Js markup for the application UI. Inside the render method, we include the h.Comment('This is a comment.') element to render the Comment component with the specified comment content.`,
-          h.br(),
+        h.h4('Putting it together so far'),
 
-          `To render the App component and mount it to the DOM, we use h.App({ parent: h.dom.getElementById('root'), resetParent: true }). This will find the element with the ID 'root' and render the App component within it.`,
-          h.br(),
+        h.p('Update our app.js file by requiring the AllComponents.js file. Use the req(fileName) function to require components files. This will fetch the file from the server based on the ojs-config. In our case, the file will be fetched from the js/components folder.'),
 
-          `The resulting HTML markup will be:`,
+        h.Code(
+          `
+// require the components file
+req('AllComponents');
 
-          h.Code(
-            `<div class="app">
-     <h1>My App</h1>
-     <div class="comment">
-        <div class="comment-content">This is a comment.</div>
-        <i class="fa fa-thumbs-up"></i>
-         <i class="fa fa-reply"></i>
-     </div>
- </div>`
-          ),
-          h.br(),
+// get the root element
+const rootElement = document.getElementById('root');
 
-          `By creating components like Comment in OpenScript.Js, you can encapsulate the structure and functionality of your UI elements, making them reusable and modular within your application.`
+// render the App in the root element
+h.App(
+    {
+      parent: rootElement,
+      resetParent: true
+    }
+);
+`
         ),
 
         h.h3("Context"),
