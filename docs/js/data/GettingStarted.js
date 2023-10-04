@@ -102,6 +102,7 @@ class GettingStarted {
             "Open the ojs-config.js file and add the following configurations:",
 
             h.Code(
+              {class: 'language-js'},
               `/*----------------------------------
 | Do OpenScript Configurations Here
 |----------------------------------
@@ -290,7 +291,11 @@ broker.withLogs(false);
       heading: "Hello OpenScript",
       content: [
         h.p(
-          `In this section, we cover the fundamental aspects of OpenScript.Js by creating a simple "Hello World" example. This example will serve as a starting point to understand the basic usage of OpenScript.Js components, state, context, mediators.`
+          `In this section, we cover the fundamental aspects of OpenScript.Js by creating a simple "Hello World" example. This example will serve as a starting point to understand the basic usage of OpenScript.Js components, state, context, mediators. You can find the hello-world project code  at:  `,
+          h.ExternalLink(
+            "https://github.com/levizwannah/ojs-hello-world",
+            " Github Link"
+          )
         ),
         h.h3("Setting up"),
         h.p(
@@ -310,6 +315,7 @@ broker.withLogs(false);
         ),
         h.h4("The Index.html file"),
         h.Code(
+          {class: 'language-html'},
           `
 <!DOCTYPE html>
 <html lang="en">
@@ -346,6 +352,7 @@ broker.withLogs(false);
         ),
 
         h.Code(
+          {class: 'language-js'},
           `
 const rootElement = document.getElementById('root');
 
@@ -394,6 +401,7 @@ h.App(
           h.br(),
           h.br(),
           h.Code(
+            {class: 'language-js'},
 `h.div(
     { class: 'container', id: 'myDiv' },
     h.h1('Hello World'),
@@ -427,20 +435,21 @@ h.App(
 
         h.p(
           h.Code(
+            {class: 'language-html'},
 `<div class="container" id="myDiv">
-     <h1>Hello World</h1>
-     <p>This is a paragraph.</p>
-     <button type="button">Click Me</button>
+    <h1>Hello World</h1>
+    <p>This is a paragraph.</p>
+    <button type="button">Click Me</button>
  </div>`
-          ),
+          )
         ),
 
         h.CodeOutput(
           h.div(
-            { class: 'container', id: 'myDiv' },
-            h.h1('Hello World'),
-            h.p('This is a paragraph.'),
-            h.button({ type: 'button' }, 'Click Me')                                     
+            { class: "container", id: "myDiv" },
+            h.h1("Hello World"),
+            h.p("This is a paragraph."),
+            h.button({ type: "button" }, "Click Me")
           )
         ),
 
@@ -450,12 +459,17 @@ h.App(
           `In OJS a component is a reusable UI element that encapsulates logic, structure, and functionality. It is created by extending the OpenScript.Component class and defining a render method. Components allow developers to break down the UI into smaller, self-contained units, making it easier to manage and maintain the codebase. In this hello world example, we will create a post that has comments. Let's create the comments component.`
         ),
 
-        h.p('create a folder called components in your js folder. Add a file called AllComponents.js. We will put all components in that file for this simple hello world example.'),
+        h.p(
+          "create a folder called components in your js folder. Add a file called AllComponents.js. We will put all components in that file for this simple hello world example."
+        ),
 
-        h.QuickNote("You can put your components in many files, but ensure to group them so that when you include a single file, you have many components mounted to avoid the multiple network calls. Putting every component in a single file can lead to a junky rendering due to Asynchronous rendering"),
+        h.QuickNote(
+          "You can put your components in many files, but ensure to group them so that when you include a single file, you have many components mounted to avoid the multiple network calls. Putting every component in a single file can lead to a junky rendering due to Asynchronous rendering"
+        ),
 
         h.Code(
-`class Comment extends OpenScript.Component {
+          {class: 'language-js'},
+          `class Comment extends OpenScript.Component {
     /**
      * @param {string} content 
      */
@@ -470,31 +484,95 @@ h.App(
     }
 }`
         ),
-        h.QuickNote(
-          ['Always remember to put the ', h.code('...args'), ' at the end of the render method parameters. It is used by OJS to pass metadata to the component when the it reacts to changes in state (data). For the above component, ...args is not necessary because there is no state.']
-        ),
+        h.QuickNote([
+          "Always remember to put the ",
+          h.code("...args"),
+          " at the end of the render method parameters. It is used by OJS to pass metadata to the component when the it reacts to changes in state (data). For the above component, ...args is not necessary because there is no state.",
+        ]),
 
         h.br(),
 
         h.p(
-          `Let's use the Comment component in our App component. To do so, create the App Component in the AllComponents.js file following the code below. You can include components in your markup just like any other element. Just remember to capitalize components' names.`,
+          `Let's use the Comment component in our App component. To do so, create the App Component in the AllComponents.js file using the code below. You can include components in your markup just like any other element. Just remember to capitalize components' names. The app uses a basic Bootstrap Nav and some classes`,
 
           h.Code(
-`class App extends OpenScript.Component {
-    render(...args) {
-        return h.div( { class: 'app' },
-            h.h1('My App'),
-            h.Comment('This is a comment.'),
-              ...args
-        );
-    }
-}`
+            {class: 'language-js'},
+            `
+class App extends OpenScript.Component {
+  render(...args) {
+    return [
+      h.nav(
+        { class: "navbar navbar-expand-lg navbar-light bg-light" },
+        h.div(
+          { class: "container" },
+          h.a(
+            {
+              class: "navbar-brand",
+              href: "#",
+            },
+            "HELLO-OJS"
+          ),
+          h.button(
+            {
+              class: "navbar-toggler",
+              type: "button",
+              data_bs_toggle: "collapse",
+              data_bs_target: "#navbarNav",
+              aria_controls: "navbarNav",
+              aria_expanded: "false",
+              aria_label: "Toggle navigation",
+            },
+            h.span({ class: "navbar-toggler-icon" })
+          ),
+          h.div(
+            {
+              class: "collapse navbar-collapse",
+              id: "navbarNav",
+            },
+            h.ul(
+              { class: "navbar-nav ml-auto" },
+              h.li(
+                { class: "nav-item" },
+                h.a(
+                  {
+                    class: "nav-link",
+                    href: "#",
+                  },
+                  "Home"
+                )
+              ),
+              h.li(
+                { class: "nav-item" },
+                h.a(
+                  {
+                    class: "nav-link",
+                    href: "#",
+                  },
+                  "Docs"
+                )
+              ),
+            )
+          )
+        )
+      ),
+
+      h.div(
+        { class: "container py-4" },
+        h.h1("Welcome to the Hello OJS App"),
+        h.Comment('This is a comment')
+      ),
+    ];
+  }
+}
+`
           )
         ),
 
-        h.h4('Putting it together so far'),
+        h.h4("Putting it together so far"),
 
-        h.p('Update our app.js file by requiring the AllComponents.js file. Use the req(fileName) function to require components files. This will fetch the file from the server based on the ojs-config. In our case, the file will be fetched from the js/components folder.'),
+        h.p(
+          "Update our app.js file by requiring the AllComponents.js file. Use the req(fileName) function to require components files. This will fetch the file from the server based on the ojs-config. In our case, the file will be fetched from the js/components folder. Check that your app renders"
+        ),
 
         h.Code(
           `
@@ -517,28 +595,82 @@ h.App(
         h.h3("Context"),
 
         h.p(
-          `In OpenScript.Js, contexts provide a powerful mechanism for sharing data across components in a hierarchical manner. To create a context in OpenScript.Js, you can define a class that extends the OpenScript.Context class. Within the context class, you can define methods to initialize and manage the data that needs to be shared. Each data item is stored as a context value, which can be accessed and modified by components that consume the context.`,
+          `In OJS, contexts are used for sharing data across your app. To create a context, you can define a class that extends the OpenScript.Context class or just use the putContext Method which create a context object on the fly. If you created a context class, you can define methods to initialize and manage the data that needs to be shared. Each data item is stored as a context value, which can be accessed and modified by components that consume the context.`,
 
-          h.br(),
-          h.br(),
+          h.QuickNote(
+            "Class based contexts are fetched asynchronously. To not hinder rendering, OJS gives you a temporary context while it fetches the context file. The temporary context do not have the data, so you need to initialize it with the data you will consume. You do not need to put correct values, just the keys. Once the context is fetched from the server, context reconciliation happens where data from the temporary context is merged with the real one. The is very important for states, you must initialize the states within the temporary context before consuming them. Once reconciliation happens and the state data updates, you components will reflect the changes. The easiest way to do this is following the code below. "),
+          h.Code(
+            {class: 'language-js'},
+            `
+/*
+fetches the context defined in js/contexts/AppContext.js asynchronously
+and give it the name 'appCtx'.
+temporary appCtx is now available.
+*/
+fetchContext('appCtx', 'AppContext');
 
-          `Contexts are used to store and manage shared data, making it accessible to different components within a specific part of the component tree. This enables components to access and use data without the need for manual data passing through parameters, simplifying data sharing and promoting a more modular and flexible application architecture.`,
+/*
+use the context('contextName') function to get the current context: temporary or real.
+*/
+let ctx = context('appCtx'); // 
+
+/*
+Put the comments state in the context.
+The below code is equivalent to ctx.comments = state([]);
+*/
+ctx.states({
+  comments: []
+});
+
+/*
+However, when the real context is fetched from the server, 
+the comments state will intelligently be replaced
+based on the one defined in the AppContext.js file.
+This process is called Context Reconciliation.
+*/
+
+            `
+          ),
+          h.br(),
 
           `We could maybe create a context for the app component that we used above`,
 
           h.Code(
-            `class AppContext extends OpenScript.Context {
-         theme;
-         user;
-    constructor() {
-        super();                    
-        this.has('theme').value = ' dark'
-        this.has('user').value = {
-            name: 'John Doe',
-            role: 'User',
-            loggedIn: false
-        };
-    }
+            {class: 'language-js'},
+            `
+class AppContext extends OpenScript.Context {
+  theme;
+  comments;
+  commentCount = 3; // just data, not a state
+
+  // the has method creates a state if it doesn't already exist in the context;
+
+  constructor() {
+    super();                    
+    this.has('theme').value = 'dark'
+    this.has('user').value = {
+        name: 'John Doe',
+        role: 'User',
+        loggedIn: false
+    };
+    this.has('comments').value = [
+      {
+        user: 'James',
+        content: 'This is comment 1',
+        postId: 1
+      },
+      {
+        user: 'Mary',
+        content: 'This is comment 2',
+        postId: 1
+      },
+      {
+        user: 'Paul',
+        content: 'This is comment 3',
+        postId: 1
+      },
+    ]
+  }
 }`
           ),
 
