@@ -1,3 +1,36 @@
+class Table extends OpenScript.Component {
+    render(...args) {
+        return h.fragment(
+            h.table(
+                {class:  'table'},
+                h.tbody(
+                    each([1, 2, 3, 4, 5, 6], () => h.Row("Column")),
+                ),
+                ...args
+            )
+        )
+    }
+}
+
+class Row extends OpenScript.Component {
+    render(text, ...args){
+        return h.fragment(
+            h.tr(
+                each([1, 2, 3, 4], () => h.Column(text)),
+                ...args
+            )
+        )
+    }
+}
+
+class Column extends OpenScript.Component {
+    render(text, ...args) {
+        return h.fragment(
+            h.td(text, ...args)
+        );
+    }
+}
+
 class App extends OpenScript.Component {
     
     constructor(){
@@ -69,7 +102,9 @@ class App extends OpenScript.Component {
             
                 h.BlogList(context("blogCxt").blogs, context('blogCxt').counter, "I am a blog List. I re-render when counter changes"),
 
-                h.BlogList(context("blogCxt").blogs, { value: 0 }, 'I am the same blog list. I do not re-render when counter changes because I do not listen its changes.' )
+                h.BlogList(context("blogCxt").blogs, { value: 0 }, 'I am the same blog list. I do not re-render when counter changes because I do not listen its changes.' ),
+
+                h.Table()
             ),
 
             ...args

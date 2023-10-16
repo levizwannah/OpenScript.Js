@@ -443,19 +443,25 @@ var OpenScript = {
 
         /**
          * Add Event Listeners
-         * @param {string} event
+         * @param {string} events - space separated events
          * @param {function} listener - asynchronous function
          */
-        on(event, listener) {
-            if (this.#logs[event]) {
-                let emitted = this.#logs[event];
+        on(events, listener) {
+            events = events.split(/[\s\|]+/);
 
-                for (let i = 0; i < emitted.length; i++) {
-                    listener(...emitted[i].args);
+            for(let event of events) {
+                event.trim();
+                if (this.#logs[event]) {
+                    let emitted = this.#logs[event];
+    
+                    for (let i = 0; i < emitted.length; i++) {
+                        listener(...emitted[i].args);
+                    }
                 }
+
+                this.#emitter.on(event, listener);
             }
 
-            return this.#emitter.on(event, listener);
         }
 
         /**
@@ -1487,9 +1493,17 @@ var OpenScript = {
                 attr[`s-${s.id}`] = s.id;
             });
 
+            let markup = this.render(...args, { withCAttr: true });
+            
+            if(markup.tagName == 'FRAGMENT' && markup.childNodes.length > 0) {
+
+                let children = markup.childNodes;
+                
+                return children.length > 1 ? children : children[0];
+            } 
+
             if (!this.visible) attr.style = "display: none;";
 
-            let markup = this.render(...args, { withCAttr: true });
             let cAttributes = {};
 
             if (markup instanceof HTMLElement) {
@@ -2280,7 +2294,7 @@ var OpenScript = {
             } else {
                 root = this.dom.createElement(name);
             }
-
+            
             let parseAttr = (obj) => {
                 for (let k in obj) {
                     let v = obj[k];
@@ -2342,11 +2356,18 @@ var OpenScript = {
                         val = (root.getAttribute(k) ?? "") + ` ${val}`;
                     }
 
-                    root.setAttribute(k, val);
+                    try{
+                        root.setAttribute(k, val);
+                    }
+                    catch(e) {
+                        console.error(`Attributes resulting in the error: `, obj);
+                        throw Error(e);
+                    }
                 }
             };
 
             const parse = (arg, isComp) => {
+                
                 if (
                     arg instanceof DocumentFragment ||
                     arg instanceof HTMLElement
@@ -2375,7 +2396,7 @@ var OpenScript = {
 
                 if (arg instanceof OpenScript.State) continue;
 
-                if (Array.isArray(arg)) {
+                if (Array.isArray(arg) || arg instanceof HTMLCollection || arg instanceof NodeList) {
                     if (isComponent) continue;
 
                     arg.forEach((e) => {

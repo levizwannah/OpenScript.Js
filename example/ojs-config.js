@@ -134,4 +134,4 @@ broker.removeStaleEvents(); // broker garbage collection started
  | in the console when they are fired
  |------------------------------------------
 */
-broker.withLogs(true); 
+broker.withLogs(false); 
