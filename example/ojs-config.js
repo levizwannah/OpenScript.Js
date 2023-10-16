@@ -3,19 +3,29 @@
  |----------------------------------
 */
 
-/**----------------------------------
+/*----------------------------------
  * 
  * Set the default route path here
  * ----------------------------------
  */
-route.basePath('example'); // === '/'
+route.basePath(''); // === '/'
+
+/*-----------------------------------
+ | Set the global runtime prefix.
+ | This prefix will be appended
+ | to every path before resolution.
+ | So ensure when defining routes,
+ | you have it as the main prefix.
+ |------------------------------------
+*/
+route.runtimePrefix(''); // === ''
 
 /*-----------------------------------
  | set the directories in which we
  | can find the context files
  |-----------------------------------
 */
-ContextProvider.directory = route.baseUrl('contexts');
+ContextProvider.directory = route.baseUrl('example/contexts');
 
 /*-----------------------------------
  | set the version number of the
@@ -32,7 +42,7 @@ ContextProvider.version = '1.0.0';
  | from that directory
  |-----------------------------------
 */
-MediatorManager.directory = route.baseUrl('mediators');
+MediatorManager.directory = route.baseUrl('example/mediators');
 
 /*-----------------------------------
  | Set the version number of the 
@@ -48,7 +58,7 @@ MediatorManager.version = '1.0.0';
  | directory for the loader
  |-----------------------------------
 */
-loader.dir = route.baseUrl('components');
+loader.dir = route.baseUrl('example/components');
 
 /*-----------------------------------
  | set the version number of the
@@ -65,7 +75,7 @@ loader.version = '1.0.0';
  |-----------------------------------
 */
 
-autoload.dir = route.baseUrl('classes');
+autoload.dir = route.baseUrl('example/classes');
 
 /*-----------------------------------
  | set the version number of the
@@ -74,6 +84,25 @@ autoload.dir = route.baseUrl('classes');
  |-----------------------------------
 */
 autoload.version = '1.0.0';
+
+
+/*---------------------------------
+ | Get the initial body style so
+ | so that when routes change,
+ | we can reset the body style.
+ | Sometimes, the body element's
+ | style is affected by elements
+ | That are no longer on the DOM.
+ | example, bootstrap offcanvas.
+ | In these cases, you need to
+ | reset the body style when
+ | the routeChanged event is fired
+ | by the router. So you can listen
+ | to it and use this to reset
+ | the style.
+ |----------------------------------
+*/
+var __bodyStyle = document.body.getAttribute("style");
 
 /*--------------------------------
  | Set the logs clearing interval
@@ -98,3 +127,11 @@ broker.TIME_TO_GC = 10000; // 10 secs
  |-------------------------------------------
 */
 broker.removeStaleEvents(); // broker garbage collection started
+
+/*------------------------------------------
+ | When this is set to true, the broker
+ | will display events and their payloads
+ | in the console when they are fired
+ |------------------------------------------
+*/
+broker.withLogs(false); 

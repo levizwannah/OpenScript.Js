@@ -443,19 +443,25 @@ var OpenScript = {
 
         /**
          * Add Event Listeners
-         * @param {string} event
+         * @param {string} events - space separated events
          * @param {function} listener - asynchronous function
          */
-        on(event, listener) {
-            if (this.#logs[event]) {
-                let emitted = this.#logs[event];
+        on(events, listener) {
+            events = events.split(/[\s\|]+/);
 
-                for (let i = 0; i < emitted.length; i++) {
-                    listener(...emitted[i].args);
+            for(let event of events) {
+                event.trim();
+                if (this.#logs[event]) {
+                    let emitted = this.#logs[event];
+    
+                    for (let i = 0; i < emitted.length; i++) {
+                        listener(...emitted[i].args);
+                    }
                 }
+
+                this.#emitter.on(event, listener);
             }
 
-            return this.#emitter.on(event, listener);
         }
 
         /**
@@ -485,11 +491,21 @@ var OpenScript = {
          * @returns
          */
         async emit(event, ...args) {
+            let events = event.split(/\s+/g);
+
+            for(let i = 0; i < events.length; i++){
+                let evt = events[i];
+                if(evt.length < 1) continue;
+                this.#emit(evt, ...args);
+            }
+        }
+
+        async #emit(event, ...args){
             const currentTime = () => new Date().getTime();
 
             this.#logs[event] = this.#logs[event] ?? [];
             this.#logs[event].push({ timestamp: currentTime(), args: args });
-            if (this.#shouldLog) console.log(`fired ${event}: args`, args);
+            if (this.#shouldLog) console.log(`fired ${event}: args: `, args);
 
             return this.#emitter.emit(event, ...args);
         }
@@ -1477,9 +1493,17 @@ var OpenScript = {
                 attr[`s-${s.id}`] = s.id;
             });
 
+            let markup = this.render(...args, { withCAttr: true });
+            
+            if(markup.tagName == 'FRAGMENT' && markup.childNodes.length > 0) {
+
+                let children = markup.childNodes;
+                
+                return children.length > 1 ? children : children[0];
+            } 
+
             if (!this.visible) attr.style = "display: none;";
 
-            let markup = this.render(...args, { withCAttr: true });
             let cAttributes = {};
 
             if (markup instanceof HTMLElement) {
@@ -2270,7 +2294,7 @@ var OpenScript = {
             } else {
                 root = this.dom.createElement(name);
             }
-
+            
             let parseAttr = (obj) => {
                 for (let k in obj) {
                     let v = obj[k];
@@ -2332,11 +2356,18 @@ var OpenScript = {
                         val = (root.getAttribute(k) ?? "") + ` ${val}`;
                     }
 
-                    root.setAttribute(k, val);
+                    try{
+                        root.setAttribute(k, val);
+                    }
+                    catch(e) {
+                        console.error(`Attributes resulting in the error: `, obj);
+                        throw Error(e);
+                    }
                 }
             };
 
             const parse = (arg, isComp) => {
+                
                 if (
                     arg instanceof DocumentFragment ||
                     arg instanceof HTMLElement
@@ -2365,7 +2396,7 @@ var OpenScript = {
 
                 if (arg instanceof OpenScript.State) continue;
 
-                if (Array.isArray(arg)) {
+                if (Array.isArray(arg) || arg instanceof HTMLCollection || arg instanceof NodeList) {
                     if (isComponent) continue;
 
                     arg.forEach((e) => {
@@ -2858,8 +2889,10 @@ var OpenScript = {
          * @param {string} fileName script name without the .js.
          */
         async req(fileName) {
-            let names = fileName.split(/\./);
+            if(!/^[\w\._-]+$/.test(fileName)) throw Error(`OJS-INVALID-FILE: '${fileName}' is an invalid file name`);
 
+            let names = fileName.split(/\./);
+            
             if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
                 return OpenScript.AutoLoader.history.get(
                     `${this.dir}.${fileName}`
@@ -2870,6 +2903,7 @@ var OpenScript = {
                     this.version
                 }`
             );
+            
 
             let classes = await response.text();
             let content = classes;
