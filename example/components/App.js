@@ -96,7 +96,7 @@ class App extends OpenScript.Component {
                     class: "p-1"
                 }),
 
-                h.Chart(200, {
+                h.Chart({
                     class: "mb-3"
                 }),
             

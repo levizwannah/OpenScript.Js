@@ -11,25 +11,34 @@ class ProgressBar extends OpenScript.Component {
                 aria_valuemin: "0",
                 aria_valuemax: "100"
             },
-            h.div(        {
-                    class: "progress-bar",
-                    style: `width: ${width}%`
-                }
-            ),
+            h.MainProgressBar(width.value),
             ...args
         )
     }
 
-    async $$numberChanged(){
-        this.markup().forEach(element => {
-            element.querySelector(".progress-bar").style.width = `${Math.floor(Math.random() * 100) % 100}%`;
-        });
+    // async $$numberChanged(){
+    //     this.markup().forEach(element => {
+    //         element.querySelector(".progress-bar").style.width = `${Math.floor(Math.random() * 100) % 100}%`;
+    //     });
+    // }
+}
+
+class MainProgressBar extends OpenScript.Component {
+    render(width) {
+        let w = Math.floor(Math.random() * 100) % 100;
+        return h.fragment(
+            h.div({
+                    class: "progress-bar",
+                    style: `width: ${w}%`
+                }
+            )
+        )
     }
 }
 
 class Chart extends OpenScript.Component {
 
-    render(number, ...args) {
+    render(...args) {
 
         return h.div(
             {
@@ -45,8 +54,7 @@ class Chart extends OpenScript.Component {
                     let bars = [];
 
                     for(let i = 0; i < 10; i++){
-                        let width = Math.floor(Math.random() * 100) % 100;
-                        bars.push(h.ProgressBar(width, {class: "mb-3"}))
+                        bars.push(h.ProgressBar(context("blogCxt").counter, {class: "mb-3"}))
                     }
 
                     return bars;
