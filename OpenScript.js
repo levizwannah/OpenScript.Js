@@ -2870,6 +2870,8 @@ var OpenScript = {
 
                         index++;
                     }
+                    
+                    signature.name = signature.name.split(/\(/)[0];
 
                     map.set(signature.name, {
                         extends: signature.parent,
@@ -2877,9 +2879,10 @@ var OpenScript = {
                         name: signature.name,
                         signature: signature.definition,
                     });
+
                     code = "";
                 }
-
+                
                 return map;
             }
         };
@@ -3023,6 +3026,16 @@ var OpenScript = {
 
             if (content.prototype instanceof OpenScript.Component) {
                 let c = new content();
+
+                if (h.has(c.name)) return;
+
+                await c.mount();
+            }
+            // if component is function, register it.
+            else if (typeof content === "function") {
+                let c = new OpenScript.Component(content.name);
+                
+                c.render = content.bind(c);
 
                 if (h.has(c.name)) return;
 

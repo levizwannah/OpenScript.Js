@@ -23,7 +23,8 @@ class ProgressBar extends OpenScript.Component {
     // }
 }
 
-class MainProgressBar extends OpenScript.Component {
+class MainProgressBar extends OpenScript.Component 
+{
     render(width) {
         let w = Math.floor(Math.random() * 100) % 100;
         return h.fragment(
@@ -35,6 +36,7 @@ class MainProgressBar extends OpenScript.Component {
         )
     }
 }
+
 
 class Chart extends OpenScript.Component {
 
