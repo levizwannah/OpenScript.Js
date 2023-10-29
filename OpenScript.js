@@ -3035,10 +3035,10 @@ var OpenScript = {
             else if (typeof content === "function") {
                 let c = new OpenScript.Component(content.name);
                 
-                c.render = content.bind(c);
-
                 if (h.has(c.name)) return;
-
+                
+                c.render = content.bind(c);
+                c.getDeclaredListeners();
                 await c.mount();
             }
 
