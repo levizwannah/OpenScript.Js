@@ -1,5 +1,5 @@
 function Table(...args) {
-    return h.fragment(
+    return h._(
         h.table(
             {class:  'table'},
             h.tbody(
@@ -11,7 +11,7 @@ function Table(...args) {
 }
 
 function Row(text, ...args){
-    return h.fragment(
+    return h._(
         h.tr(
             each([1, 2, 3, 4], () => h.Column(text)),
             ...args
@@ -20,7 +20,7 @@ function Row(text, ...args){
 }
 
 function Column(text, ...args) {
-    return h.fragment(
+    return h._(
         h.td(text, ...args)
     );
 }

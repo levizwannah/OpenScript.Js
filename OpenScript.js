@@ -878,6 +878,11 @@ var OpenScript = {
          */
         emitter = new OpenScript.Emitter();
 
+        /**
+         * Use for returning fragments
+         */
+        static FRAGMENT = 'OJS-SPECIAL-FRAGMENT';
+
         constructor(name = null) {
             this.name = name ?? this.constructor.name;
 
@@ -1495,7 +1500,7 @@ var OpenScript = {
 
             let markup = this.render(...args, { withCAttr: true });
             
-            if(markup.tagName == 'FRAGMENT' && markup.childNodes.length > 0) {
+            if(markup.tagName == OpenScript.Component.FRAGMENT && markup.childNodes.length > 0) {
 
                 let children = markup.childNodes;
                 
@@ -2222,6 +2227,11 @@ var OpenScript = {
          * @param  {...any} args
          */
         handle = (name, ...args) => {
+
+            if(/^_+$/.test(name)) {
+                name = OpenScript.Component.FRAGMENT.toLowerCase();
+            }
+
             /**
              * If this is a component, return it
              */
@@ -2249,14 +2259,6 @@ var OpenScript = {
                     .replace(/-tmp--$/, "");
 
                 return ojsUtils.camel(name, true);
-            };
-
-            const checkComponentsVisibility = async () => {
-                for (let [k, comp] of this.compMap) {
-                    comp.checkVisibility();
-                }
-
-                return true;
             };
 
             /**
@@ -2793,8 +2795,6 @@ var OpenScript = {
                     temp[1] = output.splice(1).join(' ');
                     output = temp;
                 }
-
-                console.log(output);
                 
                 if (output.length % 2 !== 0)
                     throw Error(
