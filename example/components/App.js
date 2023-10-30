@@ -23,12 +23,10 @@ class Row extends OpenScript.Component {
     }
 }
 
-class Column extends OpenScript.Component {
-    render(text, ...args) {
-        return h.fragment(
-            h.td(text, ...args)
-        );
-    }
+function Column(text, ...args) {
+    return h.fragment(
+        h.td(text, ...args)
+    );
 }
 
 class App extends OpenScript.Component {

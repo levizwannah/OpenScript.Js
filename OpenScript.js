@@ -2786,7 +2786,16 @@ var OpenScript = {
                 }
 
                 signature.start = startAt;
+                
+                if(output.length && output[0] !== "class") {
+                    let temp = [];
+                    temp[0] = output[0];
+                    temp[1] = output.splice(1).join(' ');
+                    output = temp;
+                }
 
+                console.log(output);
+                
                 if (output.length % 2 !== 0)
                     throw Error(
                         `Invalid Class File. Could not parse \`${content}\` from index ${start} because it doesn't have the proper syntax. ${content.substring(

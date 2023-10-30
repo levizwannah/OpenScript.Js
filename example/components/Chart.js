@@ -25,7 +25,7 @@ function MainProgressBar(width) {
     )
 }
 
-function Chart(...args) {
+function Chart(...args){
     return h.div(
         {
             class: "card mb-3"
