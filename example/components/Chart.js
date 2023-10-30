@@ -1,5 +1,5 @@
 function ProgressBar(width, ...args){
-        
+    let w = Math.floor(Math.random() * 100) % 100;    
     return h.div(
         {
             class: "progress",
@@ -9,19 +9,12 @@ function ProgressBar(width, ...args){
             aria_valuemin: "0",
             aria_valuemax: "100"
         },
-        h.MainProgressBar(width.value),
-        ...args
-    )
-}
-
-function MainProgressBar(width) {
-    let w = Math.floor(Math.random() * 100) % 100;
-    return h._(
         h.div({
                 class: "progress-bar",
                 style: `width: ${w}%`
             }
-        )
+        ),   
+        ...args
     )
 }
 
@@ -39,8 +32,11 @@ function Chart(...args){
             h.call(() => {
                 let bars = [];
 
-                for(let i = 0; i < 10; i++){
-                    bars.push(h.ProgressBar(context("blogCxt").counter, {class: "mb-3"}))
+                for(let i = 0; i < 100; i++){
+                    bars.push(h.ProgressBar(
+                        context("blogCxt").counter, 
+                        {class: "mb-3"})
+                    )
                 }
 
                 return bars;

@@ -1365,6 +1365,7 @@ var OpenScript = {
          * @returns
          */
         getParentAndListen(args) {
+
             let final = {
                 index: -1,
                 parent: null,
@@ -1374,7 +1375,18 @@ var OpenScript = {
             };
 
             for (let i in args) {
-                if (
+
+                if (args[i] instanceof OpenScript.State || 
+                    (args[i].$__name__ && 
+                        args[i].$__name__ == "OpenScript.State")
+                    ) {
+                    args[i].listener(this);
+                    this.states[args[i].id] = args[i];
+                    final.states.push(args[i].id);
+                    console.log(`${OpenScript.Component.uid+1}: `, final);
+                }
+
+                else if (
                     !(
                         args[i] instanceof DocumentFragment ||
                         args[i] instanceof HTMLElement
@@ -1400,15 +1412,9 @@ var OpenScript = {
                     }
 
                     delete args[i].parent;
-                }
-
-                if (args[i] instanceof OpenScript.State) {
-                    args[i].listener(this);
-                    this.states[args[i].id] = args[i];
-                    final.states.push(args[i]);
-                }
+                }   
             }
-
+            
             return final;
         }
 
@@ -1421,6 +1427,160 @@ var OpenScript = {
             if (object instanceof OpenScript.State) return object.value;
             return object;
         }
+        /**
+         * Compare two Nodes 
+         */
+        Reconciler = class Reconciler {
+
+            /**
+             * @param {Node} domNode 
+             * @param {Node} newNode 
+             */
+            replace(domNode, newNode) {
+                return domNode.parentNode.replaceChild(newNode, domNode);
+            }
+
+            /**
+             * Replaces the attributes of node1 with that of node2
+             * @param {HTMLElement} node1 
+             * @param {HTMLElement} node2 
+             */
+            replaceAttributes(node1, node2){
+                let length1 = node1.attributes.length;
+                let length2 = node2.attributes.length;
+                let remove = [];
+                let add = {};
+
+                for(let i = 0; i < Math.max(length1, length2); i++) {
+
+                    if(i >= length1){
+                        let attr = node2.attributes[i];
+                        add[attr.name] = attr.value;
+                        continue;
+                    }
+
+                    if(i >= length2){
+                        let attr = node1.attributes[i];
+                        remove.push(attr.name);
+                        continue;
+                    }
+
+                    let attr1 = node1.attributes[i];
+                    let attr2 = node2.attributes[i];
+
+                    if(!node2.hasAttribute(attr1.name)){
+                        remove.push(attr1.name);
+                    } 
+                    else if(attr1.value != node2.getAttribute(attr1.name)) {
+                        add[attr1.name] = node2.getAttribute(attr1.name);
+                    }
+                    
+                    if(attr2.value != node1.getAttribute(attr2.name))
+                    {
+                        add[attr2.name] = attr2.value;
+                    }
+                }
+
+                for(let name of remove) {
+                    node1.removeAttribute(name);
+                } 
+
+                for(let attr in add) {
+                    node1.setAttribute(attr, add[attr]);
+                }
+            }
+
+            /**
+             * 
+             * @param {Node} node1 
+             * @param {Node} node2 
+             * @returns 
+             */
+            equal(node1, node2) {
+                return node1.isEqualNode(node2);
+            }
+
+            /**
+             * 
+             * @param {Node|HTMLElement} current 
+             * @param {Node|HTMLElement} previous - currently on the DOM 
+             */
+            reconcile(current, previous) {
+
+                if(this.equal(current, previous)){
+                    return;
+                } 
+
+                if(this.isText(current)) {
+                    return this.replace(previous, current);
+                }
+
+                if(this.isElement(current) && this.isElement(previous)) {
+
+                    if(current.tagName !== previous.tagName) {
+                        return this.replace(previous, current);
+                    }
+                    
+                    this.replaceAttributes(previous, current);
+
+                    if(this.equal(previous, current)) {
+                        return;
+                    } 
+
+                    let i = 0, j = 0;
+
+                    while(i < previous.childNodes.length && j < current.childNodes.length){
+
+                        if(!this.equal(previous.childNodes[i], current.childNodes[j])){
+                            this.reconcile(current.childNodes[j], previous.childNodes[i]);
+                        }
+
+                        i++;
+                        j++;
+                    }
+
+                    while(i < previous.childNodes.length) {
+                        previous.childNodes[i].remove();
+                    }
+
+                    while(j < current.childNodes.length) {
+                        previous.append(current.childNodes[j]);
+                    }
+
+                }
+                else {
+                    this.replace(previous, current);
+                }
+            }
+
+            /**
+             * 
+             * @param {Node} node 
+             */
+            isText(node) {
+                return node.nodeType === Node.TEXT_NODE;
+            }
+
+            /**
+             * 
+             * @param {Node} node 
+             * @returns 
+             */
+            isElement(node) {
+                return node.nodeType === Node.ELEMENT_NODE;
+            }
+
+            /**
+             * 
+             * @param {object} attr1 
+             * @param {object} attr2 
+             * @returns 
+             */
+            attributesEq(attr1, attr2){
+                return JSON.stringify(attr1) == JSON.stringify(attr2);
+            }
+
+        };
 
         /**
          * Wraps the rendered content
@@ -1432,6 +1592,8 @@ var OpenScript = {
             const lastArg = args[args.length - 1];
             let { index, parent, resetParent, states, replaceParent } =
                 this.getParentAndListen(args);
+
+            
 
             // check if the render was called due to a state change
             if (lastArg && lastArg["called-by-state-change"]) {
@@ -1446,19 +1608,33 @@ var OpenScript = {
                         }"]`
                     ) ?? [];
 
+                let reconciler = new this.Reconciler();
+
                 current.forEach((e) => {
                     if (!this.visible) e.style.display = "none";
                     else e.style.display = "";
-                    e.textContent = "";
+                    
+                    // e.textContent = "";
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
-
-                    this.render(...arg, {
-                        parent: e,
+                    let attr = {
+                        // parent: e,
                         component: this,
                         event: this.EVENTS.rerendered,
                         eventParams: [e],
-                    });
+                    };
+                    let shouldReconcile = true;
+
+                    if(e.childNodes.length === 0) {
+                        attr.parent = e;
+                        shouldReconcile = false;
+                    }
+
+                    let markup = this.render(...arg, attr);
+
+                    if(shouldReconcile) {
+                        reconciler.reconcile(markup, e.childNodes[0])
+                    }
                 });
 
                 return;
@@ -1488,14 +1664,15 @@ var OpenScript = {
 
             let attr = {
                 uuid,
-                parent,
                 resetParent,
                 replaceParent,
                 class: "__ojs-c-class__",
             };
 
-            states.forEach((s) => {
-                attr[`s-${s.id}`] = s.id;
+            if(parent) attr.parent = parent;
+
+            states.forEach((id) => {
+                attr[`s-${id}`] = id;
             });
 
             let markup = this.render(...args, { withCAttr: true });
@@ -1554,6 +1731,8 @@ var OpenScript = {
             return c.name;
         }
     },
+
+    
 
     /**
      * Creates a Proxy
@@ -1818,6 +1997,8 @@ var OpenScript = {
          * Has this state changed
          */
         $__changed__ = false;
+
+        $__name__ = "OpenScript.State";
 
         /**
          * The count of the number of states in the program
@@ -2355,7 +2536,8 @@ var OpenScript = {
                     k = k.replace(/_/g, "-");
 
                     if (k === "class" || k === "Class") {
-                        val = (root.getAttribute(k) ?? "") + ` ${val}`;
+                        let cls = (root.getAttribute(k) ?? "");
+                        val = cls + (cls.length > 0 ? ' ' : '') + `${val}`;
                     }
 
                     try{
@@ -2419,7 +2601,8 @@ var OpenScript = {
             root.append(rootFrag);
 
             if (withCAttr) {
-                root.setAttribute("c-attr", JSON.stringify(componentAttribute));
+                let atr = JSON.stringify(componentAttribute);
+                if(atr) root.setAttribute("c-attr", atr);
             }
 
             root.toString = function () {

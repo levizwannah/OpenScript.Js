@@ -20,7 +20,8 @@ function BlogCounter(counter, ...args) {
 
        h.div(
            { class: "card-body "},
-           h.h4({ class: "card-text" }, "Timer: ", hour, " : ", minute, " : ", sec)
+           h.h4({ class: "card-text" }, "Timer: ", hour, " : ", minute, " : ", sec),
+           h.input({class: 'form-control my-2'}),
        ),
        ...args
    )

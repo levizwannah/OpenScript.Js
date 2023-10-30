@@ -47,7 +47,7 @@ ojs(async (e) => {
       });
     }
 
-    // bc.blogs.value = blog;
+    bc.blogs.value = blog;
     bc.counter.value++;
   }, 1000);
 
