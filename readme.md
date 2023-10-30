@@ -25,17 +25,17 @@ OpenScript is a JavaScript UI framework built to run directly in the browser lik
 
 Hello OpenScript
 ```js
-// define a component
-class App extends OpenScript.Component
-{
-    render(...args) {
-        return h.div(
-            {class: 'container py-3'},
-            h.p('Hello OpenScript'),
-            ...args
-        );
-    }
+// define a component App.js
+function App(...args) {
+    return h.div(
+        {class: 'container py-3'},
+        h.p('Hello OpenScript'),
+        ...args
+    );
 }
+
+// app.js
+req("App");
 
 let root = document.getElementById('root');
 

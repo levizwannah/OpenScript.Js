@@ -1,26 +1,22 @@
-class Table extends OpenScript.Component {
-    render(...args) {
-        return h.fragment(
-            h.table(
-                {class:  'table'},
-                h.tbody(
-                    each([1, 2, 3, 4, 5, 6], () => h.Row("Column")),
-                ),
-                ...args
-            )
+function Table(...args) {
+    return h.fragment(
+        h.table(
+            {class:  'table'},
+            h.tbody(
+                each([1, 2, 3, 4, 5, 6], () => h.Row("Column")),
+            ),
+            ...args
         )
-    }
+    )
 }
 
-class Row extends OpenScript.Component {
-    render(text, ...args){
-        return h.fragment(
-            h.tr(
-                each([1, 2, 3, 4], () => h.Column(text)),
-                ...args
-            )
+function Row(text, ...args){
+    return h.fragment(
+        h.tr(
+            each([1, 2, 3, 4], () => h.Column(text)),
+            ...args
         )
-    }
+    )
 }
 
 function Column(text, ...args) {
