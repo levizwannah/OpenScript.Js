@@ -16,7 +16,7 @@ function ProgressBar(width, ...args){
 
 function MainProgressBar(width) {
     let w = Math.floor(Math.random() * 100) % 100;
-    return h.fragment(
+    return h._(
         h.div({
                 class: "progress-bar",
                 style: `width: ${w}%`

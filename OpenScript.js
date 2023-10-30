@@ -2228,7 +2228,7 @@ var OpenScript = {
          */
         handle = (name, ...args) => {
 
-            if(/^_+$/.test(name)) {
+            if(/^[_\$]+$/.test(name)) {
                 name = OpenScript.Component.FRAGMENT.toLowerCase();
             }
 

@@ -11,7 +11,7 @@ function Table(...args) {
 }
 
 function Row(text, ...args){
-    return h._(
+    return h.$(
         h.tr(
             each([1, 2, 3, 4], () => h.Column(text)),
             ...args
