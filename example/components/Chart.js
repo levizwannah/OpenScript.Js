@@ -1,4 +1,5 @@
 function ProgressBar(width, ...args){
+
     let w = Math.floor(Math.random() * 100) % 100;    
     return h.div(
         {
@@ -33,9 +34,11 @@ function Chart(...args){
                 let bars = [];
 
                 for(let i = 0; i < 100; i++){
-                    bars.push(h.ProgressBar(
-                        context("blogCxt").counter, 
-                        {class: "mb-3"})
+                    bars.push(
+                        h.ProgressBar(
+                            context("blogCxt").counter, 
+                            {class: "mb-3"}
+                        )
                     )
                 }
 

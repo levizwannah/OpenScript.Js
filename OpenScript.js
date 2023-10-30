@@ -1448,14 +1448,15 @@ var OpenScript = {
             replaceAttributes(node1, node2){
                 let length1 = node1.attributes.length;
                 let length2 = node2.attributes.length;
+
                 let remove = [];
-                let add = {};
+                let add = [];
 
                 for(let i = 0; i < Math.max(length1, length2); i++) {
 
                     if(i >= length1){
                         let attr = node2.attributes[i];
-                        add[attr.name] = attr.value;
+                        add.push(attr);
                         continue;
                     }
 
@@ -1472,21 +1473,18 @@ var OpenScript = {
                         remove.push(attr1.name);
                     } 
                     else if(attr1.value != node2.getAttribute(attr1.name)) {
-                        add[attr1.name] = node2.getAttribute(attr1.name);
+                        add.push({name: attr1.name, value: node2.getAttribute(attr1.name)});
                     }
                     
                     if(attr2.value != node1.getAttribute(attr2.name))
                     {
-                        add[attr2.name] = attr2.value;
+                        add.push(attr2);
                     }
                 }
 
-                for(let name of remove) {
-                    node1.removeAttribute(name);
-                } 
-
-                for(let attr in add) {
-                    node1.setAttribute(attr, add[attr]);
+                for(let i = 0; i < Math.max(remove.length, add.length); i++) {
+                    if(remove[i]) node1.removeAttribute(remove[i]);
+                    if(add[i]) node1.setAttribute(add[i].name, add[i].value);
                 }
             }
 
