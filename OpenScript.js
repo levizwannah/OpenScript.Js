@@ -1377,7 +1377,7 @@ var OpenScript = {
             for (let i in args) {
 
                 if (args[i] instanceof OpenScript.State || 
-                    (args[i].$__name__ && 
+                    (args[i] && typeof args[i].$__name__ !== 'undefined' && 
                         args[i].$__name__ == "OpenScript.State")
                     ) {
                     args[i].listener(this);
@@ -1451,15 +1451,19 @@ var OpenScript = {
                 let remove = [];
                 let add = [];
 
-                for(let i = 0; i < Math.max(length1, length2); i++) {
+                let mx = Math.max(length1, length2);
 
-                    if(i >= length1){
+                for(let i = 0; i < mx; i++) {
+
+                    if(i >= length1)
+                    {
                         let attr = node2.attributes[i];
                         add.push(attr);
                         continue;
                     }
 
-                    if(i >= length2){
+                    if(i >= length2)
+                    {
                         let attr = node1.attributes[i];
                         remove.push(attr.name);
                         continue;
@@ -1468,10 +1472,12 @@ var OpenScript = {
                     let attr1 = node1.attributes[i];
                     let attr2 = node2.attributes[i];
 
-                    if(!node2.hasAttribute(attr1.name)){
+                    if(!node2.hasAttribute(attr1.name))
+                    {
                         remove.push(attr1.name);
                     } 
-                    else if(attr1.value != node2.getAttribute(attr1.name)) {
+                    else if(attr1.value != node2.getAttribute(attr1.name))
+                    {
                         add.push({name: attr1.name, value: node2.getAttribute(attr1.name)});
                     }
                     
@@ -1481,9 +1487,12 @@ var OpenScript = {
                     }
                 }
 
-                for(let i = 0; i < Math.max(remove.length, add.length); i++) {
-                    if(remove[i]) node1.removeAttribute(remove[i]);
-                    if(add[i]) node1.setAttribute(add[i].name, add[i].value);
+                mx = Math.max(remove.length, add.length);
+
+                for(let i = 0; i < mx; i++)
+                {
+                    if(i < remove.length) node1.removeAttribute(remove[i]);
+                    if(i < add.length) node1.setAttribute(add[i].name, add[i].value);
                 }
             }
 
@@ -1505,48 +1514,58 @@ var OpenScript = {
             reconcile(current, previous) {
 
                 if(this.equal(current, previous)){
-                    return;
+                    return false;
                 } 
 
                 if(this.isText(current)) {
-                    return this.replace(previous, current);
+                    this.replace(previous, current);
+                    return true;
                 }
 
                 if(this.isElement(current) && this.isElement(previous)) {
 
                     if(current.tagName !== previous.tagName) {
-                        return this.replace(previous, current);
+                        this.replace(previous, current);
+                        return true;
                     }
                     
                     this.replaceAttributes(previous, current);
 
                     if(this.equal(previous, current)) {
-                        return;
-                    } 
+                        return false;
+                    }
 
                     let i = 0, j = 0;
+                    let prevLength = previous.childNodes.length;
 
                     while(i < previous.childNodes.length && j < current.childNodes.length){
+
+                        let curr = current.childNodes[j];
 
                         if(!this.equal(previous.childNodes[i], current.childNodes[j])){
                             this.reconcile(current.childNodes[j], previous.childNodes[i]);
                         }
+                        
+                        if(this.equal(curr, current.childNodes[j])) j++;
 
                         i++;
-                        j++;
                     }
 
-                    while(i < previous.childNodes.length) {
-                        previous.childNodes[i].remove();
+                    while(i < prevLength) {
+                        previous.childNodes[i]?.remove();
+                        i++;
                     }
 
                     while(j < current.childNodes.length) {
                         previous.append(current.childNodes[j]);
+                        j++;
                     }
 
+                    return true;
                 }
                 else {
                     this.replace(previous, current);
+                    return true;
                 }
             }
 
