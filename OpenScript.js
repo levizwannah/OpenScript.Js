@@ -1383,7 +1383,6 @@ var OpenScript = {
                     args[i].listener(this);
                     this.states[args[i].id] = args[i];
                     final.states.push(args[i].id);
-                    console.log(`${OpenScript.Component.uid+1}: `, final);
                 }
 
                 else if (
@@ -3221,7 +3220,7 @@ var OpenScript = {
                 await c.mount();
             }
             // if component is function, register it.
-            else if (typeof content === "function") {
+            else if (typeof content === "function" && !this.isClass(content)) {
                 let c = new OpenScript.Component(content.name);
                 
                 if (h.has(c.name)) return;
@@ -3232,6 +3231,11 @@ var OpenScript = {
             }
 
             return content;
+        }
+
+        isClass(func) {
+            return typeof func === 'function' 
+                && /^class\s/.test(Function.prototype.toString.call(func));
         }
 
         /**
