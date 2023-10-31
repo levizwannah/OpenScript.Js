@@ -1929,7 +1929,6 @@ var OpenScript = {
          * @param {string} referenceName
          */
         reconcile(map, referenceName) {
-            //console.log('reconciling', this.__contextName__);
 
             let cxt = map.get(referenceName);
 

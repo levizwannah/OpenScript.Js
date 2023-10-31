@@ -32,8 +32,8 @@ ojs(async (e) => {
 
   setInterval(() => {
     let blog = [];
-    let end = Math.floor(Math.random() * 100) % 20 + 10;
-    for (let i = 5; i < end; i++) {
+    //let end = Math.floor(Math.random() * 100) % 20 + 10;
+    for (let i = 5; i < 10; i++) {
       let random = Math.floor(Math.random() * 100);
 
       blog.push({

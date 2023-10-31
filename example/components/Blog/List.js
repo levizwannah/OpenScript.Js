@@ -5,7 +5,7 @@ function BlogList(blogsArray, counter, headerText = "Blog List", ...args) {
   for (let blog of blogsArray) {
     let active =
       index === counter.value % blogsArray.length
-        ? "border border-success border-5 blog-active"
+        ? "bg-success blog-active"
         : "";
 
     domList.push(
