@@ -33,7 +33,7 @@ function Chart(...args){
             h.call(() => {
                 let bars = [];
 
-                for(let i = 0; i < 1000; i++){
+                for(let i = 0; i < 500; i++){
                     bars.push(
                         h.ProgressBar(
                             context("blogCxt").counter, 
