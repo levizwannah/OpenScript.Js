@@ -44,8 +44,8 @@ setInterval(() => {
 // }, 1000);
 
 // Testing namespaced events
-broker.send("namespace:hello|namespace:hi|namespace:sns:hello|namespace:sns:hi");
+// broker.send("namespace:hello|namespace:hi|namespace:sns:hello|namespace:sns:hi");
 
-broker.send("namespace : {hello hi,sns : { hello , hi }}");
+broker.send("namespace{hello hi,sns{ hello , hi }}");
 
 broker.broadcast("testEvent|namespace:hello");

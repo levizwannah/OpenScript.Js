@@ -517,10 +517,8 @@ var OpenScript = {
          * @returns
          */
         async emit(events, ...args) {
-            
-            console.log(`parsed: `, this.parseEvents(events));
 
-            events = events.split(/[\s\|,]+/g);
+            events = this.parseEvents(events);
             
             for(let i = 0; i < events.length; i++){
                 let evt = events[i];
@@ -534,37 +532,68 @@ var OpenScript = {
          * @param {string} events 
          */
         parseEvents(events) {
-            let final = {};
-            let prefix = [];
-            let event = [];
-            events = events.replace(/\s+/g, " ")
-                           .replace(/\s*\{\s*/g, "{")
-                           .replace(/\s*\}\s*/g, "}")
-                           .replace(/\s*\:\s*/g, ":")
-                           .replace(/\s*,\s*/g, ",");
+            let final = [];
+            let ns = [];
+            let word = [];
+
+            let last = "";
+            let found = "";
 
             for(let i = 0; i < events.length; i++) {
-                const ch = events[i];
+                let ch = events[i];
                 
-                if(/[\s\|,]/.test(ch)) {
+                if(ch == "{") {
+                    last = ns[ns.length - 1];
+                    found = word.join("");
+                    word = [];
 
+                    if(last) {
+                        last = `${last}:${found}`;
+                    }
+                    else {
+                        last = found;
+                    }
+
+                    ns.push(last);
+
+                    continue;
                 }
-                
-                if(ch == ":"){
 
+                if(ch == "}") {
+                    found = word.join("");
+                    word = [];
+                    last = ns.pop();
+
+                    if(found.length < 1) continue;
+
+                    if(last && last.length > 0) {
+                        found = `${last}:${found}`;
+                    } 
+
+                    final.push(found);
+                    continue;
                 }
 
-                if(ch == "{"){
+                if(/[\s\|,]/.test(ch)){
+                    found = word.join("");
+                    word = [];
 
+                    if(found.length < 1) continue;
+
+                    last = ns[ns.length - 1];
+
+                    if(last && last.length > 0) {
+                        found = `${last}:${found}`;
+                    } 
+
+                    final.push(found);
+                    continue;
                 }
 
-                if(ch == "}"){
-                    prefix.pop();
-                }
-
+                word.push(ch);
             }
 
-            return events;
+            return final;
         }
 
         async #emit(event, ...args){
