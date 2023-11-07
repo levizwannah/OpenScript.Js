@@ -542,7 +542,7 @@ var OpenScript = {
             for(let i = 0; i < events.length; i++) {
                 let ch = events[i];
                 
-                if(ch == "{") {
+                if(ch == "{" || ch == "[" || ch == "(") {
                     last = ns[ns.length - 1];
                     found = word.join("");
                     word = [];
@@ -559,7 +559,7 @@ var OpenScript = {
                     continue;
                 }
 
-                if(ch == "}") {
+                if(ch == "}" || ch == "]" || ch == ")") {
                     found = word.join("");
                     word = [];
                     last = ns.pop();
