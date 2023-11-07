@@ -2,6 +2,7 @@ fetchContext("rootCxt", "Root");
 putContext("blogCxt", "Blog.Context");
 
 req("App");
+mediators(["Test"]);
 
 const bc = context("blogCxt");
 blog = state([]);
@@ -37,7 +38,14 @@ setInterval(() => {
   bc.counter.value++;
 }, 1000);
 
-setInterval(() => {
-  bc.number.value++;
-  broker.send("numberChanged");
-}, 1000);
+// setInterval(() => {
+//   bc.number.value++;
+//   broker.send("numberChanged");
+// }, 1000);
+
+// Testing namespaced events
+broker.send("namespace:hello|namespace:hi|namespace:sns:hello|namespace:sns:hi");
+
+broker.send("namespace : {hello hi,sns : { hello , hi }}");
+
+broker.broadcast("testEvent|namespace:hello");

@@ -26,10 +26,6 @@ function Column(text, ...args) {
 }
 
 class App extends OpenScript.Component {
-    
-    constructor(){
-        super();            
-    }
 
     async mount(){
         await super.mount();
@@ -103,6 +99,34 @@ class App extends OpenScript.Component {
 
             ...args
         );
+    }
+
+    $$namespace = {
+        hello: () => {
+            console.log("namespace:hello called")
+            this.instanceMethod();
+        },
+
+        hi: () => {
+            console.log("namespace:hi called")
+            this.instanceMethod();
+        },
+
+        $$sns: {
+            hello: () => {
+                console.log("namespace:sns:hello called");
+                this.instanceMethod();
+            },
+
+            hi: () => {
+                console.log("namespace:sns:hi called");
+                this.instanceMethod();
+            }
+        }
+    }
+
+    instanceMethod(){
+        console.log(`Instance Method Accessed`);
     }
 }
 

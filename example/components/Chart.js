@@ -29,11 +29,11 @@ function Chart(...args){
 
         h.div(
             { class: "card-body "},
-            h.h4({ class: "card-text" }, "Highest: ", 200),
+            h.h4({ class: "card-text" }, "Bars: ", 10),
             h.call(() => {
                 let bars = [];
 
-                for(let i = 0; i < 500; i++){
+                for(let i = 0; i < 10; i++){
                     bars.push(
                         h.ProgressBar(
                             context("blogCxt").counter, 
