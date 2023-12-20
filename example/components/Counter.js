@@ -1,43 +1,28 @@
-class Counter extends OpenScript.Component {
+function BlogCounter(counter, ...args) {
+   let sec = counter.value;
 
-    constructor() {
-        super();
+   let hour = Math.floor(sec / 3600);
+   sec %= 3600;
+   
+   let minute = Math.floor(sec / 60);
+   sec %= 60;
 
-        this.name = "BlogCounter";
-    }
+   hour = Math.floor(hour / 10) === 0 ? `0${hour}` : hour;
+   minute = Math.floor(minute / 10) === 0 ? `0${minute}` : minute;
+   sec = Math.floor(sec / 10) === 0 ? `0${sec}` : sec;
 
-    /**
-     * 
-     * @param {OpenScript.State} counter 
-     * @param  {...any} args 
-     * @returns 
-     */
-    render(counter, ...args) {
-        let sec = counter.value;
+   return h.div(
+       {
+           class: "card mb-3"
+       },
+       
+       h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),
 
-        let hour = Math.floor(sec / 3600);
-        sec %= 3600;
-        
-        let minute = Math.floor(sec / 60);
-        sec %= 60;
-
-        hour = Math.floor(hour / 10) === 0 ? `0${hour}` : hour;
-        minute = Math.floor(minute / 10) === 0 ? `0${minute}` : minute;
-        sec = Math.floor(sec / 10) === 0 ? `0${sec}` : sec;
-
-        return h.div(
-            {
-                class: "card mb-3"
-            },
-            
-            h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),
-
-            h.div(
-                { class: "card-body "},
-                h.h4({ class: "card-text" }, "Timer: ", hour, " : ", minute, " : ", sec)
-            ),
-            ...args
-        )
-    }
-
+       h.div(
+           { class: "card-body "},
+           h.h4({ class: "card-text" }, "Timer: ", hour, " : ", minute, " : ", sec),
+           h.input({class: 'form-control my-2'}),
+       ),
+       ...args
+   )
 }

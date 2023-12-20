@@ -1,58 +1,72 @@
-ojs(async (e) => {
-  fetchContext("rootCxt", "Root");
-  putContext("blogCxt", "Blog.Context");
+fetchContext("rootCxt", "Root");
+putContext("blogCxt", "Blog.Context");
 
-  req("App");
+req("App");
+mediators(["Test"]);
 
-  const bc = context("blogCxt");
+const bc = context("blogCxt");
+blog = state([]);
 
+bc.put("counter", state(0));
+bc.put("blogs", blog);
+
+bc.number = state(0);
+
+let rc = context("rootCxt");
+rc.domRoot = h.dom.querySelector("#root");
+
+h.App({ parent: rc.domRoot });
+
+setInterval(() => {
   let blog = [];
+  
+  for (let i = 5; i < 10; i++) {
+    let random = Math.floor(Math.random() * 100);
 
-  for (let i = 5; i < 20; i++) {
     blog.push({
-      text: `Blog Heading ${i}`,
-      subtitle: `Blog Subtitle ${i}`,
-      description: `Blog Description for This blog with random number ${new Date().getTime()} and ID ${i}`,
+      text: `Blog Heading ${i * random}`,
+      subtitle: `Blog Subtitle ${i * random}`,
+      description: `Blog Description for This blog with random number ${new Date().getTime()} and ID ${
+        i * random
+      }`,
       link: `#`,
-      id: i,
+      id: i * random,
     });
   }
 
-  blog = state(blog);
+  bc.blogs.value = blog;
+  bc.counter.value++;
+}, 1000);
 
-  bc.put("counter", state(0));
-  bc.put("blogs", blog);
+// setInterval(() => {
+//   bc.number.value++;
+//   broker.send("numberChanged");
+// }, 1000);
 
-  bc.number = state(0);
+// Testing namespaced events
 
-  let rc = context("rootCxt");
-  rc.domRoot = h.dom.querySelector("#root");
-
-  h.App({ parent: rc.domRoot });
-
-  setInterval(() => {
-    let blog = [];
-
-    for (let i = 5; i < 20; i++) {
-      let random = Math.floor(Math.random() * 100);
-
-      blog.push({
-        text: `Blog Heading ${i * random}`,
-        subtitle: `Blog Subtitle ${i * random}`,
-        description: `Blog Description for This blog with random number ${new Date().getTime()} and ID ${
-          i * random
-        }`,
-        link: `#`,
-        id: i * random,
-      });
+let events = {
+  namespace: {
+    hello: true,
+    hi: true,
+    sns: {
+      hello: true,
+      hi: true,
+      sns2: {
+        hello: true,
+        hi: true,
+        lastNs: {
+          ojs: true,
+          osm: true,
+        }
+      }
     }
+  },
+  testEvent: true,
+}
 
-    // bc.blogs.value = blog;
-    bc.counter.value++;
-  }, 1000);
+broker.registerEvents(events);
 
-  setInterval(() => {
-    bc.number.value++;
-    broker.send("numberChanged");
-  }, 1000);
-});
+broker.send("namespace{hello,hi,sns[hello,hi,sns2(hello,hi,lastNs{ojs,osm})]}");
+
+broker.broadcast("testEvent|namespace:hello");

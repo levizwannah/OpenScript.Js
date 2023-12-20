@@ -1,58 +1,50 @@
-class ProgressBar extends OpenScript.Component {
+function ProgressBar(width, ...args){
 
-    render(width, ...args){
-        
-        return h.div(
-            {
-                class: "progress",
-                role: "progressbar",
-                aria_label: "Basic example",
-                aria_valuenow: "0",
-                aria_valuemin: "0",
-                aria_valuemax: "100"
-            },
-            h.div(        {
-                    class: "progress-bar",
-                    style: `width: ${width}%`
-                }
-            ),
-            ...args
-        )
-    }
-
-    async $$numberChanged(){
-        this.markup().forEach(element => {
-            element.querySelector(".progress-bar").style.width = `${Math.floor(Math.random() * 100) % 100}%`;
-        });
-    }
+    let w = Math.floor(Math.random() * 100) % 100;    
+    return h.div(
+        {
+            class: "progress",
+            role: "progressbar",
+            aria_label: "Basic example",
+            aria_valuenow: "0",
+            aria_valuemin: "0",
+            aria_valuemax: "100"
+        },
+        h.div({
+                class: "progress-bar",
+                style: `width: ${w}%`
+            }
+        ),   
+        ...args
+    )
 }
 
-class Chart extends OpenScript.Component {
+function Chart(...args){
+    return h.div(
+        {
+            class: "card mb-3"
+        },
+        
+        h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),
 
-    render(number, ...args) {
+        h.div(
+            { class: "card-body "},
+            h.h4({ class: "card-text" }, "Bars: ", 10),
+            h.call(() => {
+                let bars = [];
 
-        return h.div(
-            {
-                class: "card mb-3"
-            },
-            
-            h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),
+                for(let i = 0; i < 10; i++){
+                    bars.push(
+                        h.ProgressBar(
+                            context("blogCxt").counter, 
+                            {class: "mb-3"}
+                        )
+                    )
+                }
 
-            h.div(
-                { class: "card-body "},
-                h.h4({ class: "card-text" }, "Highest: ", 200),
-                h.call(() => {
-                    let bars = [];
-
-                    for(let i = 0; i < 10; i++){
-                        let width = Math.floor(Math.random() * 100) % 100;
-                        bars.push(h.ProgressBar(width, {class: "mb-3"}))
-                    }
-
-                    return bars;
-                })
-            ),
-            ...args
-        )
-    }
+                return bars;
+            })
+        ),
+        ...args
+    );
 }

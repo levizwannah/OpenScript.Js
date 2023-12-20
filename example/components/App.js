@@ -1,41 +1,31 @@
-class Table extends OpenScript.Component {
-    render(...args) {
-        return h.fragment(
-            h.table(
-                {class:  'table'},
-                h.tbody(
-                    each([1, 2, 3, 4, 5, 6], () => h.Row("Column")),
-                ),
-                ...args
-            )
+function Table(...args) {
+    return h._(
+        h.table(
+            {class:  'table'},
+            h.tbody(
+                each([1, 2, 3, 4, 5, 6], () => h.Row("Column")),
+            ),
+            ...args
         )
-    }
+    )
 }
 
-class Row extends OpenScript.Component {
-    render(text, ...args){
-        return h.fragment(
-            h.tr(
-                each([1, 2, 3, 4], () => h.Column(text)),
-                ...args
-            )
+function Row(text, ...args){
+    return h.$(
+        h.tr(
+            each([1, 2, 3, 4], () => h.Column(text)),
+            ...args
         )
-    }
+    )
 }
 
-class Column extends OpenScript.Component {
-    render(text, ...args) {
-        return h.fragment(
-            h.td(text, ...args)
-        );
-    }
+function Column(text, ...args) {
+    return h._(
+        h.td(text, ...args)
+    );
 }
 
 class App extends OpenScript.Component {
-    
-    constructor(){
-        super();            
-    }
 
     async mount(){
         await super.mount();
@@ -96,7 +86,7 @@ class App extends OpenScript.Component {
                     class: "p-1"
                 }),
 
-                h.Chart(200, {
+                h.Chart({
                     class: "mb-3"
                 }),
             
@@ -109,6 +99,34 @@ class App extends OpenScript.Component {
 
             ...args
         );
+    }
+
+    $$namespace = {
+        hello: () => {
+            console.log("namespace:hello called")
+            this.instanceMethod();
+        },
+
+        hi: () => {
+            console.log("namespace:hi called")
+            this.instanceMethod();
+        },
+
+        $$sns: {
+            hello: () => {
+                console.log("namespace:sns:hello called");
+                this.instanceMethod();
+            },
+
+            hi: () => {
+                console.log("namespace:sns:hi called");
+                this.instanceMethod();
+            }
+        }
+    }
+
+    instanceMethod(){
+        console.log(`Instance Method Accessed`);
     }
 }
 
