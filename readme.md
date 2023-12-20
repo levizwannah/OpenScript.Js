@@ -305,6 +305,72 @@ let Utility = new js.classes.Utility();
 
 ```
 # UI
+## OSM - OpenScript Markup
+OSM allows you to write markup using javascript method. In OJS, there is an object called `h` representing the `MarkupEngine`. You can create any element using this object similar to HTML. Just like HTML in the browser, OSM is element agnostic.
+
+### Syntax
+```javascript
+h.element(
+    {attributes}, 
+    h.children({attributes}),
+    ...
+)
+
+```
+* To create an element, use `h.elementName()`.
+* Attributes are key-value pairs passed to the element in objects. Replace every dash with underscore in the attributes' names.
+* Add children to the element following the above guide.
+
+### OSM Example
+**HTML**
+```html
+<div class="container" id="div-1" data-method="holder">
+    <p class="paragraph">Hello OSM</p>
+    <input type="checkbox" onclick="doSomething()" id="input-1">
+</div>
+```
+**OSM**
+```javascript
+
+h.div(
+    {
+        class: "container",
+        id: "div-1",
+        data_method: "holder"
+    },
+    h.p({class: "paragraph"}, "Hello OSM"), 
+    h.input({
+        type: "checkbox",
+        onclick: "doSomething()",
+        id: "input-1"
+    })
+)
+
+```
+### Special Attributes
+Some attributes are special and tells OJS Markup engine to perform specific actions when rendering.
+
+| Attribute | Value | Function |
+|-----------|-------|----------| 
+| parent    | HTML Element| appends the rendered OSM to the parent element.|
+| resetParent| boolean| tells OJS to replace the elements in the parent with the rendered OSM.|
+| replaceParent | boolean | tells OJS to replace parent element completely with the rendered OSM |
+| c_attr | object of attributes | used as attributes for the wrapper element of a rendered OSM component
+
+### Special Elements
+Some elements are special in OSM because they are methods of the Markup engine itself and cannot be used as element names.
+
+| reserved name | Function | usage |
+|---------------|----------|-------|
+| component | used to register OSM components| `h.component('BlogList', BlogList)`|
+| call | used to executed a function in an OSM | `h.call(() => h.p("hello"))`|
+| $ or _ | used in a component to skip the return of an OSM wrapper element | `return h.$() or h._()` |
+| dom | the document object | `h.dom.getElementById('x')` |
+| deleteComponent | delete a component from the Markup Engine | `h.deleteComponent('BlogList')`
+| has | checks if a component exist in the Markup Engine | `h.has('BlogList')`|
+| isRegistered | checks if a component is registered| `h.isRegistered('BlogList')`|
+| func | used to format a function and its arguments to be used as a listener in a component| `h.func('method', [...args])`|
+
 ## Components
 
 ## States
