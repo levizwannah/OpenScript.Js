@@ -10,6 +10,7 @@ A frontend framework for developing and Managing Reactive UIs in an elegant and 
 - Broker
 - Mediator
 - Router
+- Events
 
 # Key But Novice Concepts
 - Asynchronous Rendering
@@ -61,149 +62,272 @@ Everything is explained, so set the values as necessary.
 
 ```javascript
 /*----------------------------------
-| Do OpenScript Configurations Here
-|----------------------------------
+ | Do OpenScript Configurations Here
+ |----------------------------------
 */
-
-/*----------------------------------
-* Set the default route path here.
-* This will be used when files
-* are loaded.
-* ----------------------------------
-*/
-route.basePath(''); // === '/'
 
 /*-----------------------------------
-| ROUTER CONFIGURATION
-|------------------------------------
-| Set the global runtime prefix.
-| This prefix will be appended
-| to every path before resolution.
-| So ensure when defining routes,
-| you have it as the main prefix.
-|------------------------------------
+ | Set the global runtime prefix.
+ | This prefix will be appended
+ | to every path before resolution.
+ | So ensure when defining routes,
+ | you have it as the main prefix.
+ |------------------------------------
 */
-route.runtimePrefix(''); // === ''
+route.runtimePrefix('');
+
+/**----------------------------------
+ * 
+ * Set the default route path here
+ * ----------------------------------
+ */
+route.basePath('/');
 
 /*-----------------------------------
-| set the directories in which we
-| can find the context files
-|-----------------------------------
+ | set the directories in which we
+ | can find the context files
+ |-----------------------------------
 */
-ContextProvider.directory = route.baseUrl('js/contexts');
+ContextProvider.directory = route.baseUrl('/contexts');
 
 /*-----------------------------------
-| set the version number of the
-| context files so that we can
-| always load the new files incase
-| files change
-|-----------------------------------
+ | set the version number of the
+ | context files so that we can
+ | always load the new files incase
+ | files change
+ |-----------------------------------
 */
 ContextProvider.version = '1.0.0';
 
 /*-----------------------------------
-| Set the Mediators directory
-| so that we an load the mediators
-| from that directory
-|-----------------------------------
+ | Set the Mediators directory
+ | so that we an load the mediators
+ | from that directory
+ |-----------------------------------
 */
-MediatorManager.directory = route.baseUrl('js/mediators');
+MediatorManager.directory = route.baseUrl('/mediators');
 
 /*-----------------------------------
-| Set the version number of the 
-| mediator files so that we can
-| always load a fresh copy of the
-| mediators files upon changes.
-|----------------------------------
+ | Set the version number of the 
+ | mediator files so that we can
+ | always load a fresh copy of the
+ | mediators files upon changes.
+ |----------------------------------
 */
 MediatorManager.version = '1.0.0';
 
 /*-----------------------------------
-| Set the default component
-| directory for the loader
-|-----------------------------------
+ | Set the default component
+ | directory for the loader
+ |-----------------------------------
 */
-loader.dir = route.baseUrl('js/components');
+loader.dir = route.baseUrl('/components');
 
 /*-----------------------------------
-| set the version number of the
-| component files so that we load
-| a fresh file when they change
-|-----------------------------------
+ | set the version number of the
+ | component files so that we load
+ | a fresh file when they change
+ |-----------------------------------
 */
 loader.version = '1.0.0';
 
 /*-----------------------------------
-| Set the default directory of the
-| autoload object for loading
-| files.
-|-----------------------------------
+ | Set the default directory of the
+ | autoload object for loading
+ | files.
+ |-----------------------------------
 */
 
-autoload.dir = route.baseUrl('js/classes');
+autoload.dir = route.baseUrl('/');
 
 /*-----------------------------------
-| set the version number of the
-| JS files so that we load
-| a fresh file when they change
-|-----------------------------------
+ | set the version number of the
+ | JS files so that we load
+ | a fresh file when they change
+ |-----------------------------------
 */
 autoload.version = '1.0.0';
 
-
 /*---------------------------------
-| Get the initial body style so
-| so that when routes change,
-| we can reset the body style.
-| Sometimes, the body element's
-| style is affected by elements
-| That are no longer on the DOM.
-| example, bootstrap offcanvas.
-| In these cases, you need to
-| reset the body style when
-| the routeChanged event is fired
-| by the router. So you can listen
-| to it and use this to reset
-| the style.
-|----------------------------------
+ | Get the initial body style so
+ | so that when routes change
+ | we can reset the body style.
+ | Sometimes, the body element's
+ | style is affected by elements
+ | That are no longer on the DOM.
+ | example, bootstrap offcanvas.
+ | In these cases, you need to
+ | reset the body style when
+ | the routeChanged event is fired
+ | by the router. So you can listen
+ | to it and use this to reset
+ | the style.
+ |----------------------------------
 */
+
 var __bodyStyle = document.body.getAttribute("style");
 
 /*--------------------------------
-| Set the logs clearing interval
-| for the broker to remove stale
-| events. (milliseconds)
-|--------------------------------
+ | Set the logs clearing interval
+ | for the broker to remove stale
+ | events. (milliseconds)
+ |--------------------------------
 */
-broker.CLEAR_LOGS_AFTER = 30000; // 30 secs
+broker.CLEAR_LOGS_AFTER = 30000;
 
 /*--------------------------------
-| Set how old an event must be
-| to be deleted from the broker's
-| event log during logs clearing
-|--------------------------------
+ | Set how old an event must be
+ | to be deleted from the broker's
+ | event log during logs clearing
+ |--------------------------------
 */
-broker.TIME_TO_GC = 10000; // 10 secs
+broker.TIME_TO_GC = 10000;
 
 
 /*-------------------------------------------
-| Start the garbage 
-| collector for the broker
-|-------------------------------------------
+ | Start the garbage 
+ | collector for the broker
+ |-------------------------------------------
 */
-broker.removeStaleEvents(); // broker garbage collection started
+broker.removeStaleEvents();
 
 /*------------------------------------------
-| When this is set to true, the broker
-| will display events and their payloads
-| in the console when they are fired
-|------------------------------------------
+ | Should the broker display events
+ | in the console as they are fired
+ |------------------------------------------
 */
-broker.withLogs(false); 
+if(/^(127\.0\.0\.1|localhost)$/.test(route.url().hostname)) {
+    broker.withLogs(true);
+}
+ 
 
+/**
+ * ---------------------------------------------
+ * Should the broker require events registration.
+ * This ensures that only registered events
+ * can be listened to and fire by the broker.
+ * ---------------------------------------------
+ */
+broker.requireEventsRegistration(true);
+```
+## Folder Structure
+There are three types of files:
+- Components
+- Contexts
+- Mediators
+
+The expected structure is as follows:
+```
+|root|
+    |- mediators
+        |-Folder
+        |-Auth.js
+        |-Blog.js
+        |-...js
+    |- components
+        |-App.js
+        |-Blog
+            |-Blog.js
+            |-BlogItem.js
+            |-...js
+        |-...
+    |- contexts
+        |-Folder
+        |-RootContext.js
+        |-...js
+```
+You can always use another structure, just update your config file to let OpenScript know where to find your components, mediators, and context files.
+
+## Other JS files
+OpenScript has a built in loader called `autoload`. This loads any JS file as long as the file has only declared contents such as classes and functions. If not, then the loader cannot load such file.
+>Please see the ojs-config to understand how to configure the `autoload` object.
+
+## Loading Files
+Every file type in the config has a version number. This is because, the browser caches JS files, hence if you change them, you want to update the versions so that a fresh file is loaded.
+
+### Namespacing
+All file loaders are of type `OpenScript.AutoLoader`. When an AutoLoader loads a file, it keeps the file in its histories to avoid requesting the file later. Therefore, when you try to load the same file more than once, only one request is made and the rest of the loads only returns the kept file content.
+
+To avoid file clashes, the AutoLoader put the files in a namespace that is similar to the folder structure.
+
+For example, a class file with path `js/classes/user/User.js` will be placed in `window.js.classes.user.User`. Therefore, to accesses the class, you need to use `js.classes.user.User.User`.
+>**Notice the class name is doubled at the end**.
+
+Imagine that the `User.js` file has two user classes declared in it: `User` and `Admin`. Therefore, it now makes sense to use the file name as part of the namespace because it make contain multiple classes. In the above example, we will use `js.classes.user.User.Admin` to access the admin class.
+
+However, `AutoLoaders` return a map with key-values pairs. Each Key represent 1 declaration in the file. For our example, the `AutoLoader` will return
+```javascript
+new Map([
+    [
+        "js.classes.User.User",
+        [
+            "User", // class name
+            `class User`, // class
+        ]
+    ],
+    [
+        "js.classes.User.Admin",
+        [
+            "Admin", // class name
+            `class Admin` // class
+        ]
+    ]
+])
+```
+So if you want to create a new object of he loaded class, you know how to find it.
+>Loading is async, so ensure to use async/await or promises.
+
+### Loading Files
+You can use the `.` notation to specify the file path. Keep in mind this will become the namespace of the file.
+```js
+autoload.req("Folder.folder.fOlder.File"); // throws exception when file is missing
+autoload.include("folder.File"); // throws no exception when file is missing.
 ```
 
-Full documentation at: https://levizwannah.github.io/OpenScript.Js
+### Loading other JS files
+The later sections will explain how to load the various types of files. However, if you want to load any other type of file, provided you have configured the root director of the `autoload` object, use the below code.
+```javascript
+// folder structure
+|root
+    |-classes
+        |-Utility.js
+
+// ojs-config.js
+...
+autoload.dir = route.baseUrl('classes');
+autoload.version = '1.0.0';
+
+// loading
+await autoload.req('Utility')
+
+// access the loaded file here
+let Utility = new js.classes.Utility();
+
+```
+# UI
+## Components
+
+## States
+
+## Context
+
+# Frontend Logic + UX
+## Events
+
+## Broker
+
+## Mediators
+
+## Component-View-Mediators Architecture (CVM)
+
+# Building Single Page Applications (SPA)
+
+## Routing
+
+# Putting It Together
+
+# Engineering
+You really expect me to write this section?
 
 Author: Levi Kamara Zwannah 
 Contributors: Jesse Richard

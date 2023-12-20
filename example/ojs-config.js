@@ -3,13 +3,6 @@
  |----------------------------------
 */
 
-/*----------------------------------
- * 
- * Set the default route path here
- * ----------------------------------
- */
-route.basePath(''); // === '/'
-
 /*-----------------------------------
  | Set the global runtime prefix.
  | This prefix will be appended
@@ -18,7 +11,14 @@ route.basePath(''); // === '/'
  | you have it as the main prefix.
  |------------------------------------
 */
-route.runtimePrefix(''); // === ''
+route.runtimePrefix('');
+
+/**----------------------------------
+ * 
+ * Set the default route path here
+ * ----------------------------------
+ */
+route.basePath('');
 
 /*-----------------------------------
  | set the directories in which we
@@ -75,7 +75,7 @@ loader.version = '1.0.0';
  |-----------------------------------
 */
 
-autoload.dir = route.baseUrl('example/classes');
+autoload.dir = route.baseUrl('/');
 
 /*-----------------------------------
  | set the version number of the
@@ -85,10 +85,9 @@ autoload.dir = route.baseUrl('example/classes');
 */
 autoload.version = '1.0.0';
 
-
 /*---------------------------------
  | Get the initial body style so
- | so that when routes change,
+ | so that when routes change
  | we can reset the body style.
  | Sometimes, the body element's
  | style is affected by elements
@@ -102,6 +101,7 @@ autoload.version = '1.0.0';
  | the style.
  |----------------------------------
 */
+
 var __bodyStyle = document.body.getAttribute("style");
 
 /*--------------------------------
@@ -110,7 +110,7 @@ var __bodyStyle = document.body.getAttribute("style");
  | events. (milliseconds)
  |--------------------------------
 */
-broker.CLEAR_LOGS_AFTER = 30000; // 30 secs
+broker.CLEAR_LOGS_AFTER = 30000;
 
 /*--------------------------------
  | Set how old an event must be
@@ -118,7 +118,7 @@ broker.CLEAR_LOGS_AFTER = 30000; // 30 secs
  | event log during logs clearing
  |--------------------------------
 */
-broker.TIME_TO_GC = 10000; // 10 secs
+broker.TIME_TO_GC = 10000;
 
 
 /*-------------------------------------------
@@ -126,12 +126,23 @@ broker.TIME_TO_GC = 10000; // 10 secs
  | collector for the broker
  |-------------------------------------------
 */
-broker.removeStaleEvents(); // broker garbage collection started
+broker.removeStaleEvents();
 
 /*------------------------------------------
- | When this is set to true, the broker
- | will display events and their payloads
- | in the console when they are fired
+ | Should the broker display events
+ | in the console as they are fired
  |------------------------------------------
 */
-broker.withLogs(true); 
+if(/^(127\.0\.0\.1|localhost)$/.test(route.url().hostname)) {
+    broker.withLogs(true);
+}
+ 
+
+/**
+ * ---------------------------------------------
+ * Should the broker require events registration.
+ * This ensures that only registered events
+ * can be listened to and fire by the broker.
+ * ---------------------------------------------
+ */
+broker.requireEventsRegistration(true);

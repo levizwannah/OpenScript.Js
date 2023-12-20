@@ -45,6 +45,28 @@ setInterval(() => {
 
 // Testing namespaced events
 
+let events = {
+  namespace: {
+    hello: true,
+    hi: true,
+    sns: {
+      hello: true,
+      hi: true,
+      sns2: {
+        hello: true,
+        hi: true,
+        lastNs: {
+          ojs: true,
+          osm: true,
+        }
+      }
+    }
+  },
+  testEvent: true,
+}
+
+broker.registerEvents(events);
+
 broker.send("namespace{hello,hi,sns[hello,hi,sns2(hello,hi,lastNs{ojs,osm})]}");
 
 broker.broadcast("testEvent|namespace:hello");
