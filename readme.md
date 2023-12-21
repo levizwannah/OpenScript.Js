@@ -333,17 +333,9 @@ h.element(
 ```javascript
 
 h.div(
-    {
-        class: "container",
-        id: "div-1",
-        data_method: "holder"
-    },
+    { class: "container", id: "div-1", data_method: "holder" },
     h.p({class: "paragraph"}, "Hello OSM"), 
-    h.input({
-        type: "checkbox",
-        onclick: "doSomething()",
-        id: "input-1"
-    })
+    h.input({ type: "checkbox", onclick: "doSomething()", id: "input-1" }),
 )
 
 ```
