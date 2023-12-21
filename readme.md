@@ -314,12 +314,12 @@ h.element(
     {attributes}, 
     h.children({attributes}),
     ...
-)
+); // returns HTMLElement
 
 ```
 * To create an element, use `h.elementName()`.
 * Attributes are key-value pairs passed to the element in objects. Replace every dash with underscore in the attributes' names.
-* Add children to the element following the above guide.
+* Add children to the element following the above guide. Note that you can also pass an array of children and attributes to an element.
 
 ### OSM Example
 **HTML**
@@ -355,12 +355,13 @@ Some attributes are special and tells OJS Markup engine to perform specific acti
 | parent    | HTML Element| appends the rendered OSM to the parent element.|
 | resetParent| boolean| tells OJS to replace the elements in the parent with the rendered OSM.|
 | replaceParent | boolean | tells OJS to replace parent element completely with the rendered OSM |
+| firstOfParent | boolean | tells OJS to place the rendered OSM as the first child of the parent element|
 | c_attr | object of attributes | used as attributes for the wrapper element of a rendered OSM component
 
 ### Special Elements
 Some elements are special in OSM because they are methods of the Markup engine itself and cannot be used as element names.
 
-| reserved name | Function | usage |
+| Reserved name | Function | Usage |
 |---------------|----------|-------|
 | component | used to register OSM components| `h.component('BlogList', BlogList)`|
 | call | used to executed a function in an OSM | `h.call(() => h.p("hello"))`|
@@ -370,8 +371,95 @@ Some elements are special in OSM because they are methods of the Markup engine i
 | has | checks if a component exist in the Markup Engine | `h.has('BlogList')`|
 | isRegistered | checks if a component is registered| `h.isRegistered('BlogList')`|
 | func | used to format a function and its arguments to be used as a listener in a component| `h.func('method', [...args])`|
+| on | used to add an event listener to an OSM  component | `h.on('BlogList', 'rendered', () => console.log('rendered blog list'))`|
+| onAll | used to add an event listener to an OSM  component that reacts to past and future events | `h.onAll('BlogList', 'rerendered', () => console.log('still reacts event if arrived late'))`|
+
+### Examples
+Let `index.html` have a `div` with ID `root`. We will render all elements in the root.
+
+```html
+<!-- index.html -->
+...
+<div id="root"></div>
+...
+
+```
+
+```js
+let root = h.dom.querySelector(`#root`);
+
+// simple OSM
+h.div(
+    {
+        class: "container",
+        parent: root,
+        resetParent: true,
+    },
+    h.h1("Hello H1")
+);
+
+// simple table appended to root div
+// using h.call for showcase
+// we could use the each function
+h.table(
+    { parent: root, class: "table p-4" },
+    each([1, 2, 3, 4, 5], (num) => h.tr(
+            { class: "row", onclick: "sayHello()" },
+
+            h.call(() => {
+                let cols = [];
+                for(let i = 0; i < 5; i++){
+                    cols.push(h.td(`Column ${i} row ${num}`));
+                }
+
+                return cols;
+            })
+        )
+    )
+);
+
+// getting a rendered element
+let liElement = h.li({class: "list m-2"}, "Hello LI");
+root.append(liElement);
+
+```
+>**Utility Functions:** The `each` function is a utility function that takes each element in an object, passes it to a callback, and put the what the callback returns in an internal array, and returns the array after execution.
 
 ## Components
+
+### Component Development
+
+#### Rendering
+
+#### Grouping
+
+#### Functional Components
+
+#### Reactivity
+
+##### Selective Reaction
+
+### Anonymous Components
+
+### Component Lifecycle
+
+#### Mounting
+
+#### Binding
+
+#### Rendering
+
+#### Rerendering
+
+### Accessing Methods from Rendered Views
+#### Internal Methods
+
+#### External Methods
+
+### Component Events
+#### Listening to Internal Events
+#### Listening to Other Components' Events
+#### Late Reaction
 
 ## States
 

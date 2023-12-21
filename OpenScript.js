@@ -2729,6 +2729,7 @@ var OpenScript = {
 
             let emptyParent = false;
             let replaceParent = false;
+            let prependToParent = false;
             let rootFrag = new DocumentFragment();
 
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
@@ -2773,6 +2774,11 @@ var OpenScript = {
 
                     if (k === "resetParent" && typeof v === "boolean") {
                         emptyParent = v;
+                        continue;
+                    }
+
+                    if (k === "firstOfParent" && typeof v === "boolean") {
+                        prependToParent = v;
                         continue;
                     }
 
@@ -2910,7 +2916,12 @@ var OpenScript = {
 
                 if (replaceParent) {
                     parent.replaceWith(root);
-                } else {
+                } 
+                else if (prependToParent) {
+                    parent.prepend(root);
+                }
+                else {
+
                     parent.append(root);
                 }
 
