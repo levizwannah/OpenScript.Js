@@ -417,18 +417,163 @@ root.append(liElement);
 ```
 >**Utility Functions:** The `each` function is a utility function that takes each element in an object, passes it to a callback, and put the what the callback returns in an internal array, and returns the array after execution.
 
+In OSM, every object will be parsed as attributes. The class attribute is specifically considered when passed more than once. For example,
+```javascript
+h.div({class: 'container'}, {class: 'mb-4'})
+```
+will be rendered as
+
+```
+<div class="container mb-4"></div>
+```
+However, this is not true for the other attributes. Passing them more than once will lead to overrides.
+
 ## Components
+Components wrap UI, the methods required to render the UI, and actions specific to that UI. For example, a component could render differently based on the authentication status of a user. In OJS, it is advised to keep Component responsible for UI only. If you are to fetch data from the backend or validate user input, you want to offload that to a Mediator. Mediators will be discussed in later sections.
+
+```js
+req("App");
+
+// render app in the root element
+h.App({parent: root});
+```
 
 ### Component Development
+Every component extends the `OpenScript.Component` class. Your components should be placed in the components directory specified in the `ojs-config.js` file.   
 
+Components can be class-based or functional and can be grouped together in a single file. Every component name must start with an Uppercase letter and should be `PascalCase`.
+
+This section discusses components in detail.
+
+##### Component Vs Views
+There is only one(1) instance of a component in memory regardless of the number of times it gets rendered on the DOM. This is the difference between Components and Views. Views are the HTML markups and Components are the factories for those markups.
+
+
+#### Class-based Component
+Class-based components are components which are declared as classes and extend the `OpenScript.Component` class. The default name of a class based component is the name of the class. However, you can change the name by passing a name to the `super(name)` constructor in the constructor of the component class. 
+
+There is only one required method for a component: `render(...args)`. This method must return an HTML Element or data types that can be converted to HTML elements by the Markup Engine.  
+
+Below, we create a comment component. 
+>Note that we can have more than one(1) component in the same file.
+
+```js
+// /components/Comment.js
+
+// class based
+class Comment extends OpenScript.Component 
+{
+
+    render(comment, ...args) {
+        return h.div(
+            {class: 'comment-container'},
+            h.div(
+                {class: 'comment-heading'},
+                h.img({
+                    class: 'avatar',
+                    src: comment.owner.avatar,
+                    alt: 'user profile image',
+                }),
+                h.span({class: 'user-name'}, comment.owner.name),
+            ),
+            h.div({class: 'comment-content'}, comment.content),
+            h.div(
+                {class: 'comment-reply'},
+                h.textarea({id: `comment-reply-${comment.id}`}),
+                h.button(
+                    {
+                        class: 'send-button',
+                        onclick: h.func('sendComment', [comment])
+                    },
+                    'Reply'
+                ),
+            )
+            ...args
+        );
+    }
+}
+
+```
+>**To rename a component, simply add the constructor and pass a name to the `super` constructor. By default, the class name is the component's name.**
+```js
+class X extends OpenScript.Component 
+{
+    constructor(){
+        // rename
+        super('Y');
+    }
+
+    render() {
+        return 'Y';
+    }
+}
+
+// usages
+h.Y(); // not h.X();
+```
+#### Functional Components
+Functional components are components created using functions. They follow the naming convention but avoid the class declaration.  
+
+When such components are loaded, these happen:
+- OJS creates a component in the background.
+- The name of the function is given to the created component.
+- The function is then set as the render function of the created component.
+
+For example, we can write the `Comment` component as a function.
+
+```js
+function Comment(comment, ...args) {
+    
+    return h.div(
+        {class: 'comment-container'},
+        h.div(
+            {class: 'comment-heading'},
+            h.img({
+                class: 'avatar',
+                src: comment.owner.avatar,
+                alt: 'user profile image',
+            }),
+            h.span({class: 'user-name'}, comment.owner.name),
+        ),
+        h.div({class: 'comment-content'}, comment.content),
+        h.div(
+            {class: 'comment-reply'},
+            h.textarea({id: `comment-reply-${comment.id}`}),
+            h.button(
+                {
+                    class: 'send-button',
+                    onclick: h.func('sendComment', [comment])
+                },
+                'Reply'
+            ),
+        )
+        ...args
+    );
+
+}
+
+```
+##### Shortcomings of Functional Components 
+
+* Unknown additional methods before render: You cannot have extra methods on the component that are available before rendering. This is because, when you declare a method in the render function, then JavaScript will add that method to the component when the render function is called. For example:
+```js
+function X(){
+    this.y = () => console.log('a method');
+
+    return h.span('Hello from X');
+}
+```
+>y will only be available on the `X` component when it is first rendered.
+* Reset method on every render: It is clear that are added in a functional component will always be reset when the component renders. Therefore, handle this appropriately.
+* Load-only: Since OJS loader must do some background work to create the component, functional components must be loaded. You cannot directly include the file that has a functional component as an HTML script, they must be loaded using `req("File")` function. Else, they will not be registered as components.
+
+You most likely want to use functional components when you have pure rendering task at hand. If the component has some UI specific procedure to handle, it's best going the class-based. Also, with the class-based components, you can create attributes you can use across renders.
 #### Rendering
 
 #### Grouping
 
-#### Functional Components
 
 #### Reactivity
-
 ##### Selective Reaction
 
 ### Anonymous Components
