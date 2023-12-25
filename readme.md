@@ -568,7 +568,24 @@ function X(){
 * Load-only: Since OJS loader must do some background work to create the component, functional components must be loaded. You cannot directly include the file that has a functional component as an HTML script, they must be loaded using `req("File")` function. Else, they will not be registered as components.
 
 You most likely want to use functional components when you have pure rendering task at hand. If the component has some UI specific procedure to handle, it's best going the class-based. Also, with the class-based components, you can create attributes you can use across renders.
+
 #### Rendering
+##### Importing the Component
+The components are in different files, therefore, they must be loaded and registered before rendering. To load a file that contains component declarations, ensure that you have set the components path in your `ojs-config` file. Then use the below code in the file you want to load the component in.
+
+```js
+// folder structure
+|-components
+    |-Blog
+        |-List.js
+    |-App.js
+
+// index.js
+req("App");
+req("Blog.List");
+
+```
+The `req` function will load and register the component. Please note that it is asynchronous and will not block the thread. This is the primary reason for **Asynchronous Rendering** which we will discuss later in this documentation.
 
 #### Grouping
 
