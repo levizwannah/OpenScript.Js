@@ -569,8 +569,24 @@ function X(){
 
 You most likely want to use functional components when you have pure rendering task at hand. If the component has some UI specific procedure to handle, it's best going the class-based. Also, with the class-based components, you can create attributes you can use across renders.
 
+##### Grouping Components
+You can group components by declaring them in the same file. Both functional and class-based components can be declared in the same file. When the file is loaded, all the components in that file are registered, mounted, and bound.
+
+```js
+// Main.js
+class App extends OpenScript.Component {...}
+
+function Comment(comment, ...args) {...}
+
+function Footer() {...}
+
+function Header() {...}
+```
+
+>*Note*: Do not put semi-colon at the end of any declaration. This can prevent parsing. `function Header() {...};❌`
+
 #### Rendering
-##### Importing the Component
+##### Loading the Component
 The components are in different files, therefore, they must be loaded and registered before rendering. To load a file that contains component declarations, ensure that you have set the components path in your `ojs-config` file. Then use the below code in the file you want to load the component in.
 
 ```js
@@ -578,18 +594,74 @@ The components are in different files, therefore, they must be loaded and regist
 |-components
     |-Blog
         |-List.js
+        |-Comment.js
     |-App.js
 
 // index.js
 req("App");
 req("Blog.List");
+req("Blog.Comment");
 
 ```
-The `req` function will load and register the component. Please note that it is asynchronous and will not block the thread. This is the primary reason for **Asynchronous Rendering** which we will discuss later in this documentation.
+The `req` function will load and register the component. Please note that it is asynchronous and will not block the thread. This is the primary reason for **Asynchronous Rendering** which we will discuss later in this documentation.  
 
-#### Grouping
+When this function is used to load components, these components are `mounted` and `bound`. The latter is due to Asynchronous Rendering. However, it is important to know that a component must be mounted before using the Markup Engine to render it.
 
+##### Rendering The Component
+After Loading, you can render the component like other `HTML` elements using the Markup Engine. `h.ComponentName(...args)`.
 
+```js
+h.App(
+    { parent: root, resetParent: true },
+    h.h4("The Blog App"),
+
+    h.BlogList(blogs), // blog list
+    h.Comment(comment, { class: "mb-3" }), // comment
+
+    h.footer(...)
+); // app component
+
+```
+##### Asynchronous Rendering
+Asynchronous rendering enables OJS markup engine to render the currently registered  components that are available on the DOM while leaving a hint for those that will arrive later over the network. This ensures that the user can see the rendered UI as quickly as possible.  
+```js
+h.App(
+    { parent: root, resetParent: true },
+    h.h4("The Blog App"),
+
+    h.BlogList(blogs), // rendered
+    h.Comment(comment, { class: "mb-3" }), // leave hint
+
+    h.footer(...)
+); // rendered
+
+```
+For example, in the code snippet above, if the `App` component is already registered and the `Comment` Component is still being loaded, the `App` will still render, leaving a placeholder for the `Comment` component. When the `Comment` component arrives, it will `bind` itself to each placeholder and render them accordingly.
+
+>To avoid Janky Animation of things popping up all over the DOM, you should group Major building blocks components in one File so that they can all be registered at the same time. For example: Header, Footer, and App components. Imagine the App renders and the Header just Pop up later followed by the footer.
+
+##### The Generated Markup - The Views
+OJS wraps a component's rendered markup in a tag to show that it is a Component. After rendering, each component's tag will look like this:
+
+```html
+<ojs-app>
+    <h4>The Blog App</h4>
+
+    <ojs-blog-list>
+        ...
+    </ojs-blog-list>
+
+    <ojs-comment>
+        ...
+    </ojs-comment>
+</ojs-app> 
+
+```
+These markups are the `Views`.   
+
+If a component renders multiple times, there will only be one of that Component in memory which controls all the `Views`. So whenever a state that this component listens to changes, it will re-render only the `Views` that depended/listens to that State, not all of its `Views`. This concept is called *Selective Reaction*.
+
+This makes it difficult to style the `wrapper` tag since one has no control over it. 
 #### Reactivity
 ##### Selective Reaction
 
