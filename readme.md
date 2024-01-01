@@ -427,7 +427,29 @@ will be rendered as
 <div class="container mb-4"></div>
 ```
 However, this is not true for the other attributes. Passing them more than once will lead to overrides.
+### Formatting Functions
+When a function is added to a component as listener, that function must be available on the DOM. Also, OJS is not aware of listeners, therefore, you must pass the function as a string values similar to how it is in `HTML` files. For example, we have a `sayHello` function and we want to add that function to an `OSM`.
 
+```js
+function sayHello(name) {
+    console.log(`Hello ${name}`);
+}
+
+```
+We would do so on a button.
+```js
+<button onclick="sayHello('James')">Hello James</button>
+```
+
+In OSM
+```js
+h.button(
+    {
+        onclick: h.func("sayHello", ["James"]),
+    },
+    "Hello James"
+);
+```
 ## Components
 Components wrap UI, the methods required to render the UI, and actions specific to that UI. For example, a component could render differently based on the authentication status of a user. In OJS, it is advised to keep Component responsible for UI only. If you are to fetch data from the backend or validate user input, you want to offload that to a Mediator. Mediators will be discussed in later sections.
 
@@ -711,9 +733,9 @@ Every attribute that can be added to an element directly in OSM, can be added to
 ...
 ```
 ##### Fragments
-You can get rid of the wrapper tags by using a `Fragment`. Fragments can only have 1 child element which will be the final rendered element. This means that OJS will not recognize the rendered element as a view that belongs to a Component. However, the child elements can have its own children.  
+You can get rid of the wrapper tags by using a `Fragment`. Fragments can only have 1 child element which will be the final rendered element. However, the child elements can have its own children. When there is no wrapper tag, OJS will not recognize the rendered element as a `View` that belongs to a Component, hence the element won't re-render when state changes. This means, Components that return a fragment must not listen to States.   
 
->Components must be wrapped to react to state changes.
+>Views of a component that rerender when states change must be wrapped in a wrapper tag.
 
 Syntax
 ```javascript
@@ -786,7 +808,6 @@ Output
     </tbody>
 </table>
 ```
-##### Formatting Functions
 
 #### Reactivity
 ##### Selective Reaction
