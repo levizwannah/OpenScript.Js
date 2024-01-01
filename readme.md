@@ -711,6 +711,82 @@ Every attribute that can be added to an element directly in OSM, can be added to
 ...
 ```
 ##### Fragments
+You can get rid of the wrapper tags by using a `Fragment`. Fragments can only have 1 child element which will be the final rendered element. This means that OJS will not recognize the rendered element as a view that belongs to a Component. However, the child elements can have its own children.  
+
+>Components must be wrapped to react to state changes.
+
+Syntax
+```javascript
+h.$(element);
+// or
+h._(element);
+
+```
+For example, let's convert an HTML table to an OJS Component that returns the final table without any wrapper tags.
+
+```javascript
+function Table(data, ...args) {
+    return h._(
+        h.table(
+            {class:  'table'},
+            h.tbody(
+                each(data, (value) => h.Row(value)),
+            ),
+            ...args
+        )
+    )
+}
+
+function Row(columns, ...args){
+    return h.$(
+        h.tr(
+            each(columns, (value) => h.Column(value)),
+            ...args
+        )
+    )
+}
+
+function Column(data, ...args) {
+    return h._(
+        h.td(data, ...args)
+    );
+}
+```
+```javascript
+// app.js
+h.App(
+    h.Table([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+    ]),
+    ...
+);
+
+```
+Output
+```html
+<table class="table">
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>5</td>
+            <td>6</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>8</td>
+            <td>9</td>
+        </tr>
+    </tbody>
+</table>
+```
+##### Formatting Functions
 
 #### Reactivity
 ##### Selective Reaction

@@ -1,132 +1,136 @@
-function Table(...args) {
-    return h._(
-        h.table(
-            {class:  'table'},
-            h.tbody(
-                each([1, 2, 3, 4, 5, 6], () => h.Row("Column")),
-            ),
-            ...args
-        )
+function Table(data, ...args) {
+  return h._(
+    h.table(
+      { class: "table" },
+      h.tbody(each(data, (value) => h.Row(value))),
+      ...args
     )
+  );
 }
 
-function Row(text, ...args){
-    return h.$(
-        h.tr(
-            each([1, 2, 3, 4], () => h.Column(text)),
-            ...args
-        )
+function Row(columns, ...args) {
+  return h.$(
+    h.tr(
+      each(columns, (value) => h.Column(value)),
+      ...args
     )
+  );
 }
 
-function Column(text, ...args) {
-    return h._(
-        h.td(text, ...args)
-    );
+function Column(data, ...args) {
+  return h._(h.td(data, ...args));
 }
 
 class App extends OpenScript.Component {
+  async mount() {
+    await super.mount();
+    req("MainNav");
+    req("Blog.List");
+    req("Counter");
+    req("Chart");
+  }
 
-    async mount(){
-        await super.mount();
-        req("MainNav");
-        req("Blog.List");
-        req("Counter");
-        req('Chart');
-    }
+  render(...args) {
+    return h.div(
+      h.MainNav(),
 
-    render(...args) {
+      h.div(
+        { class: "container py-3" },
 
-        return h.div(
-           
-            h.MainNav(),
+        h.header(
+          {
+            class: "mb-3",
+          },
 
-            h.div(
-                { class: "container py-3" },
-            
-                h.header(
-                    {
-                        class: "mb-3"
-                    },
+          h.h1("The Blog List Header"),
+          h.hr()
+        ),
 
-                    h.h1("The Blog List Header"),
-                    h.hr()
-                ),
-                
-                h.div(
-                    {
-                        class: "card mb-3"
-                    },
-                    h.div({ class: 'card-header'}, 'Uses Anonymous Component' ),
-                    h.div(
-                        { class: "card-body "},
+        h.div(
+          {
+            class: "card mb-3",
+          },
+          h.div({ class: "card-header" }, "Uses Anonymous Component"),
+          h.div(
+            { class: "card-body " },
 
-                        h.p(
-                            { 
-                                class: "card-text"
-                            }, 
+            h.p(
+              {
+                class: "card-text",
+              },
 
-                            `I will not change: (`,
+              `I will not change: (`,
 
-                            h.b(Math.floor(Math.random() * 1000)),
-                            
-                            `) because I am not re-rendered`,
-                            
-                            h.br(),
+              h.b(Math.floor(Math.random() * 1000)),
 
-                            `I will change: (`, h.b(v(context('blogCxt').counter)), `) because I am re-rendered when the number changes. `,
-                            h.b(
-                                `Actually, only the number is re-rendered, not this text.`
-                            )
-                        )
-                    )
-                ),
+              `) because I am not re-rendered`,
 
-                h.BlogCounter(context("blogCxt").counter, {
-                    class: "p-1"
-                }),
+              h.br(),
 
-                h.Chart({
-                    class: "mb-3"
-                }),
-            
-                h.BlogList(context("blogCxt").blogs, context('blogCxt').counter, "I am a blog List. I re-render when counter changes"),
+              `I will change: (`,
+              h.b(v(context("blogCxt").counter)),
+              `) because I am re-rendered when the number changes. `,
+              h.b(`Actually, only the number is re-rendered, not this text.`)
+            )
+          )
+        ),
 
-                h.BlogList(context("blogCxt").blogs, { value: 0 }, 'I am the same blog list. I do not re-render when counter changes because I do not listen its changes.' ),
+        h.BlogCounter(context("blogCxt").counter, {
+          class: "p-1",
+        }),
 
-                h.Table()
-            ),
+        h.Chart({
+          class: "mb-3",
+        }),
 
-            ...args
-        );
-    }
+        h.BlogList(
+          context("blogCxt").blogs,
+          context("blogCxt").counter,
+          "I am a blog List. I re-render when counter changes"
+        ),
 
-    $$namespace = {
-        hello: () => {
-            console.log("namespace:hello called")
-            this.instanceMethod();
-        },
+        h.BlogList(
+          context("blogCxt").blogs,
+          { value: 0 },
+          "I am the same blog list. I do not re-render when counter changes because I do not listen its changes."
+        ),
 
-        hi: () => {
-            console.log("namespace:hi called")
-            this.instanceMethod();
-        },
+        h.Table([
+          [1, 2, 3],
+          [4, 5, 6],
+          [7, 8, 9],
+        ])
+      ),
 
-        $$sns: {
-            hello: () => {
-                console.log("namespace:sns:hello called");
-                this.instanceMethod();
-            },
+      ...args
+    );
+  }
 
-            hi: () => {
-                console.log("namespace:sns:hi called");
-                this.instanceMethod();
-            }
-        }
-    }
+  $$namespace = {
+    hello: () => {
+      console.log("namespace:hello called");
+      this.instanceMethod();
+    },
 
-    instanceMethod(){
-        console.log(`Instance Method Accessed`);
-    }
+    hi: () => {
+      console.log("namespace:hi called");
+      this.instanceMethod();
+    },
+
+    $$sns: {
+      hello: () => {
+        console.log("namespace:sns:hello called");
+        this.instanceMethod();
+      },
+
+      hi: () => {
+        console.log("namespace:sns:hi called");
+        this.instanceMethod();
+      },
+    },
+  };
+
+  instanceMethod() {
+    console.log(`Instance Method Accessed`);
+  }
 }
-
