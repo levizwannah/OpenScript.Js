@@ -661,7 +661,57 @@ These markups are the `Views`.
 
 If a component renders multiple times, there will only be one of that Component in memory which controls all the `Views`. So whenever a state that this component listens to changes, it will re-render only the `Views` that depended/listens to that State, not all of its `Views`. This concept is called *Selective Reaction*.
 
-This makes it difficult to style the `wrapper` tag since one has no control over it. 
+This makes it difficult to style the `wrapper` tag since one has no direct control over it. However, you are able to style it using the OJS `c_attr` attribute.
+
+##### Styling the Wrapper Tag
+The wrapper tag makes re-rendering efficient for OJS. But wrappers are not default HTML elements and hence have no styling. But it is possible to style the wrapper tag using the `c_attr` attribute. The value of the `c_attr` is an object of attributes that should be applied to the component's wrapper element. This attribute should be placed on the outermost element so that it can be applied to the wrapper. See the below example.
+
+```javascript
+// Test.js
+function Test(...args) {
+    return h.div(
+        {
+            class: "div-class",
+            id: "div-id",
+
+            c_attr: {
+                class: "ojs-test-class",
+                id: "ojs-test-id",
+                data_name: "test-attribute",
+            }, // will be applied to the rendered Test component.
+        }
+        h.p("A paragraph"),
+        ...args,
+    );
+}
+
+```
+When `Test` is rendered, this will be the final styling.
+```html
+<ojs-test class="ojs-test-class" id="ojs-test-id" data-name="test-attribute" >
+    <div class="div-class" id="div-id" >
+        <p>A paragraph</p>
+    </div>
+</ojs-test>
+
+```
+Every attribute that can be added to an element directly in OSM, can be added to the wrapper tag using the `c_attr` attribute on the outmost returned element. This include event listeners such as onclick, onchange, etc.
+
+```js
+{
+    c_attr: {
+        onclick: this.method('hello', '${this}'),
+        onchange: `sendEvent('Hello')`,
+        class: 'test-class',
+        data_bs_target: '[name="test"]'
+    },
+
+    class: "element-class",
+}
+...
+```
+##### Fragments
+
 #### Reactivity
 ##### Selective Reaction
 
