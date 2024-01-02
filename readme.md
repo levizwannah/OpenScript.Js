@@ -428,7 +428,7 @@ will be rendered as
 ```
 However, this is not true for the other attributes. Passing them more than once will lead to overrides.
 ### Formatting Functions
-When a function is added to a component as listener, that function must be available on the DOM. Also, OJS is not aware of listeners, therefore, you must pass the function as a string values similar to how it is in `HTML` files. For example, we have a `sayHello` function and we want to add that function to an `OSM`.
+When a function is added as listener, that function must be available on the DOM. Also, OJS is not aware of listeners, therefore, you must pass the function as a string value similar to how it is in `HTML` files. For example, we have a `sayHello` function and we want to add that function to an `OSM`.
 
 ```js
 function sayHello(name) {
@@ -445,7 +445,7 @@ In OSM
 ```js
 h.button(
     {
-        onclick: h.func("sayHello", ["James"]),
+        onclick: h.func("sayHello", ["James"]), // formats the function
     },
     "Hello James"
 );
