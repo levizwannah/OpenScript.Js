@@ -2734,6 +2734,10 @@ var OpenScript = {
 
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
             let isComponent = isUpperCase(name[0]);
+
+            /**
+             * @type {HTMLElement}
+             */
             let root = null;
 
             let componentAttribute = {};
@@ -2813,6 +2817,26 @@ var OpenScript = {
 
                     if (k === "withCAttr") {
                         withCAttr = true;
+                        continue;
+                    }
+
+                    if (k === "listeners") {
+
+                        if(typeof v !== "object") {
+                            throw TypeError(`The value of 'listeners' should be an object. but found ${typeof v}`);
+                        }
+
+                        for(let evt in v) {
+                            let listener = v[evt];
+
+                            if(Array.isArray(listener)) {
+                                listener.forEach((l) => root.addEventListener(evt, l));
+                            }
+                            else {
+                                root.addEventListener(evt, listener);
+                            }
+                        }
+
                         continue;
                     }
 

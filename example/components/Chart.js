@@ -22,7 +22,7 @@ function ProgressBar(width, ...args){
 function Chart(...args){
     return h.div(
         {
-            class: "card mb-3"
+            class: "card mb-3",
         },
         
         h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),

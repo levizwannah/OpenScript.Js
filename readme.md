@@ -428,7 +428,8 @@ will be rendered as
 ```
 However, this is not true for the other attributes. Passing them more than once will lead to overrides.
 ### Formatting Functions
-When a function is added as listener, that function must be available on the DOM. Also, OJS is not aware of listeners, therefore, you must pass the function as a string value similar to how it is in `HTML` files. For example, we have a `sayHello` function and we want to add that function to an `OSM`.
+#### For Markup
+When a function is added as a listener that is available on the DOM, the function should be formatted as a string similar to how it is in `HTML` files. For example, we have a `sayHello` function and we want to add that function to an `OSM`.
 
 ```js
 function sayHello(name) {
@@ -436,7 +437,7 @@ function sayHello(name) {
 }
 
 ```
-We would do so on a button.
+We would do so on an HTML button.
 ```js
 <button onclick="sayHello('James')">Hello James</button>
 ```
@@ -450,6 +451,36 @@ h.button(
     "Hello James"
 );
 ```
+The `h.func('function', [...args])` formats the function and it's arguments for addition to HTML elements as string.
+>Components address this using the `this.method(...args)` or `this.xMethod(...args)` methods. This will be shown under the components section.
+
+#### As DOM Object Listener
+You can add event listeners to a DOM element using the `listeners` attribute. The value of the  `listeners` attribute is an `object` with (key-value) `event-callbacks` pairs. The `callbacks` can be a single callback function or an array of callback functions.
+
+```javascript
+{
+    listeners: {
+        click: () => {},
+        change: [recordValue, sendData, () => {'and this';}],
+    }
+}
+```
+Example:
+```javascript
+h.button(
+    {
+        listeners: {
+            click: () => {console.log('hello')},
+            mouseover: [(event) => doSomething(event, globalParam), justChill]
+        },
+        class: "btn btn-primary",
+        data_bs_target: "[name='canvas-opener']"
+    },
+    "Open Canvas"
+);
+
+```
+
 ## Components
 Components wrap UI, the methods required to render the UI, and actions specific to that UI. For example, a component could render differently based on the authentication status of a user. In OJS, it is advised to keep Component responsible for UI only. If you are to fetch data from the backend or validate user input, you want to offload that to a Mediator. Mediators will be discussed in later sections.
 
