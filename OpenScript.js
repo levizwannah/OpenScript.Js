@@ -3862,10 +3862,6 @@ var OpenScript = {
 };
 
 const {
-    /**
-     * The OJS wrapper function in which you write your code
-     */
-    ojs,
 
     /**
      * The function for autoloading components or files in general @throws exception
@@ -4001,3 +3997,5 @@ const {
     */
     payload,
 } = new OpenScript.Initializer();
+
+const OJS = OpenScript;

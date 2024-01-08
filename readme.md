@@ -452,8 +452,44 @@ h.button(
 );
 ```
 The `h.func('function', [...args])` formats the function and it's arguments for addition to HTML elements as string.
->Components address this using the `this.method(...args)` or `this.xMethod(...args)` methods. This will be shown under the components section.
+>Components address this using the `this.method(...args)` or `this.xMethod(...args)` methods. This will be shown under the components section.  
 
+#### Escaping Formatting
+The arguments will be formatted such that they are parsable when placed in the `HTML` markup. for example:
+- strings will have quotations around them,
+- number will have no quotations
+- objects will be JSONified  
+
+However, if you want to reference the current `HTML` element on the DOM using `this`, you will have to escape it. If not, the `this` will have a string quotation or reference the object that the parsing is taking place in. To escape any argument, use `"${argument}"`. For example:
+
+```js
+h.button(
+    {onclick: h.func("sayHello", "this")},
+    "Hello"
+);
+
+```
+Will be parsed to
+
+```html
+<button onclick="sayHello('this')">Hello</button>
+
+```
+But when escaped, you can reference the actual HTML element. See the following:
+
+```js
+h.button(
+    {onclick: h.func("sayHello", "${this}")},
+    "Hello"
+);
+
+```
+Will be parsed to
+
+```html
+<button onclick="sayHello(this)">Hello</button>
+
+```
 #### As DOM Object Listener
 You can add event listeners to a DOM element using the `listeners` attribute. The value of the  `listeners` attribute is an `object` with (key-value) `event-callbacks` pairs. The `callbacks` can be a single callback function or an array of callback functions.
 
@@ -840,6 +876,33 @@ Output
 </table>
 ```
 
+##### Accessing Internal methods
+Internal methods can be accessed with the `this.method(name, [...args])` function of a component. This is used for methods that should be placed on the actual `Views`. This is similar to the `h.func(name, ...args)` function and has the same specifications for arguments.
+
+```javascript
+class Test extends OJS.Component {
+    increment(elem, number) {
+        elem.value = elem.value - 0 + 1;
+    }
+
+    render(...args) {
+        return h.div(
+            {
+                onclick: this.method('increment', ['${this}', 3])
+            },
+            "0"
+        );
+    }
+}
+
+```
+Final output
+```html
+<ojs-test>
+    <div onclick="component('Test').increment(this, 3)">0</div>
+</ojs-test>
+
+```
 #### Reactivity
 
 ##### Selective Reaction
