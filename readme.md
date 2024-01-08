@@ -904,6 +904,30 @@ Final output
 
 ```
 #### Reactivity
+A component reacts to changes in states. When a `state` changes, it causes all the components listening to it to rerender. A `state` is any data that is observed for changes. States will be covered in detail in other sections of this document. The reactivity model is opt-in. That means, a component can only react to a state when it explicitly opts in. A state declared in a component is not automatically listened to by that component. In fact, states and components are independent of each other.  
+
+##### Listening to a State
+There are two ways to listen to a state:
+1. Pass the state as an argument when rendering the component.
+2. Pass the component to the state as an explicit listener. (this doesn't work due to selective reaction).
+
+###### As Argument
+Every state passed as an argument to a component during render is listened to by that component. You should make sure that you are handling these arguments accordingly. This is because a state has a `toString` method which will be called if it's rendered directly in a markup. (I bet you will figure this out on your own).
+
+```js
+const count = state(0);
+const name = state("James");
+const person = state({ name: "Levi", age: 23 });
+
+h.Counter(count, { class: "bg-success" }); // re-renders when count changes.
+
+h.Test(name, { class: "bg-info" }); // re-renders when name changes.
+                                    // doesn't re-render when person changes
+
+h.Test(name, person, { class: "bg-info" }); // re-renders when name changes.
+                                            // re-renders when person changes.
+```
+###### Direct Listening
 
 ##### Selective Reaction
 
