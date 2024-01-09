@@ -921,15 +921,46 @@ const person = state({ name: "Levi", age: 23 });
 
 h.Counter(count, { class: "bg-success" }); // re-renders when count changes.
 
-h.Test(name, { class: "bg-info" }); // re-renders when name changes.
+h.Test(name, { class: "bg-info" }); // Generated View re-renders when name changes.
                                     // doesn't re-render when person changes
 
 h.Test(name, person, { class: "bg-info" }); // re-renders when name changes.
                                             // re-renders when person changes.
 ```
 ###### Direct Listening
+Every state has the `listener` method that accepts a component.
+```js
+name.listener(Test);
+person.listener(Test);
+count.listener(Counter);
+
+```
+>Note: Due to Selective reaction, this will not result in any views re-rendering since no View is dependent directly on the state in question. Therefore, do not use this approach.  
 
 ##### Selective Reaction
+When a component reacts to a state change, it only re-renders the views that depend on the state that change. In OJS, only one component exist in memory for all the views being rendered. That is, if you render the `Test` component multiple times, you will have multiple views but they will all be controlled by the same `Test` component. So, when a state changes, the `Test` component will only re-render the views that passed that state as a parameter during rendering. See the below example.
+```javascript
+h.div(
+    {class: "test-div"},
+    h.Test(state1, { c_attr: {id: 1} }),
+    h.Test(state2, { c_attr: {id: 2} }),
+    h.Test(state1, state2, { c_attr: {id: 3} }),
+)
+```
+Output:
+```html
+<div class="test-div" >
+    <ojs-test id="1"></ojs-test> // View 1
+    <ojs-test id="2"></ojs-test> // View 2
+    <ojs-test id="3"></ojs-test> // View 3
+</div>
+
+```
+In the above snippet, there are three `Views` of the `Test` component rendered, each with their own IDs. Additionally, there are `state1`, `state2`, `state3`.   
+- When `state1` changes, the `Test Views` with `ID=1 and 3` will be re-rendered by the `Test` component because they depend on `state1`. It is important to note that it is the `Test` component in memory that manages the rerendering of the selected views. 
+- When `state2` changes, the `Test Views` wih `ID=2 and 3` will be re-rendered by the `Test` component because they depend on `state2`.
+
+In short, selective reaction states that only the views depending on a state will re-render when that state changes.  
 
 ### Anonymous Components
 
