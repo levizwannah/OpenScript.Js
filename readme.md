@@ -956,7 +956,7 @@ Output:
 </div>
 
 ```
-In the above snippet, there are three `Views` of the `Test` component rendered, each with their own IDs. Additionally, there are `state1`, `state2`, `state3`.   
+In the above snippet, there are three `Views` of the `Test` component rendered, each with its ID. Additionally, there are `state1` and `state2`.   
 - When `state1` changes, the `Test Views` with `ID=1 and 3` will be re-rendered by the `Test` component because they depend on `state1`. It is important to note that it is the `Test` component in memory that manages the rerendering of the selected views. 
 - When `state2` changes, the `Test Views` wih `ID=2 and 3` will be re-rendered by the `Test` component because they depend on `state2`.
 
