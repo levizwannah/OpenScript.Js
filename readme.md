@@ -903,6 +903,32 @@ Final output
 </ojs-test>
 
 ```
+##### Accessing Other Components' Methods
+Similar to the previous section, you can use the `this.xMethod('component.method', [...args])` method to access methods from other components. See below,
+
+```js
+class Test extends OJS.Component {
+    increment(elem, number) {
+        elem.value = elem.value - 0 + 1;
+    }    
+}
+
+function Counter(...args) {
+    return h.div(
+        {
+            onclick: this.xMethod('Test.increment', ['${this}', 3])
+        },
+        "0"
+    );
+}
+```
+Final output
+```html
+<ojs-counter>
+    <div onclick="component('Test').increment(this, 3)">0</div>
+</ojs-counter>
+
+```
 #### Reactivity
 A component reacts to changes in states. When a `state` changes, it causes all the components listening to it to rerender. A `state` is any data that is observed for changes. States will be covered in detail in other sections of this document. The reactivity model is opt-in. That means, a component can only react to a state when it explicitly opts in. A state declared in a component is not automatically listened to by that component. In fact, states and components are independent of each other.  
 
