@@ -22,7 +22,7 @@ A frontend framework for developing and Managing Reactive UIs in an elegant and 
 - Component-View-Mediators Architecture
 
 # Introduction
-OpenScript is a JavaScript UI framework built to run directly in the browser like other javascript files. Because it runs in the browser like a normal JavaScript, it is highly asynchronous. You can use OJS to develop your full UI or a section of it. OJS also comes with a concept called `Component-View-Mediators` that separate UI from Frontend Logic. This makes your UI very extensible. You can use this feature of OJS only if you like.
+OpenScript is a JavaScript UI framework built to run directly in the browser like other javascript files. Because it runs in the browser like normal JavaScript, it is highly asynchronous. You can use OJS to develop your full UI or a section of it. OJS also comes with a concept called `Component-View-Mediators` that separate UI from Frontend Logic. This makes your UI very extensible. You can use this feature of OJS only if you like.
 
 Hello OpenScript
 ```js
@@ -49,7 +49,7 @@ h.App({parent: root, resetParent: true});
 There are two ways to do this get OJS into your project:
 1. Direct Download(recommended): Download the source file `OpenScript.Js` and the config file `ojs-config.js` and include them directly in your html files.
 
-2. Use the CDN link: https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js@latest/OpenScript.js. Take note of the `@latest` please change that to the version you need to avoid breaking changes. After this step, you need to create `ojs-config.js` using the following example, set the configuration of OJS.  
+2. Use the CDN link: https://cdn.jsdelivr.net/gh/levizwannah/OpenScript.Js@latest/OpenScript.js. Take note of the `@latest` please change that to the version you need to avoid breaking changes. After this step, you need to create an `ojs-config.js` file using the following example, set the configuration of OJS.  
 
 Include OpenScript in your project like this:
 ```html
@@ -236,7 +236,7 @@ The expected structure is as follows:
         |-RootContext.js
         |-...js
 ```
-You can always use another structure, just update your config file to let OpenScript know where to find your components, mediators, and context files.
+You can always use another structure, just update your config file to let OpenScript know where to find your components, mediators, and contexts files.
 
 ## Other JS files
 OpenScript has a built in loader called `autoload`. This loads any JS file as long as the file has only declared contents such as classes and functions. If not, then the loader cannot load such file.
@@ -274,7 +274,7 @@ new Map([
     ]
 ])
 ```
-So if you want to create a new object of he loaded class, you know how to find it.
+So if you want to create a new object of the loaded class, you know how to find it.
 >Loading is async, so ensure to use async/await or promises.
 
 ### Loading Files
@@ -318,7 +318,7 @@ h.element(
 
 ```
 * To create an element, use `h.elementName()`.
-* Attributes are key-value pairs passed to the element in objects. Replace every dash with underscore in the attributes' names.
+* Attributes are key-value pairs passed to the element in objects. Replace every dash with underscore in the attribute names.
 * Add children to the element following the above guide. Note that you can also pass an array of children and attributes to an element.
 
 ### OSM Example
@@ -378,6 +378,7 @@ Let `index.html` have a `div` with ID `root`. We will render all elements in the
 ```
 
 ```js
+// app.js
 let root = h.dom.querySelector(`#root`);
 
 // simple OSM
@@ -398,14 +399,9 @@ h.table(
     each([1, 2, 3, 4, 5], (num) => h.tr(
             { class: "row", onclick: "sayHello()" },
 
-            h.call(() => {
-                let cols = [];
-                for(let i = 0; i < 5; i++){
-                    cols.push(h.td(`Column ${i} row ${num}`));
-                }
-
-                return cols;
-            })
+           each([0, 1, 2, 3, 4, 5], (i)=>h.td(`Column ${i} row ${num}`)
+            )
+            
         )
     )
 );
@@ -417,7 +413,7 @@ root.append(liElement);
 ```
 >**Utility Functions:** The `each` function is a utility function that takes each element in an object, passes it to a callback, and put the what the callback returns in an internal array, and returns the array after execution.
 
-In OSM, every object will be parsed as attributes. The class attribute is specifically considered when passed more than once. For example,
+In OSM, every object will be parsed as an attribute. The class attribute is specifically considered when passed more than once. For example,
 ```javascript
 h.div({class: 'container'}, {class: 'mb-4'})
 ```
@@ -446,12 +442,11 @@ In OSM
 ```js
 h.button(
     {
-        onclick: h.func("sayHello", ["James"]), // formats the function
+        onclick: "sayHello("James")",
     },
     "Hello James"
 );
 ```
-The `h.func('function', [...args])` formats the function and it's arguments for addition to HTML elements as string.
 >Components address this using the `this.method(...args)` or `this.xMethod(...args)` methods. This will be shown under the components section.  
 
 #### Escaping Formatting
@@ -492,6 +487,7 @@ Will be parsed to
 ```
 #### As DOM Object Listener
 You can add event listeners to a DOM element using the `listeners` attribute. The value of the  `listeners` attribute is an `object` with (key-value) `event-callbacks` pairs. The `callbacks` can be a single callback function or an array of callback functions.
+>This most recommened since the number of events you can listen for with minimum hustle is unlimited.
 
 ```javascript
 {
@@ -528,7 +524,7 @@ h.App({parent: root});
 ```
 
 ### Component Development
-Every component extends the `OpenScript.Component` class. Your components should be placed in the components directory specified in the `ojs-config.js` file.   
+Every component extends the `OpenScript.Component` class.(That is you are using the recommened class-based Components). Your components should be placed in the components directory specified in the `ojs-config.js` file.   
 
 Components can be class-based or functional and can be grouped together in a single file. Every component name must start with an Uppercase letter and should be `PascalCase`.
 
