@@ -23,6 +23,7 @@ function Chart(...args){
     return h.div(
         {
             class: "card mb-3",
+            onclick: h.func("sayHello", "James"),
         },
         
         h.div({class: 'card-header'}, `I am ${this.name} Component & I re-render`),
@@ -33,7 +34,7 @@ function Chart(...args){
             h.call(() => {
                 let bars = [];
 
-                for(let i = 0; i < 10; i++){
+                for(let i = 0; i < 5; i++){
                     bars.push(
                         h.ProgressBar(
                             context("blogCxt").counter, 
