@@ -348,7 +348,8 @@ Some attributes are special and tells OJS Markup engine to perform specific acti
 | resetParent| boolean| tells OJS to replace the elements in the parent with the rendered OSM.|
 | replaceParent | boolean | tells OJS to replace parent element completely with the rendered OSM |
 | firstOfParent | boolean | tells OJS to place the rendered OSM as the first child of the parent element|
-| c_attr | object of attributes | used as attributes for the wrapper element of a rendered OSM component
+| c_attr | object of attributes | used as attributes for the wrapper element of a rendered OSM component|
+| listeners | object of event-callback pairs | equivalent to `element.addEventListener(event, callback)`|
 
 ### Special Elements
 Some elements are special in OSM because they are methods of the Markup engine itself and cannot be used as element names.
@@ -749,7 +750,7 @@ If a component renders multiple times, there will only be one of that Component 
 This makes it difficult to style the `wrapper` tag since one has no direct control over it. However, you are able to style it using the OJS `c_attr` attribute.
 
 ##### Styling the Wrapper Tag
-The wrapper tag makes re-rendering efficient for OJS. But wrappers are not default HTML elements and hence have no styling. But it is possible to style the wrapper tag using the `c_attr` attribute. The value of the `c_attr` is an object of attributes that should be applied to the component's wrapper element. This attribute should be placed on the outermost element so that it can be applied to the wrapper. See the below example.
+The wrapper tag makes re-rendering efficient for OJS. But wrappers are not default HTML elements and hence have no styling. But it is possible to style the wrapper tag using the `c_attr` attribute or prefixing the attribute with a `$` sign. The value of the `c_attr` is an object of attributes that should be applied to the component's wrapper element. This attribute or `$`attributes should be placed on the outermost element so that it can be applied to the wrapper. See the below example.
 
 ```javascript
 // Test.js
@@ -758,10 +759,9 @@ function Test(...args) {
         {
             class: "div-class",
             id: "div-id",
-
+            $id: "ojs-test-id",
             c_attr: {
                 class: "ojs-test-class",
-                id: "ojs-test-id",
                 data_name: "test-attribute",
             }, // will be applied to the rendered Test component.
         }
@@ -780,7 +780,7 @@ When `Test` is rendered, this will be the final styling.
 </ojs-test>
 
 ```
-Every attribute that can be added to an element directly in OSM, can be added to the wrapper tag using the `c_attr` attribute on the outmost returned element. This include event listeners such as onclick, onchange, etc.
+Every attribute that can be added to an element directly in OSM, can be added to the wrapper tag using the `c_attr` attribute on the outmost returned element. Except for the `listeners` attribute. This include event listeners such as onclick, onchange, etc.
 
 ```js
 {
@@ -790,7 +790,7 @@ Every attribute that can be added to an element directly in OSM, can be added to
         class: 'test-class',
         data_bs_target: '[name="test"]'
     },
-
+    $onchange: h.func("handleChange", "${this}")
     class: "element-class",
 }
 ...
@@ -964,17 +964,17 @@ When a component reacts to a state change, it only re-renders the views that dep
 ```javascript
 h.div(
     {class: "test-div"},
-    h.Test(state1, { c_attr: {id: 1} }),
-    h.Test(state2, { c_attr: {id: 2} }),
-    h.Test(state1, state2, { c_attr: {id: 3} }),
+    h.Test(state1, { $id: 1 }),
+    h.Test(state2, { $id: 2 }),
+    h.Test(state1, state2, { $id: 3 }),
 )
 ```
 Output:
 ```html
 <div class="test-div" >
-    <ojs-test id="1"></ojs-test> // View 1
-    <ojs-test id="2"></ojs-test> // View 2
-    <ojs-test id="3"></ojs-test> // View 3
+    <ojs-test id="1" s-1="1" ></ojs-test> // View 1
+    <ojs-test id="2" s-2="2" ></ojs-test> // View 2
+    <ojs-test id="3" s-1="1" s-2="2" ></ojs-test> // View 3
 </div>
 
 ```
@@ -982,9 +982,13 @@ In the above snippet, there are three `Views` of the `Test` component rendered, 
 - When `state1` changes, the `Test Views` with `ID=1 and 3` will be re-rendered by the `Test` component because they depend on `state1`. It is important to note that it is the `Test` component in memory that manages the rerendering of the selected views. 
 - When `state2` changes, the `Test Views` wih `ID=2 and 3` will be re-rendered by the `Test` component because they depend on `state2`.
 
-In short, selective reaction states that only the views depending on a state will re-render when that state changes.  
+In short, selective reaction states that only the views that depend on a state will re-render when that state changes. A view that depends on a state has the state ID on the wrapper element denoted by `s-stateId="stateId"`. For example, `... s-1="1"`.
+##### Anonymous Components
 
-### Anonymous Components
+##### Component Events
+###### Listening to Internal Events
+###### Listening to Other Components' Events
+###### Late Reaction
 
 ### Component Lifecycle
 
@@ -1000,11 +1004,6 @@ In short, selective reaction states that only the views depending on a state wil
 #### Internal Methods
 
 #### External Methods
-
-### Component Events
-#### Listening to Internal Events
-#### Listening to Other Components' Events
-#### Late Reaction
 
 ## States
 
