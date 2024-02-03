@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path')
+const config = require('ojs-config.json')
 
 var OpenScript = {
     AutoLoader: class ClassLoader {
@@ -404,7 +405,7 @@ class Compiler extends OpenScript.AutoLoader {
           const name = `${dir}/${file}`
           if (fs.statSync(name).isDirectory()) {
             
-            getFiles(name, files)
+            this.getFiles(name, files)
           } else {
             files.push(name)
           }
@@ -415,9 +416,9 @@ class Compiler extends OpenScript.AutoLoader {
 
 const compiler = new Compiler();
 // compiler.classesFromFile('example');
-compiler.getFiles('components')
 
-
+console.log(compiler.getFiles('components')
+)
 
 
 
