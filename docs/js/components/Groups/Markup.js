@@ -1,321 +1,288 @@
 class ExternalScript extends OpenScript.Component {
+  render(src, ...args) {
+    return h.div(
+      { class: "docs-code-block" },
 
-    render(src, ...args){
-        return h.div(
-            { class: 'docs-code-block' },
+      h.script({ src, defer: true }),
 
-            h.script({src}),
-
-            ...args
-        );
-    }
+      ...args
+    );
+  }
 }
 
 class Code extends OpenScript.Component {
-
-    render(...args){
-        return h.pre(
-            {class: 'rounded my-4'},
-            h.code(
-                ...args
-            )
-        );
-    }
+  render(...args) {
+    return h.pre({ class: "rounded my-4" }, h.code(...args));
+  }
 }
 
 class ThemeLink extends OpenScript.Component {
-    
-    render(href, ...args){
+  render(href, ...args) {
+    return h.a(
+      {
+        href,
+        class: "theme-link",
+        target: "_blank",
+      },
 
-        return h.a(
-            {
-                href,
-                class: 'theme-link',
-                target: '_blank'
-            },
-
-            ...args
-        );
-
-    }
+      ...args
+    );
+  }
 }
 
 class ExternalLink extends ThemeLink {
-    render(href, ...args) {
-        if(args.length === 0) args.push(href);
+  render(href, ...args) {
+    if (args.length === 0) args.push(href);
 
-        return [
-            h.i({class: 'fas fa-external-link-alt'}),
-            super.render(href, ...args)
-        ];
-    }
+    return [
+      h.i({ class: "fas fa-external-link-alt" }),
+      super.render(href, ...args),
+    ];
+  }
 }
 
 class List extends OpenScript.Component {
-
-    /**
-     * 
-     * @param {string} name - ul, ol 
-     * @param {*[]} data 
-     * @param  {...any} args 
-     */
-    render(name, data, ...args) {
-
-        return h[name](
-            data.map(v => h.li(v)),
-            ...args
-        );
-
-    }
+  /**
+   *
+   * @param {string} name - ul, ol
+   * @param {*[]} data
+   * @param  {...any} args
+   */
+  render(name, data, ...args) {
+    return h[name](
+      data.map((v) => h.li(v)),
+      ...args
+    );
+  }
 }
 
 class Callout extends OpenScript.Component {
-    
-    icons = {
-        info: 'fa-info-circle',
-        warning: 'fa-bullhorn',
-        success: 'fa-thumbs-up',
-        danger: 'fa-exclamation-triangle'
-    };
-    /**
-     * 
-     * @param {string} type - info, warning, success, danger 
-     * @param {object} body - {title: '', content: ''}
-     * @param  {...any} args 
-     * @returns 
-     */
-    render(type, body, ...args){
+  icons = {
+    info: "fa-info-circle",
+    warning: "fa-bullhorn",
+    success: "fa-thumbs-up",
+    danger: "fa-exclamation-triangle",
+  };
+  /**
+   *
+   * @param {string} type - info, warning, success, danger
+   * @param {object} body - {title: '', content: ''}
+   * @param  {...any} args
+   * @returns
+   */
+  render(type, body, ...args) {
+    if (!body) body = { title: "Callout", content: "This is a callout" };
 
-        if(!body) body = {title: 'Callout', content: 'This is a callout'};
+    return this[type](body, ...args);
+  }
 
-        return this[type](body, ...args);
-    }
+  builder(icon, title, body) {
+    return h.div(
+      { class: "content" },
+      h.h4(
+        h.span(
+          { class: "callout-icon-holder me-1" },
+          h.i({ class: `fas ${icon}` })
+        ),
+        title
+      ),
+      h.p(body)
+    );
+  }
 
-    builder(icon, title, body){
-        return h.div(
-            {class: 'content'},
-            h.h4(
-                h.span(
-                    {class: 'callout-icon-holder me-1'},
-                    h.i({class: `fas ${icon}`})
-                ),
-                title
-            ),
-            h.p(body)
-        );
-    }
+  info(body, ...args) {
+    return h.div(
+      { class: "callout-block callout-block-info" },
+      this.builder(this.icons.info, body.title, body.content, ...args)
+    );
+  }
 
-    info(body, ...args){
+  warning(body, ...args) {
+    return h.div(
+      { class: "callout-block callout-block-warning" },
+      this.builder(this.icons.warning, body.title, body.content, ...args)
+    );
+  }
 
-        return h.div(
-            {class: 'callout-block callout-block-info'},
-            this.builder(
-                this.icons.info, 
-                body.title, 
-                body.content, 
-                ...args
-            )
-        )
-    }
+  success(body, ...args) {
+    return h.div(
+      { class: "callout-block callout-block-success" },
+      this.builder(this.icons.success, body.title, body.content, ...args)
+    );
+  }
 
-    warning(body, ...args){
+  danger(body, ...args) {
+    return h.div(
+      { class: "callout-block callout-block-danger" },
+      this.builder(this.icons.danger, body.title, body.content, ...args)
+    );
+  }
+}
 
-        return h.div(
-            {class: 'callout-block callout-block-warning'},
-            this.builder(
-                this.icons.warning, 
-                body.title, 
-                body.content, 
-                ...args
-            )
-        )
-    }
-
-    success(body, ...args){
-
-        return h.div(
-            {class: 'callout-block callout-block-success'},
-            this.builder(
-                this.icons.success, 
-                body.title, 
-                body.content, 
-                ...args
-            )
-        )
-    }
-
-    danger(body, ...args){
-
-        return h.div(
-            {class: 'callout-block callout-block-danger'},
-            this.builder(
-                this.icons.danger, 
-                body.title, 
-                body.content, 
-                ...args
-            )
-        )
-    }
+class QuickNote extends Callout {
+  render(content, ...args) {
+    return super.render(
+      "info",
+      {
+        title: "Quick Note",
+        content,
+      },
+      ...args
+    );
+  }
 }
 
 class Alert extends OpenScript.Component {
-    
-    /**
-     * @param {string} type - info, danger, success, warning, light, dark 
-     * @param {string} content 
-     * @param  {...any} args 
-     */
-    render(type, content, ...args){
-        
-        return h.div(
-            {
-                class: `alert alert-${type}`,
-                role: 'alert'
-            },
-            content,
-            ...args
-        );
-
-    }
+  /**
+   * @param {string} type - info, danger, success, warning, light, dark
+   * @param {string} content
+   * @param  {...any} args
+   */
+  render(type, content, ...args) {
+    return h.div(
+      {
+        class: `alert alert-${type}`,
+        role: "alert",
+      },
+      content,
+      ...args
+    );
+  }
 }
 
 class RowTable extends OpenScript.Component {
-    
-    /**
-     * Creates a custom table
-     * @param {object<Array>} data {}
-     * @param  {...any} args 
-     */
-    render(data, ...args){
-        let rows = [];
+  /**
+   * Creates a custom table
+   * @param {object<Array>} data {}
+   * @param  {...any} args
+   */
+  render(data, ...args) {
+    let rows = [];
 
-        for(let r in data){
-            rows.push(
-                h.tr(
-                    h.call(() => {
-                        let tds = [];
-                        for(let i in data[r]){
-                            if(i == 0){
-                                tds.push(
-                                    h.th(
-                                        {class: 'theme-bg-light'},
-                                        h.ThemeLink('#', data[r][i])
-                                    )
-                                );
+    for (let r in data) {
+      rows.push(
+        h.tr(
+          h.call(() => {
+            let tds = [];
+            for (let i in data[r]) {
+              if (i == 0) {
+                tds.push(
+                  h.th(
+                    { class: "theme-bg-light" },
+                    h.ThemeLink("#", data[r][i])
+                  )
+                );
 
-                                continue;
-                            }
+                continue;
+              }
 
-                            tds.push(
-                                h.td(
-                                    data[r][i]
-                                )
-                            );
-                        }
+              tds.push(h.td(data[r][i]));
+            }
 
-                        return tds;
-                    })
-                )
-            );
-        }
-
-        return h.div(
-            {class: 'table-responsive my-4'},
-            h.table(
-                {class: 'table table-bordered'},
-
-                h.tbody(rows)
-            )
-        );
+            return tds;
+          })
+        )
+      );
     }
+
+    return h.div(
+      { class: "table-responsive my-4" },
+      h.table(
+        { class: "table table-bordered" },
+
+        h.tbody(rows)
+      )
+    );
+  }
 }
 
 class StripeTable extends OpenScript.Component {
-    
-    /**
-     * Creates a custom table
-     * @param {object<Array>} data {}
-     * @param  {...any} args 
-     */
-    render(data, ...args){
-        let rows = [];
-        let header = [];
-        let body = [];
+  /**
+   * Creates a custom table
+   * @param {object<Array>} data {}
+   * @param  {...any} args
+   */
+  render(data, ...args) {
+    let rows = [];
+    let header = [];
+    let body = [];
 
-        for(let row in data){
-            if(row == 0){
-                
-                for(let d of data[row]){
-                    header.push(
-                        h.th({scope: 'col'}, d)
-                    );
-                }
-
-                continue;
-            }
-
-            for(let d of data[row]){
-                rows.push(h.td(d));
-            }
-
-            body.push(h.tr(rows));
-            rows = [];
+    for (let row in data) {
+      if (row == 0) {
+        for (let d of data[row]) {
+          header.push(h.th({ scope: "col" }, d));
         }
 
-        return h.div(
-            {class: 'table-responsive my-4'},
-            h.table(
-                {class: 'table table-striped'},
-                h.thead(header),
-                h.tbody(body)
-            ),
+        continue;
+      }
 
-            ...args
-        );
+      for (let d of data[row]) {
+        rows.push(h.td(d));
+      }
+
+      body.push(h.tr(rows));
+      rows = [];
     }
+
+    return h.div(
+      { class: "table-responsive my-4" },
+      h.table({ class: "table table-striped" }, h.thead(header), h.tbody(body)),
+
+      ...args
+    );
+  }
 }
 
 class DarkTable extends OpenScript.Component {
-    
-    /**
-     * Creates a custom table
-     * @param {object<Array>} data {}
-     * @param  {...any} args 
-     */
-    render(data, ...args){
-        let rows = [];
-        let header = [];
-        let body = [];
+  /**
+   * Creates a custom table
+   * @param {object<Array>} data {}
+   * @param  {...any} args
+   */
+  render(data, ...args) {
+    let rows = [];
+    let header = [];
+    let body = [];
 
-        for(let row in data){
-            if(row == 0){
-                
-                for(let d of data[row]){
-                    header.push(
-                        h.th({scope: 'col'}, d)
-                    );
-                }
-
-                continue;
-            }
-
-            for(let d of data[row]){
-                rows.push(h.td(d));
-            }
-
-            body.push(h.tr(rows));
-            rows = [];
+    for (let row in data) {
+      if (row == 0) {
+        for (let d of data[row]) {
+          header.push(h.th({ scope: "col" }, d));
         }
 
-        return h.div(
-            {class: 'table-responsive my-4'},
-            h.table(
-                {class: 'table table-bordered table-dark'},
-                h.thead(header),
-                h.tbody(body)
-            ),
+        continue;
+      }
 
-            ...args
-        );
+      for (let d of data[row]) {
+        rows.push(h.td(d));
+      }
+
+      body.push(h.tr(rows));
+      rows = [];
+    }
+
+    return h.div(
+      { class: "table-responsive my-4" },
+      h.table(
+        { class: "table table-bordered table-dark" },
+        h.thead(header),
+        h.tbody(body)
+      ),
+
+      ...args
+    );
+  }
+}
+
+class CodeOutput extends OpenScript.Component {
+    render(...args) {
+        return h.div(
+            h.p('output'),
+            
+            h.div(
+                {class: 'container p-4 border rounded mb-3'},
+                ...args
+            ),
+        )
     }
 }

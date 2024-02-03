@@ -8,9 +8,16 @@ var OpenScript = {
     Router: class {
         /**
          * Current Prefix
+         * @type {Array<string>}
+         */
+        __prefix = [""];
+
+        /**
+         * Prefix to append
+         * To all the runtime URL changes
          * @type {string}
          */
-        __prefix = "";
+        __runtimePrefix = "";
 
         /**
          * The routes Map
@@ -41,6 +48,28 @@ var OpenScript = {
         path = "";
 
         /**
+         * Reference to the currently inserted route
+         * @type OpenScript.Route.RouteAction
+         */
+        current = null;
+
+        /**
+         * Create a route action
+         */
+        RouteAction = class RouteAction {
+            action;
+            name;
+            
+            middleware = () => true;
+
+            children = new Map();
+
+            run(){
+                return this.action();
+            }
+        }
+
+        /**
          * Default Action
          * @type {function}
          */
@@ -58,6 +87,15 @@ var OpenScript = {
                 this.reset.value = true;
                 this.listen();
             });
+        }
+
+        /**
+         * Sets the global runtime prefix
+         * to use when resolving routes
+         * @param {string} prefix
+         */
+        runtimePrefix(prefix) {
+            this.__runtimePrefix = prefix;
         }
 
         /**
@@ -84,7 +122,9 @@ var OpenScript = {
          * @param {function} action action to perform
          */
         on(path, action) {
-            const paths = `${this.path}/${this.__prefix}/${path}`.split("/");
+            const paths = `${this.path}/${this.__prefix.join(
+                "/"
+            )}/${path}`.split("/");
 
             let key = null;
             let map = this.map;
@@ -124,7 +164,7 @@ var OpenScript = {
          * @param {string} name
          */
         prefix(name) {
-            this.__prefix = name;
+            this.__prefix.push(name);
 
             return new this.PrefixRoute(this);
         }
@@ -165,6 +205,8 @@ var OpenScript = {
 
             this.reset.value = false;
 
+            broker.send("routeChanged");
+
             return this;
         }
 
@@ -174,7 +216,7 @@ var OpenScript = {
          * @param {object} qs Query string
          */
         to(path, qs = {}) {
-            path = `${this.path}/${path}`.trim();
+            path = `${this.path}/${this.__runtimePrefix}/${path}`.trim();
 
             let paths = path.split("/");
 
@@ -305,11 +347,15 @@ var OpenScript = {
             group(func = () => {}) {
                 func();
 
-                this.router.__prefix = "";
+                this.router.__prefix.pop();
 
                 return this.router;
             }
         };
+
+        GroupedRoute = class GroupedRoute {
+
+        }
     },
 
     /**
@@ -395,6 +441,11 @@ var OpenScript = {
      */
     Broker: class Broker {
         /**
+         * Should the events be logged as they are fired?
+         */
+        #shouldLog = false;
+
+        /**
          * TIME DIFFERENCE BEFORE GARBAGE
          * COLLECTION
          */
@@ -418,52 +469,142 @@ var OpenScript = {
 
         /**
          * Add Event Listeners
-         * @param {string} event
+         * @param {string} events - space or | separated events
          * @param {function} listener - asynchronous function
          */
-        on(event, listener) {
-            if (this.#logs[event]) {
-                let emitted = this.#logs[event];
-
-                for (let i = 0; i < emitted.length; i++) {
-                    listener(...emitted[i].args);
+        on(events, listener) {
+            events = events.split(/[\s\|,]+/);
+            
+            for(let event of events) {
+                event.trim();
+                if (this.#logs[event]) {
+                    let emitted = this.#logs[event];
+    
+                    for (let i = 0; i < emitted.length; i++) {
+                        listener(...emitted[i].args);
+                    }
                 }
+
+                this.#emitter.on(event, listener);
             }
 
-            return this.#emitter.on(event, listener);
         }
 
         /**
          * Emits an event
-         * @param {string} event
+         * @param {string} events - space or | separated events
          * @param  {...any} args
          * @returns
          */
-        async send(event, ...args) {
-            return this.emit(event, ...args);
+        async send(events, ...args) {
+            return this.emit(events, ...args);
         }
 
         /**
          * Broadcasts an event
-         * @param {string} event
+         * @param {string} events- space or | separated events
          * @param  {...any} args
          * @returns
          */
-        async broadcast(event, ...args) {
-            return this.send(event, ...args);
+        async broadcast(events, ...args) {
+            return this.send(events, ...args);
         }
 
         /**
          * Emits Events
-         * @param {string} event
+         * @param {string} events
          * @param  {...any} args
          * @returns
          */
-        async emit(event, ...args) {
+        async emit(events, ...args) {
+
+            events = this.parseEvents(events);
+            
+            for(let i = 0; i < events.length; i++){
+                let evt = events[i];
+                if(evt.length < 1) continue;
+                this.#emit(evt, ...args);
+            }
+        }
+
+        /**
+         * 
+         * @param {string} events 
+         */
+        parseEvents(events) {
+            let final = [];
+            let ns = [];
+            let word = [];
+
+            let last = "";
+            let found = "";
+
+            for(let i = 0; i < events.length; i++) {
+                let ch = events[i];
+                
+                if(ch == "{" || ch == "[" || ch == "(") {
+                    last = ns[ns.length - 1];
+                    found = word.join("");
+                    word = [];
+
+                    if(last) {
+                        last = `${last}:${found}`;
+                    }
+                    else {
+                        last = found;
+                    }
+
+                    ns.push(last);
+
+                    continue;
+                }
+
+                if(ch == "}" || ch == "]" || ch == ")") {
+                    found = word.join("");
+                    word = [];
+                    last = ns.pop();
+
+                    if(found.length < 1) continue;
+
+                    if(last && last.length > 0) {
+                        found = `${last}:${found}`;
+                    } 
+
+                    final.push(found);
+                    continue;
+                }
+
+                if(/[\s\|,]/.test(ch)){
+                    found = word.join("");
+                    word = [];
+
+                    if(found.length < 1) continue;
+
+                    last = ns[ns.length - 1];
+
+                    if(last && last.length > 0) {
+                        found = `${last}:${found}`;
+                    } 
+
+                    final.push(found);
+                    continue;
+                }
+
+                word.push(ch);
+            }
+
+            return final;
+        }
+
+        async #emit(event, ...args){
             const currentTime = () => new Date().getTime();
 
             this.#logs[event] = this.#logs[event] ?? [];
             this.#logs[event].push({ timestamp: currentTime(), args: args });
+
+            args.push(JSON.stringify({__event: event}));
+
+            if (this.#shouldLog) console.log(`fired ${event}: args: `, args);
 
             return this.#emitter.emit(event, ...args);
         }
@@ -498,6 +639,80 @@ var OpenScript = {
          */
         removeStaleEvents() {
             setInterval(this.clearLogs.bind(this), this.CLEAR_LOGS_AFTER);
+        }
+
+        /**
+         * If the broker should display events as they are fired
+         * @param {boolean} shouldLog
+         */
+        withLogs(shouldLog) {
+            this.#shouldLog = shouldLog;
+        }
+    },
+
+    /**
+     * Registers events on the broker
+     */
+    BrokerRegistrar: class BrokerRegistrar {
+
+        async registerNamespace(namespace, events, obj) {
+            if(typeof events !== "object") {
+                
+                console.error(`Namespace has incorrect declaration syntax: '${namespace}' with value: `, 
+                events, `in ${obj.constructor.name}`);
+
+                return;
+            }
+
+            for(let event in events) {
+                if(event.startsWith("$$")) {
+                    this.registerNamespace(`${namespace}:${event.substring(2)}`, events[event], obj);
+                }
+                else {
+                    let ev = event.split(/_/g)
+                    .filter((a) => a.length > 0);
+
+                    for(let e of ev) {
+                        this.registerMethod(`${namespace}:${e}`, events[event], obj);
+                    }
+                }
+            }
+        }
+
+        async register(o) {
+
+            let obj = o;
+            let seen = new Set();
+
+            do {
+                for (let method of Object.getOwnPropertyNames(obj)) {
+
+                    if (seen.has(method)) continue;
+                    if (method.length < 3) continue;
+                    if (!method.startsWith("$$")) continue;
+
+                    if (typeof obj[method] !== "function") {
+                        await this.registerNamespace(method.substring(2), obj[method]);
+                        continue;
+                    }
+
+                    this.registerMethod(method.substring(2), obj[method], obj);
+
+                    seen.add(method);
+                }
+            } while ((obj = Object.getPrototypeOf(obj)));
+        }
+
+        async registerMethod(method, listener, object) {
+            let events = method
+                .split(/_/g)
+                .filter((a) => a.length > 0);
+
+            for (let ev of events) {
+                if (ev.length === 0) continue;
+
+                broker.on(ev, listener.bind(object));
+            }
         }
     },
 
@@ -542,35 +757,10 @@ var OpenScript = {
      * The Mediator Class
      */
     Mediator: class Mediator {
+        
         async register() {
-            let obj = this;
-            let seen = new Set();
-
-            do {
-                if (!(obj instanceof OpenScript.Mediator)) break;
-
-                for (let method of Object.getOwnPropertyNames(obj)) {
-                    if (seen.has(method)) continue;
-
-                    if (typeof this[method] !== "function") continue;
-                    if (method.length < 3) continue;
-
-                    if (method.substring(0, 2) !== "$$") continue;
-
-                    let events = method
-                        .substring(2)
-                        .split(/_/g)
-                        .filter((a) => a.length > 0);
-
-                    for (let ev of events) {
-                        if (ev.length === 0) continue;
-
-                        broker.on(ev, this[method].bind(this));
-                    }
-
-                    seen.add(method);
-                }
-            } while ((obj = Object.getPrototypeOf(obj)));
+            let br = new OpenScript.BrokerRegistrar();
+            br.register(this);
         }
 
         /**
@@ -621,35 +811,10 @@ var OpenScript = {
          * Registers with the broker
          */
         async register() {
-            let obj = this;
-            let seen = new Set();
-
-            do {
-                if (!(obj instanceof OpenScript.Listener)) break;
-
-                for (let method of Object.getOwnPropertyNames(obj)) {
-                    if (seen.has(method)) continue;
-
-                    if (typeof this[method] !== "function") continue;
-                    if (method.length < 3) continue;
-
-                    if (method.substring(0, 2) !== "$$") continue;
-
-                    let events = method
-                        .substring(2)
-                        .split(/_/g)
-                        .filter((a) => a.length > 0);
-
-                    for (let ev of events) {
-                        if (ev.length === 0) continue;
-
-                        broker.on(ev, this[method].bind(this));
-                    }
-
-                    seen.add(method);
-                }
-            } while ((obj = Object.getPrototypeOf(obj)));
+            let br = new OpenScript.BrokerRegistrar();
+            br.register(this);
         }
+
     },
 
     /**
@@ -686,11 +851,11 @@ var OpenScript = {
 
         /**
          * JSON.parse
-         * @param {string} string
+         * @param {string} str
          * @returns {EventData}
          */
-        static decode(string) {
-            return JSON.parse(string);
+        static decode(str) {
+            return JSON.parse(str);
         }
         /**
          * Parse and Event Data
@@ -700,9 +865,36 @@ var OpenScript = {
         static parse(eventData) {
             let ed = OpenScript.EventData.decode(eventData);
 
+            if (!"_meta" in ed) ed._meta = {};
+            if (!"_message" in ed) ed._message = {};
+
             return {
-                meta: ed?._meta,
-                message: ed?._message,
+                meta: {
+                    ...ed._meta,
+                    has: function (key) {
+                        return key in this;
+                    },
+                    get: function (key, def = null) {
+                        return this[key] ?? def;
+                    },
+                    put: function (key, value) {
+                        this[key] = value;
+                        return this;
+                    },
+                },
+                message: {
+                    ...ed._message,
+                    has: function (key) {
+                        return key in this;
+                    },
+                    get: function (key, def = null) {
+                        return this[key] ?? def;
+                    },
+                    put: function (key, value) {
+                        this[key] = value;
+                        return this;
+                    },
+                },
                 encode: function () {
                     return eData(this.meta, this.message);
                 },
@@ -801,6 +993,11 @@ var OpenScript = {
          */
         emitter = new OpenScript.Emitter();
 
+        /**
+         * Use for returning fragments
+         */
+        static FRAGMENT = 'OJS-SPECIAL-FRAGMENT';
+
         constructor(name = null) {
             this.name = name ?? this.constructor.name;
 
@@ -816,8 +1013,6 @@ var OpenScript = {
             this.emitter.on(this.EVENTS.bound, (th) => (th.bound = true));
             this.emitter.on(this.EVENTS.mounted, (th) => (th.mounted = true));
             this.emitter.on(this.EVENTS.visible, (th) => (th.visible = true));
-
-            this.getDeclaredListeners();
         }
 
         /**
@@ -950,22 +1145,7 @@ var OpenScript = {
                     if (typeof this[method] !== "function") continue;
                     if (method.length < 3) continue;
 
-                    if (method[0] !== "$") continue;
-
-                    if (method[1] !== "$" && method[1] !== "_") continue;
-
-                    if (method[1] === "$") {
-                        let events = method
-                            .substring(2)
-                            .split(/_/g)
-                            .filter((a) => a.length);
-
-                        for (let i = 0; i < events.length; i++) {
-                            broker.on(events[i], this[method].bind(this));
-                        }
-
-                        continue;
-                    }
+                    if(!method.startsWith("$_")) continue;
 
                     let meta = method.substring(1).split(/\$/g);
 
@@ -1022,6 +1202,11 @@ var OpenScript = {
                     seen.add(method);
                 }
             } while ((obj = Object.getPrototypeOf(obj)));
+
+            const br = new OpenScript.BrokerRegistrar();
+
+            br.register(this);
+
         }
         /**
          * Initializes the component and adds it to
@@ -1283,6 +1468,7 @@ var OpenScript = {
          * @returns
          */
         getParentAndListen(args) {
+
             let final = {
                 index: -1,
                 parent: null,
@@ -1292,7 +1478,17 @@ var OpenScript = {
             };
 
             for (let i in args) {
-                if (
+
+                if (args[i] instanceof OpenScript.State || 
+                    (args[i] && typeof args[i].$__name__ !== 'undefined' && 
+                        args[i].$__name__ == "OpenScript.State")
+                    ) {
+                    args[i].listener(this);
+                    this.states[args[i].id] = args[i];
+                    final.states.push(args[i].id);
+                }
+
+                else if (
                     !(
                         args[i] instanceof DocumentFragment ||
                         args[i] instanceof HTMLElement
@@ -1318,15 +1514,9 @@ var OpenScript = {
                     }
 
                     delete args[i].parent;
-                }
-
-                if (args[i] instanceof OpenScript.State) {
-                    args[i].listener(this);
-                    this.states[args[i].id] = args[i];
-                    final.states.push(args[i]);
-                }
+                }   
             }
-
+            
             return final;
         }
 
@@ -1339,6 +1529,183 @@ var OpenScript = {
             if (object instanceof OpenScript.State) return object.value;
             return object;
         }
+        /**
+         * Compare two Nodes 
+         */
+        Reconciler = class Reconciler {
+
+            /**
+             * @param {Node} domNode 
+             * @param {Node} newNode 
+             */
+            replace(domNode, newNode) {
+                return domNode.parentNode.replaceChild(newNode, domNode);
+            }
+
+            /**
+             * Replaces the attributes of node1 with that of node2
+             * @param {HTMLElement} node1 
+             * @param {HTMLElement} node2 
+             */
+            replaceAttributes(node1, node2){
+                let length1 = node1.attributes.length;
+                let length2 = node2.attributes.length;
+
+                let remove = [];
+                let add = [];
+
+                let mx = Math.max(length1, length2);
+
+                for(let i = 0; i < mx; i++) {
+
+                    if(i >= length1)
+                    {
+                        let attr = node2.attributes[i];
+                        add.push({name: attr.name, value: attr.value});
+                        continue;
+                    }
+
+                    if(i >= length2)
+                    {
+                        let attr = node1.attributes[i];
+                        remove.push(attr.name);
+                        continue;
+                    }
+
+                    let attr1 = node1.attributes[i];
+                    let attr2 = node2.attributes[i];
+
+                    if(!node2.hasAttribute(attr1.name))
+                    {
+                        remove.push(attr1.name);
+                    } 
+                    else if(attr1.value != node2.getAttribute(attr1.name))
+                    {
+                        add.push({name: attr1.name, value: node2.getAttribute(attr1.name)});
+                    }
+                    
+                    if(attr2.value != node1.getAttribute(attr2.name))
+                    {
+                        add.push({name: attr2.name, value: attr2.value});
+                    }
+                }
+
+                mx = Math.max(remove.length, add.length);
+                let mem = new Set();
+
+                for(let i = 0; i < mx; i++)
+                {
+                    if(i < remove.length && !mem.has(remove[i])) {
+                        node1.removeAttribute(remove[i]);
+                    } 
+                    if(i < add.length) {
+                        node1.setAttribute(add[i].name, add[i].value);
+                        mem.add(add[i].name);
+                    }
+                }
+            }
+
+            /**
+             * 
+             * @param {Node} node1 
+             * @param {Node} node2 
+             * @returns 
+             */
+            equal(node1, node2) {
+                return node1.isEqualNode(node2);
+            }
+
+            /**
+             * 
+             * @param {Node|HTMLElement} current 
+             * @param {Node|HTMLElement} previous - currently on the DOM 
+             */
+            reconcile(current, previous) {
+
+                if(this.equal(current, previous)){
+                    return false;
+                } 
+
+                if(this.isText(current)) {
+                    this.replace(previous, current);
+                    return true;
+                }
+
+                if(this.isElement(current) && this.isElement(previous)) {
+
+                    if(current.tagName !== previous.tagName) {
+                        this.replace(previous, current);
+                        return true;
+                    }
+                    
+                    this.replaceAttributes(previous, current);
+
+                    if(this.equal(previous, current)) {
+                        return false;
+                    }
+
+                    let i = 0, j = 0;
+                    let prevLength = previous.childNodes.length;
+
+                    while(i < previous.childNodes.length && j < current.childNodes.length){
+
+                        let curr = current.childNodes[j];
+
+                        if(!this.equal(previous.childNodes[i], current.childNodes[j])){
+                            this.reconcile(current.childNodes[j], previous.childNodes[i]);
+                        }
+                        
+                        if(this.equal(curr, current.childNodes[j])) j++;
+
+                        i++;
+                    }
+
+                    while(i < prevLength) {
+                        previous.childNodes[i]?.remove();
+                        i++;
+                    }
+
+                    while(j < current.childNodes.length) {
+                        previous.append(current.childNodes[j]);
+                        j++;
+                    }
+
+                    return true;
+                }
+                else {
+                    this.replace(previous, current);
+                    return true;
+                }
+            }
+
+            /**
+             * 
+             * @param {Node} node 
+             */
+            isText(node) {
+                return node.nodeType === Node.TEXT_NODE;
+            }
+
+            /**
+             * 
+             * @param {Node} node 
+             * @returns 
+             */
+            isElement(node) {
+                return node.nodeType === Node.ELEMENT_NODE;
+            }
+
+            /**
+             * 
+             * @param {object} attr1 
+             * @param {object} attr2 
+             * @returns 
+             */
+            attributesEq(attr1, attr2){
+                return JSON.stringify(attr1) == JSON.stringify(attr2);
+            }
+
+        };
 
         /**
          * Wraps the rendered content
@@ -1350,6 +1717,8 @@ var OpenScript = {
             const lastArg = args[args.length - 1];
             let { index, parent, resetParent, states, replaceParent } =
                 this.getParentAndListen(args);
+
+            
 
             // check if the render was called due to a state change
             if (lastArg && lastArg["called-by-state-change"]) {
@@ -1364,19 +1733,33 @@ var OpenScript = {
                         }"]`
                     ) ?? [];
 
+                let reconciler = new this.Reconciler();
+
                 current.forEach((e) => {
                     if (!this.visible) e.style.display = "none";
                     else e.style.display = "";
-                    e.textContent = "";
+                    
+                    // e.textContent = "";
 
                     let arg = this.argsMap.get(e.getAttribute("uuid"));
-
-                    this.render(...arg, {
-                        parent: e,
+                    let attr = {
+                        // parent: e,
                         component: this,
                         event: this.EVENTS.rerendered,
                         eventParams: [e],
-                    });
+                    };
+                    let shouldReconcile = true;
+
+                    if(e.childNodes.length === 0) {
+                        attr.parent = e;
+                        shouldReconcile = false;
+                    }
+
+                    let markup = this.render(...arg, attr);
+
+                    if(shouldReconcile) {
+                        reconciler.reconcile(markup, e.childNodes[0])
+                    }
                 });
 
                 return;
@@ -1406,23 +1789,44 @@ var OpenScript = {
 
             let attr = {
                 uuid,
-                parent,
                 resetParent,
                 replaceParent,
                 class: "__ojs-c-class__",
             };
 
-            states.forEach((s) => {
-                attr[`s-${s.id}`] = s.id;
+            if(parent) attr.parent = parent;
+
+            states.forEach((id) => {
+                attr[`s-${id}`] = id;
             });
+
+            let markup = this.render(...args, { withCAttr: true });
+            
+            if(markup.tagName == OpenScript.Component.FRAGMENT && markup.childNodes.length > 0) {
+
+                let children = markup.childNodes;
+                
+                return children.length > 1 ? children : children[0];
+            } 
 
             if (!this.visible) attr.style = "display: none;";
 
-            const markup = this.render(...args);
+            let cAttributes = {};
+
+            if (markup instanceof HTMLElement) {
+                cAttributes = JSON.parse(
+                    markup?.getAttribute("c-attr") ?? "{}"
+                );
+                markup.setAttribute("c-attr", "");
+            }
 
             attr = { ...attr, component: this, event, eventParams: [markup] };
 
-            return h[`ojs-${this.kebab(this.name)}`](attr, markup);
+            return h[`ojs-${this.kebab(this.name)}`](attr, markup, cAttributes);
+        }
+
+        isHtml(markup) {
+            return markup instanceof HTMLElement;
         }
 
         /**
@@ -1445,7 +1849,13 @@ var OpenScript = {
                  * @returns
                  */
                 render(state, callback, ...args) {
-                    return h[`ojs-wrapper`](callback(state), ...args);
+                    let markup = callback(state, ...args);
+
+                    // if(this.isHtml(markup)) {
+                    //     return markup;
+                    // }
+
+                    return h[`ojs-wrapper`](markup, ...args);
                 }
             };
 
@@ -1456,6 +1866,8 @@ var OpenScript = {
             return c.name;
         }
     },
+
+    
 
     /**
      * Creates a Proxy
@@ -1654,7 +2066,6 @@ var OpenScript = {
          * @param {string} referenceName
          */
         reconcile(map, referenceName) {
-            //console.log('reconciling', this.__contextName__);
 
             let cxt = map.get(referenceName);
 
@@ -1720,6 +2131,8 @@ var OpenScript = {
          * Has this state changed
          */
         $__changed__ = false;
+
+        $__name__ = "OpenScript.State";
 
         /**
          * The count of the number of states in the program
@@ -2129,6 +2542,11 @@ var OpenScript = {
          * @param  {...any} args
          */
         handle = (name, ...args) => {
+
+            if(/^[_\$]+$/.test(name)) {
+                name = OpenScript.Component.FRAGMENT.toLowerCase();
+            }
+
             /**
              * If this is a component, return it
              */
@@ -2158,14 +2576,6 @@ var OpenScript = {
                 return ojsUtils.camel(name, true);
             };
 
-            const checkComponentsVisibility = async () => {
-                for (let [k, comp] of this.compMap) {
-                    comp.checkVisibility();
-                }
-
-                return true;
-            };
-
             /**
              * @type {DocumentFragment|HTMLElement}
              */
@@ -2178,6 +2588,9 @@ var OpenScript = {
             const isUpperCase = (string) => /^[A-Z]*$/.test(string);
             let isComponent = isUpperCase(name[0]);
             let root = null;
+
+            let componentAttribute = {};
+            let withCAttr = false;
 
             /**
              * When dealing with a component
@@ -2198,7 +2611,7 @@ var OpenScript = {
             } else {
                 root = this.dom.createElement(name);
             }
-
+            
             let parseAttr = (obj) => {
                 for (let k in obj) {
                     let v = obj[k];
@@ -2241,20 +2654,38 @@ var OpenScript = {
                         continue;
                     }
 
+                    if (k === "c_attr") {
+                        componentAttribute = v;
+                        continue;
+                    }
+
+                    if (k === "withCAttr") {
+                        withCAttr = true;
+                        continue;
+                    }
+
                     let val = `${v}`;
                     if (Array.isArray(v)) val = `${v.join(" ")}`;
 
                     k = k.replace(/_/g, "-");
 
                     if (k === "class" || k === "Class") {
-                        val = (root.getAttribute(k) ?? "") + ` ${val}`;
+                        let cls = (root.getAttribute(k) ?? "");
+                        val = cls + (cls.length > 0 ? ' ' : '') + `${val}`;
                     }
 
-                    root.setAttribute(k, val);
+                    try{
+                        root.setAttribute(k, val);
+                    }
+                    catch(e) {
+                        console.error(`Attributes resulting in the error: `, obj);
+                        throw Error(e);
+                    }
                 }
             };
 
             const parse = (arg, isComp) => {
+                
                 if (
                     arg instanceof DocumentFragment ||
                     arg instanceof HTMLElement
@@ -2283,7 +2714,7 @@ var OpenScript = {
 
                 if (arg instanceof OpenScript.State) continue;
 
-                if (Array.isArray(arg)) {
+                if (Array.isArray(arg) || arg instanceof HTMLCollection || arg instanceof NodeList) {
                     if (isComponent) continue;
 
                     arg.forEach((e) => {
@@ -2302,6 +2733,11 @@ var OpenScript = {
             }
 
             root.append(rootFrag);
+
+            if (withCAttr) {
+                let atr = JSON.stringify(componentAttribute);
+                if(atr) root.setAttribute("c-attr", atr);
+            }
 
             root.toString = function () {
                 return this.outerHTML;
@@ -2501,8 +2937,12 @@ var OpenScript = {
          * @param {Array<string>} attribute attribute path
          * @returns
          */
-        $anonymous = (state, callback = (state) => state.value) => {
-            return h[OpenScript.Component.anonymous()](state, callback);
+        $anonymous = (state, callback = (state) => state.value, ...args) => {
+            return h[OpenScript.Component.anonymous()](
+                state,
+                callback,
+                ...args
+            );
         };
 
         /**
@@ -2665,7 +3105,14 @@ var OpenScript = {
                 }
 
                 signature.start = startAt;
-
+                
+                if(output.length && output[0] !== "class") {
+                    let temp = [];
+                    temp[0] = output[0];
+                    temp[1] = output.splice(1).join(' ');
+                    output = temp;
+                }
+                
                 if (output.length % 2 !== 0)
                     throw Error(
                         `Invalid Class File. Could not parse \`${content}\` from index ${start} because it doesn't have the proper syntax. ${content.substring(
@@ -2749,6 +3196,8 @@ var OpenScript = {
 
                         index++;
                     }
+                    
+                    signature.name = signature.name.split(/\(/)[0];
 
                     map.set(signature.name, {
                         extends: signature.parent,
@@ -2756,9 +3205,10 @@ var OpenScript = {
                         name: signature.name,
                         signature: signature.definition,
                     });
+
                     code = "";
                 }
-
+                
                 return map;
             }
         };
@@ -2768,8 +3218,10 @@ var OpenScript = {
          * @param {string} fileName script name without the .js.
          */
         async req(fileName) {
-            let names = fileName.split(/\./);
+            if(!/^[\w\._-]+$/.test(fileName)) throw Error(`OJS-INVALID-FILE: '${fileName}' is an invalid file name`);
 
+            let names = fileName.split(/\./);
+            
             if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
                 return OpenScript.AutoLoader.history.get(
                     `${this.dir}.${fileName}`
@@ -2780,6 +3232,7 @@ var OpenScript = {
                     this.version
                 }`
             );
+            
 
             let classes = await response.text();
             let content = classes;
@@ -2901,11 +3354,26 @@ var OpenScript = {
                 let c = new content();
 
                 if (h.has(c.name)) return;
-
+                c.getDeclaredListeners();
+                await c.mount();
+            }
+            // if component is function, register it.
+            else if (typeof content === "function" && !this.isClass(content)) {
+                let c = new OpenScript.Component(content.name);
+                
+                if (h.has(c.name)) return;
+                
+                c.render = content.bind(c);
+                c.getDeclaredListeners();
                 await c.mount();
             }
 
             return content;
+        }
+
+        isClass(func) {
+            return typeof func === 'function' 
+                && /^class\s/.test(Function.prototype.toString.call(func));
         }
 
         /**
@@ -2989,10 +3457,11 @@ var OpenScript = {
          * @param {OpenScript.State} state
          * @param {Function<OpenScript.State>} callback the function that returns
          * the value to put in the anonymous markup created
+         * @param {...} args
          * @returns
          */
-        v = (state, callback = (state) => state.value) =>
-            h.$anonymous(state, callback);
+        v = (state, callback = (state) => state.value, ...args) =>
+            h.$anonymous(state, callback, ...args);
         /**
          * The markup engine for OpenScript.Js
          */
