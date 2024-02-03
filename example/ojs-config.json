@@ -1,0 +1,7 @@
+{
+    "dir": {
+        "components": "components",
+        "contexts": "contexts",
+        "mediators": "mediators"
+    }
+}
