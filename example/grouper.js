@@ -3,67 +3,13 @@ const path = require('path')
 
 const config = require('./ojs-config.json')
 
-var OpenScript = {
-    AutoLoader: class ClassLoader {
-        /**
-         * Keeps track of the files that have been loaded
-         */
-        static history = new Map();
 
-        /**
-         * The Directory or URL in which all JS files are located
-         */
-        dir = ".";
-
-        /**
-         * The extension of the files
-         */
-        extension = ".js";
-
-        /**
-         * The version of the files. It will be appended as ?v=1.0 for example
-         * This enable fresh reloading if necessary
-         */
-        version = "1.0.0";
-
-        /**
-         *
-         * @param {string} dir Directory from which the file should be loaded
-         * @param {string} extension the extension of the file .js by default
-         */
-        constructor(dir = ".", version = "1.0.0") {
-            this.dir = dir;
-        }
-
-        /**
-         * Changes . to forward slashes
-         * @param {string|Array} text
-         * @returns
-         */
-        normalize(text) {
-            if (text instanceof Array) {
-                return text.join("/");
-            }
-            return text.replace(/\./g, "/");
-        }
-
-        /**
-         * Changes / to .
-         * @param {string|Array} text
-         * @returns
-         */
-        dot(text) {
-            if (text instanceof Array) {
-                return text.join(".");
-            }
-            return text.replace(/\//g, ".");
-        }
 
         /**
          * Splits a file into smaller strings
          * based on the class in that file
          */
-        Splitter = class Splitter {
+         class Splitter {
             /**
              * Gets the class Signature
              * @param {string} content
@@ -211,160 +157,11 @@ var OpenScript = {
             }
         };
 
-        /**
- * @param {string} fileName script name without the .js.
- */
-        async req(fileName) {
-            let names = fileName.split(/\./);
+   
 
-            if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
-                return OpenScript.AutoLoader.history.get(`${this.dir}.${fileName}`);
 
-            let filePath = path.join(this.dir, this.normalize(fileName) + this.extension);
-            let classes = fs.readFileSync(filePath, 'utf-8');
-            let content = classes;
+class Grouper extends Splitter {
 
-            let classMap = new Map();
-            let codeMap = new Map();
-            let basePrefix = "";
-
-            try {
-                basePrefix = this.dot(path.dirname(filePath));
-            } catch (e) {
-                basePrefix = this.dot(this.dir);
-            }
-
-            let prefixArray = [
-                ...basePrefix.split(/\./g).filter((v) => v.length),
-                ...names,
-            ];
-
-            let prefix = prefixArray.join(".");
-            if (prefix.length > 0 && !/^\s+$/.test(prefix)) prefix += ".";
-
-            let splitter = new this.Splitter();
-
-            classes = splitter.classes(content);
-
-            for (let [k, v] of classes) {
-                let key = prefix + k;
-                classMap.set(key, [k, v.code]);
-            }
-
-            for (let [k, arr] of classMap) {
-                let parent = classes.get(arr[0]).extends;
-
-                if (parent) {
-                    let original = parent;
-
-                    if (!/\./g.test(parent)) parent = prefix + parent;
-
-                    if (!this.exists(parent)) {
-                        if (!classMap.has(parent)) {
-                            await this.req(parent);
-                        } else {
-                            let pCode = classMap.get(parent);
-
-                            prefixArray.push(pCode[0]);
-
-                            let code = await this.setFile(
-                                prefixArray,
-                                Function(`return (${pCode[1]})`)()
-                            );
-
-                            prefixArray.pop();
-
-                            codeMap.set(parent, [pCode[0], code]);
-                        }
-                    } else {
-                        let signature = classes.get(arr[0]).signature;
-
-                        let replacement = signature.replace(original, parent);
-
-                        let c = arr[1].replace(signature, replacement);
-                        arr[1] = c;
-                    }
-                }
-
-                if (!this.exists(k)) {
-                    prefixArray.push(arr[0]);
-
-                    let code = await this.setFile(
-                        prefixArray,
-                        Function(`return (${arr[1]})`)()
-                    );
-
-                    prefixArray.pop();
-
-                    codeMap.set(k, [arr[0], code]);
-                }
-            }
-
-            OpenScript.AutoLoader.history.set(`${this.dir}.${fileName}`, codeMap);
-
-            return codeMap;
-        }
-
-        async include(fileName) {
-            try {
-                return await this.req(fileName);
-            } catch (e) { }
-
-            return null;
-        }
-
-        /**
-         * Adds a class file to the window
-         * @param {Array<string>} names
-         */
-        async setFile(names, content) {
-            OpenScript.namespace(names[0]);
-
-            let obj = window;
-            let final = names.slice(0, names.length - 1);
-
-            for (const n of final) {
-                if (!obj[n]) obj[n] = {};
-                obj = obj[n];
-            }
-
-            obj[names[names.length - 1]] = content;
-
-            // Init the component if it is a
-            // component
-
-            if (content.prototype instanceof OpenScript.Component) {
-                let c = new content();
-
-                if (h.has(c.name)) return;
-
-                await c.mount();
-            }
-
-            return content;
-        }
-
-        /**
-         * Checks if an object exists in the window
-         * @param {string} qualifiedName
-         */
-        exists = (qualifiedName) => {
-            let names = qualifiedName.split(/\./);
-            let obj = window[names[0]];
-
-            for (let i = 1; i < names.length; i++) {
-                if (!obj) return false;
-                obj = obj[names[i]];
-            }
-
-            if (!obj) return false;
-
-            return true;
-        };
-    },
-}
-
-class Grouper extends OpenScript.AutoLoader {
     /**
      * 
      * @param {array}  filePaths   
@@ -377,7 +174,7 @@ class Grouper extends OpenScript.AutoLoader {
                 
                 
             const classesContent = fs.readFileSync(filePath, 'utf-8');
-            const classMap = new this.Splitter().classes(classesContent);
+            const classMap =  this.classes(classesContent);
             for (const [, { code }] of classMap) {
                 classCode += code + ',';
             }
