@@ -1,33 +1,47 @@
 /**
  * The OpenScript Namespace
+ * @namespace {OpenScript}
  */
 var OpenScript = {
 	/**
 	 * Used to Run Classes upon creation
 	 */
 	Runner: class Runner {
-        async run(...cls) {
+		isClass(func) {
+			return (
+				typeof func === "function" &&
+				/^class\s/.test(Function.prototype.toString.call(func))
+			);
+		}
 
-            for(let i = 0; i < cls.length; i++) {
-                let c = cls[i];
-                let instance = new c();
-    
-                if(instance instanceof OpenScript.Component) {
-                    instance.mount();
-                }
-                else if (
-                    instance instanceof OpenScript.Mediator
-                    || instance instanceof OpenScript.Listener
-                    ) {
-                    instance.register();
-                }
-                else {
-                    throw Error(`You can only pass declarations which extend OpenScript.Component, OpenScript.Mediator or OpenScript.Listener`);
-                }
+		async run(...cls) {
+			for (let i = 0; i < cls.length; i++) {
+				let c = cls[i];
+				let instance;
 
-            }
-        }
-    },
+				if (!this.isClass(c)) {
+					instance = new OpenScript.Component();
+					instance.render = c;
+				} else {
+					instance = new c();
+				}
+
+				if (instance instanceof OpenScript.Component) {
+					instance.mount();
+				} else if (
+					instance instanceof OpenScript.Mediator ||
+					instance instanceof OpenScript.Listener
+				) {
+					instance.register();
+				} else if (instance instanceof OpenScript.Context) {
+				} else {
+					throw Error(
+						`You can only pass declarations which extend OpenScript.Component, OpenScript.Mediator or OpenScript.Listener`
+					);
+				}
+			}
+		}
+	},
 
 	/**
 	 * OpenScript's Router Class
@@ -47,10 +61,18 @@ var OpenScript = {
 		__runtimePrefix = "";
 
 		/**
+		 * Currently resolved string
+		 * @type {string}
+		 */
+		__resolved = null;
+
+		/**
 		 * The routes Map
 		 * @type {Map<string,Map<string,function>|string|function>}
 		 */
 		map = new Map();
+
+		#nameMap = new Map();
 
 		/**
 		 * The Params in the URL
@@ -73,12 +95,6 @@ var OpenScript = {
 		 * The default path
 		 */
 		path = "";
-
-		/**
-		 * Reference to the currently inserted route
-		 * @type OpenScript.Route.RouteAction
-		 */
-		current = null;
 
 		/**
 		 * Create a route action
@@ -143,15 +159,27 @@ var OpenScript = {
 			this.defaultAction = action;
 		}
 
+		isQualifiedUrl(url) {
+			const urlPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+			return urlPattern.test(url);
+		}
+
 		/**
 		 * Adds an action on URL path
 		 * @param {string} path
 		 * @param {function} action action to perform
+		 * @param {string} name the route name
 		 */
-		on(path, action) {
-			const paths = `${this.path}/${this.__prefix.join("/")}/${path}`.split(
+		on(path, action, name = null) {
+			let _path = `${this.path}/${this.__prefix.join(
 				"/"
-			);
+			)}/${path}`.replace(/\/{2,}/g, "/");
+
+			if (name) {
+				this.#nameMap.set(name, _path);
+			}
+
+			const paths = _path.split("/");
 
 			let key = null;
 			let map = this.map;
@@ -177,10 +205,14 @@ var OpenScript = {
 		 * Used to add multiple routes to the same action
 		 * @param {Array<string>} paths
 		 * @param {function} action
+		 * @param {string[]} names path names respectively
 		 */
-		orOn(paths, action) {
+		orOn(paths, action, names = []) {
+			let i = 0;
+
 			for (let path of paths) {
-				this.on(path, action);
+				this.on(path, action, names[i] ?? null);
+				i++;
 			}
 
 			return this;
@@ -202,10 +234,12 @@ var OpenScript = {
 		listen() {
 			let url = new URL(window.location.href);
 			this.params = {};
+			this.__resolved = null;
 
-			let paths = url.pathname.split("/");
+			let paths = url.pathname.split("/").filter((a) => a.length);
 
 			let map = this.map;
+			let r = [];
 
 			for (const cmp of paths) {
 				if (cmp.length < 1) continue;
@@ -223,12 +257,24 @@ var OpenScript = {
 					return this;
 				}
 
+				r.push(next[0]);
 				map = next[1];
 			}
+			
 
 			this.qs = new URLSearchParams(url.search);
+			this.__resolved = `/${r.join("/")}`;
 
-			map.get("->")[1]();
+			broker.send("ojs:beforeRouteChange");
+
+			try {
+				let f = map.get("->")[1];
+				f();
+			} catch (ex) {
+				console.error(`${url.pathname} was not found`);
+				this.defaultAction();
+				return this;
+			}
 
 			this.reset.value = false;
 
@@ -237,13 +283,95 @@ var OpenScript = {
 			return this;
 		}
 
+		RouteName = class RouteName {
+			name;
+			route;
+
+			constructor(name, route) {
+				this.name = name;
+				this.route = route;
+			}
+		};
+
 		/**
-		 * Change the URL path without loading
-		 * @param {string} path
-		 * @param {object<>} qs Query string
+		 * Get a route from a registered route name
+		 * @param {string} routeName
+		 * @returns {Router.RouteName}
+		 */
+		from(routeName) {
+			if (!this.#nameMap.has(routeName)) {
+				throw Error(`Unknown Route Name: ${routeName}`);
+			}
+
+			return new this.RouteName(routeName, this.#nameMap.get(routeName));
+		}
+
+		/**
+		 * Redirects to a named route
+		 * @param {string} routeName
+		 * @param {object} params replaces route params and adds the rest as query strings.
+		 * @returns
+		 */
+		toName(routeName, params = {}) {
+			let rn = this.from(routeName);
+
+			let p = {};
+
+			for (let x of rn.route.match(/\{[\w\d-_]+\}/g) ?? []) {
+				let k = x.substring(1, x.length - 1);
+				let v = params[k] ?? null;
+
+				if (!v) {
+					throw Error(
+						`${rn.route} requires ${x} but it wasn't passed`
+					);
+				}
+
+				delete params[k];
+
+				p[x] = v;
+			}
+
+			let r = rn.route;
+
+			for (let k in p) {
+				r = r.replace(k, p[k]);
+			}
+
+			return this.to(r, params);
+		}
+
+		/**
+		 * Change the URL path without reloading. Prioritizes route name over route path.
+		 * @param {string} path route or route-name
+		 * @param {object<>} qs Query strings or Route params (if using route name)
 		 */
 		to(path, qs = {}) {
-			path = `${this.path}/${this.__runtimePrefix}/${path}`.trim();
+			if (this.isQualifiedUrl(path)) {
+				let link = h.a({
+					href: path,
+					style: "display: none;",
+					target: "_blank",
+					parent: document.body,
+				});
+
+				link.click();
+				link.remove();
+
+				return this;
+			}
+
+			if (this.#nameMap.has(path)) {
+				return this.toName(path, qs);
+			}
+
+			let prefix = "";
+
+			if (!path.replace(/^\//, "").startsWith(this.__runtimePrefix)) {
+				prefix = this.__runtimePrefix;
+			}
+
+			path = `${this.path}/${prefix}/${path}`.trim();
 
 			let paths = path.split("/");
 
@@ -266,7 +394,11 @@ var OpenScript = {
 
 			if (s.length > 0) s = `?${s}`;
 
-			this.history().pushState({ random: Math.random() }, "", `/${path}${s}`);
+			this.history().pushState(
+				{ random: Math.random() },
+				"",
+				`/${path}${s}`
+			);
 			this.reset.value = true;
 
 			return this.listen();
@@ -342,6 +474,31 @@ var OpenScript = {
 		 */
 		hash() {
 			return this.url().hash.replace("#", "");
+		}
+
+		/**
+		 * Current Route Path
+		 * @returns string
+		 */
+		current() {
+			return this.url().pathname;
+		}
+
+		/**
+		 * Checks if the name|route matches the current route.
+		 * @param {string} nameOrRoute
+		 * @returns
+		 */
+		is(nameOrRoute) {
+			if (nameOrRoute == this.__resolved) return true;
+
+			for (let [n, r] of this.#nameMap) {
+				if (n == nameOrRoute) {
+					return r == this.__resolved;
+				}
+			}
+
+			return false;
 		}
 
 		/**
@@ -582,9 +739,9 @@ var OpenScript = {
 				for (let e in event) {
 					if (!(typeof event[e] in accepted)) {
 						throw Error(
-							`Invalid Event declaration: ${prefix ? prefix + "." : ""}${e}: ${
-								event[e]
-							}`
+							`Invalid Event declaration: ${
+								prefix ? prefix + "." : ""
+							}${e}: ${event[e]}`
 						);
 					}
 
@@ -768,7 +925,10 @@ var OpenScript = {
 				let k = -1;
 
 				for (let i in this.#logs[event]) {
-					if (d.getTime() - this.#logs[event][i].timestamp >= this.TIME_TO_GC) {
+					if (
+						d.getTime() - this.#logs[event][i].timestamp >=
+						this.TIME_TO_GC
+					) {
 						k = i;
 					}
 				}
@@ -837,7 +997,11 @@ var OpenScript = {
 					let ev = event.split(/_/g).filter((a) => a.length > 0);
 
 					for (let e of ev) {
-						this.registerMethod(`${namespace}:${e}`, events[event], obj);
+						this.registerMethod(
+							`${namespace}:${e}`,
+							events[event],
+							obj
+						);
 					}
 				}
 			}
@@ -854,7 +1018,11 @@ var OpenScript = {
 					if (!method.startsWith("$$")) continue;
 
 					if (typeof obj[method] !== "function") {
-						await this.registerNamespace(method.substring(2), obj[method], obj);
+						await this.registerNamespace(
+							method.substring(2),
+							obj[method],
+							obj
+						);
 						continue;
 					}
 
@@ -1073,6 +1241,204 @@ var OpenScript = {
 		}
 	},
 
+	DOMReconciler: class Reconciler {
+		/**
+		 * @param {Node} domNode
+		 * @param {Node} newNode
+		 */
+		replace(domNode, newNode) {
+			try{
+				return domNode.parentNode.replaceChild(newNode, domNode);
+			}
+			catch(e) {
+				console.error(e, domNode, domNode.parentNode);
+			}
+		}
+
+		/**
+		 * Replaces the attributes of node1 with that of node2
+		 * @param {HTMLElement} node1
+		 * @param {HTMLElement} node2
+		 */
+		replaceAttributes(node1, node2) {
+			let length1 = node1.attributes.length;
+			let length2 = node2.attributes.length;
+
+			let remove = [];
+			let add = [];
+
+			let mx = Math.max(length1, length2);
+
+			for (let i = 0; i < mx; i++) {
+				if (i >= length1) {
+					let attr = node2.attributes[i];
+					add.push({ name: attr.name, value: attr.value });
+					continue;
+				}
+
+				if (i >= length2) {
+					let attr = node1.attributes[i];
+					remove.push(attr.name);
+					continue;
+				}
+
+				let attr1 = node1.attributes[i];
+				let attr2 = node2.attributes[i];
+
+				if (!node2.hasAttribute(attr1.name)) {
+					remove.push(attr1.name);
+				} else if (attr1.value != node2.getAttribute(attr1.name)) {
+					add.push({
+						name: attr1.name,
+						value: node2.getAttribute(attr1.name),
+					});
+				}
+
+				if (attr2.value != node1.getAttribute(attr2.name)) {
+					add.push({ name: attr2.name, value: attr2.value });
+				}
+			}
+
+			mx = Math.max(remove.length, add.length);
+			let mem = new Set();
+
+			for (let i = 0; i < mx; i++) {
+				if (i < remove.length && !mem.has(remove[i])) {
+					node1.removeAttribute(remove[i]);
+				}
+				if (i < add.length) {
+					node1.setAttribute(add[i].name, add[i].value);
+					mem.add(add[i].name);
+				}
+			}
+		}
+
+		/**
+		 *
+		 * @param {Node} node1
+		 * @param {Node} node2
+		 * @returns
+		 */
+		equal(node1, node2) {
+			return node1?.isEqualNode(node2) == true;
+		}
+
+		getEventListeners(node) {
+			if (!node.__eventListeners) {
+				node.__eventListeners = {};
+			}
+			return node.__eventListeners || {};
+		}
+
+		replaceEventListeners(targetNode, sourceNode) {
+			const events = this.getEventListeners(targetNode);
+
+			for (const eventName in events) {
+				events[eventName].forEach((listener) => {
+					targetNode.removeListener(eventName, listener);
+				});
+			}
+
+			const sourceEvents = this.getEventListeners(sourceNode);
+
+			for (const eventName in sourceEvents) {
+				sourceEvents[eventName].forEach((listener) => {
+					targetNode.addListener(eventName, listener);
+				});
+			}
+		}
+
+		/**
+		 *
+		 * @param {Node|HTMLElement} current
+		 * @param {Node|HTMLElement} previous - currently on the DOM
+		 */
+		reconcile(current, previous) {
+			if (this.isText(current)) {
+				this.replace(previous, current);
+				return true;
+			}
+
+			this.replaceEventListeners(previous, current);
+
+			if (this.equal(current, previous)) {
+				return false;
+			}
+
+			if (this.isElement(current) && this.isElement(previous)) {
+				if (current.tagName !== previous.tagName) {
+					this.replace(previous, current);
+					return true;
+				}
+
+				this.replaceAttributes(previous, current);
+
+				if (this.equal(previous, current)) {
+					return false;
+				}
+
+				let i = 0,
+					j = 0;
+				let prevLength = previous.childNodes.length;
+				let curLength = current.childNodes.length;
+				let _pc = curLength;
+
+				while (i < prevLength && j < curLength) {
+					this.reconcile(
+						current.childNodes[j],
+						previous.childNodes[i]
+					);
+
+					_pc = curLength;
+					curLength = current.childNodes.length;
+
+					if (_pc === curLength) j++;
+
+					i++;
+				}
+
+				while (i < previous.childNodes.length) {
+					previous.childNodes[i]?.remove();
+				}
+
+				while (j < current.childNodes.length) {
+					previous.append(current.childNodes[j]);
+				}
+
+				return true;
+			} else {
+				this.replace(previous, current);
+				return true;
+			}
+		}
+
+		/**
+		 *
+		 * @param {Node} node
+		 */
+		isText(node) {
+			return node.nodeType === Node.TEXT_NODE;
+		}
+
+		/**
+		 *
+		 * @param {Node} node
+		 * @returns
+		 */
+		isElement(node) {
+			return node.nodeType === Node.ELEMENT_NODE;
+		}
+
+		/**
+		 *
+		 * @param {object} attr1
+		 * @param {object} attr2
+		 * @returns
+		 */
+		attributesEq(attr1, attr2) {
+			return JSON.stringify(attr1) == JSON.stringify(attr2);
+		}
+	},
 	/**
 	 * Base Component Class
 	 */
@@ -1163,21 +1529,46 @@ var OpenScript = {
 		 */
 		emitter = new OpenScript.Emitter();
 
+		isAnonymous = false;
+
 		/**
 		 * Use for returning fragments
 		 */
 		static FRAGMENT = "OJS-SPECIAL-FRAGMENT";
 
+		$$ojs = {
+			routeChanged: () => {
+				setTimeout(() => {
+					if (this.markup().length == 0) {
+						if (this.isAnonymous) {
+							return h.deleteComponent(this.name);
+						}
+
+						this.releaseMemory();
+					}
+				}, 1000);
+			},
+		};
+
 		constructor(name = null) {
 			this.name = name ?? this.constructor.name;
 
-			this.emitter.once(this.EVENTS.rendered, (th) => (th.rendered = true));
-			this.emitter.on(this.EVENTS.hidden, (th) => (th.visible = false));
-			this.emitter.on(this.EVENTS.rerendered, (th) => (th.rerendered = true));
-			this.emitter.on(this.EVENTS.bound, (th) => (th.bound = true));
-			this.emitter.on(this.EVENTS.mounted, (th) => (th.mounted = true));
-			this.emitter.on(this.EVENTS.visible, (th) => (th.visible = true));
+			this.emitter.once(
+				this.EVENTS.rendered,
+				(th) => (th.rendered = true)
+			);
+			this.on(this.EVENTS.hidden, (th) => (th.visible = false));
+			this.on(this.EVENTS.rerendered, (th) => (th.rerendered = true));
+			this.on(this.EVENTS.bound, (th) => (th.bound = true));
+			this.on(this.EVENTS.mounted, (th) => (th.mounted = true));
+			this.on(this.EVENTS.visible, (th) => (th.visible = true));
+			this.getDeclaredListeners();
 		}
+
+		/**
+		 * Write Clean Up Logic in this function
+		 */
+		cleanUp() {}
 
 		/**
 		 * Make the component's method accessible from the
@@ -1187,8 +1578,11 @@ var OpenScript = {
 		 * To pass a literal string param use '${param}' in the args.
 		 * For example ['${this}'] this will reference the DOM element.
 		 */
-		method(name, ...args) {
-			return h.func([this, name], args);
+		method(name, args) {
+			if (!Array.isArray(args)) {
+				args = [args];
+			}
+			return h.func([this, name], ...args);
 		}
 
 		/**
@@ -1269,7 +1663,7 @@ var OpenScript = {
 		doNotListenTo(component, event) {
 			this.listeningTo[component.name]?.delete(event);
 
-			if (this.listeningTo[component.name].size == 0) {
+			if (this.listeningTo[component.name]?.size == 0) {
 				delete this.listeningTo[component.name];
 			}
 
@@ -1350,11 +1744,9 @@ var OpenScript = {
 									try {
 										h
 											.getComponent(cmpName)
-											[method]?.bind(h.getComponent(cmpName))(
-											component,
-											event,
-											...args
-										);
+											[method]?.bind(
+												h.getComponent(cmpName)
+											)(component, event, ...args);
 									} catch (e) {
 										console.error(e);
 									}
@@ -1382,7 +1774,7 @@ var OpenScript = {
 
 			this.claimListeners();
 			this.emit(this.EVENTS.premount);
-			await this.bind();
+			await this.bindComponent();
 			this.emit(this.EVENTS.mounted);
 		}
 
@@ -1396,16 +1788,7 @@ var OpenScript = {
 				elem.remove();
 			}
 
-			for (let event in this.listening) {
-				for (let [_name, component] of this.listening[event]) {
-					component.doNotListenTo(this, event);
-				}
-			}
-
-			for (let id in this.states) {
-				this.states[id]?.off(this);
-				delete this.states[id];
-			}
+			this.releaseMemory();
 
 			return true;
 		}
@@ -1468,13 +1851,16 @@ var OpenScript = {
 		 * @emits markup-bound
 		 * @emits bound
 		 */
-		async bind() {
+		async bindComponent() {
 			this.emit(this.EVENTS.prebind);
 
-			let all = h.dom.querySelectorAll(`ojs-${this.kebab(this.name)}-tmp--`);
+			let all = h.dom.querySelectorAll(
+				`ojs-${this.kebab(this.name)}-tmp--`
+			);
 
-			if (all.length < 1) {
-				setTimeout(this.bind.bind(this), 500);
+			if (all.length == 0 && !this.bindCalled) {
+				this.bindCalled = true;
+				setTimeout(this.bindComponent.bind(this), 500);
 				return;
 			}
 
@@ -1482,6 +1868,7 @@ var OpenScript = {
 				let hId = elem.getAttribute("ojs-key");
 
 				let args = [...h.compArgs.get(hId)];
+				h.compArgs.delete(hId);
 
 				this.wrap(...args, { parent: elem, replaceParent: true });
 
@@ -1501,7 +1888,8 @@ var OpenScript = {
 			let newName = "";
 
 			for (const c of name) {
-				if (c.toLocaleUpperCase() === c && newName.length > 1) newName += "-";
+				if (c.toLocaleUpperCase() === c && newName.length > 1)
+					newName += "-";
 				newName += c.toLocaleLowerCase();
 			}
 
@@ -1569,7 +1957,8 @@ var OpenScript = {
 		onAll(event, ...listeners) {
 			// check if we have previously emitted this event
 			listeners.forEach((a) => {
-				if (event in this.emitter.emitted) a(...this.emitter.emitted[event]);
+				if (event in this.emitter.emitted)
+					a(...this.emitter.emitted[event]);
 
 				this.emitter.on(event, a);
 			});
@@ -1612,6 +2001,30 @@ var OpenScript = {
 			h.eventsMap.delete(this.name);
 		}
 
+		releaseMemory() {
+			this.cleanUp();
+
+			for (let event in this.listening) {
+				for (let [_name, component] of this.listening[event]) {
+					component.doNotListenTo(this, event);
+				}
+			}
+
+			for (let id in this.states) {
+				this.states[id]?.off(this.name);
+				delete this.states[id];
+			}
+
+			this.argsMap = new Map();
+			this.listeningTo = {};
+			this.listening = {};
+
+			if (this.isAnonymous) {
+				this.emitter.listeners = {};
+				this.emitter.emitted = {};
+			}
+		}
+
 		/**
 		 * Renders the Element and returns an HTML Element
 		 * @param  {...any} args
@@ -1633,6 +2046,7 @@ var OpenScript = {
 				states: [],
 				resetParent: false,
 				replaceParent: false,
+				firstOfParent: false,
 			};
 
 			for (let i in args) {
@@ -1660,14 +2074,17 @@ var OpenScript = {
 						final.parent = args[i].parent;
 					}
 
-					if (args[i].resetParent) {
-						final.resetParent = args[i].resetParent;
-						delete args[i].resetParent;
-					}
+					const keys = [
+						"resetParent",
+						"replaceParent",
+						"firstOfParent",
+					];
 
-					if (args[i].replaceParent) {
-						final.replaceParent = args[i].replaceParent;
-						delete args[i].replaceParent;
+					for (let reserved of keys) {
+						if (args[i][reserved]) {
+							final[reserved] = args[i][reserved];
+							delete args[i][reserved];
+						}
 					}
 
 					delete args[i].parent;
@@ -1689,169 +2106,8 @@ var OpenScript = {
 		/**
 		 * Compare two Nodes
 		 */
-		Reconciler = class Reconciler {
-			/**
-			 * @param {Node} domNode
-			 * @param {Node} newNode
-			 */
-			replace(domNode, newNode) {
-				return domNode.parentNode.replaceChild(newNode, domNode);
-			}
-
-			/**
-			 * Replaces the attributes of node1 with that of node2
-			 * @param {HTMLElement} node1
-			 * @param {HTMLElement} node2
-			 */
-			replaceAttributes(node1, node2) {
-				let length1 = node1.attributes.length;
-				let length2 = node2.attributes.length;
-
-				let remove = [];
-				let add = [];
-
-				let mx = Math.max(length1, length2);
-
-				for (let i = 0; i < mx; i++) {
-					if (i >= length1) {
-						let attr = node2.attributes[i];
-						add.push({ name: attr.name, value: attr.value });
-						continue;
-					}
-
-					if (i >= length2) {
-						let attr = node1.attributes[i];
-						remove.push(attr.name);
-						continue;
-					}
-
-					let attr1 = node1.attributes[i];
-					let attr2 = node2.attributes[i];
-
-					if (!node2.hasAttribute(attr1.name)) {
-						remove.push(attr1.name);
-					} else if (attr1.value != node2.getAttribute(attr1.name)) {
-						add.push({
-							name: attr1.name,
-							value: node2.getAttribute(attr1.name),
-						});
-					}
-
-					if (attr2.value != node1.getAttribute(attr2.name)) {
-						add.push({ name: attr2.name, value: attr2.value });
-					}
-				}
-
-				mx = Math.max(remove.length, add.length);
-				let mem = new Set();
-
-				for (let i = 0; i < mx; i++) {
-					if (i < remove.length && !mem.has(remove[i])) {
-						node1.removeAttribute(remove[i]);
-					}
-					if (i < add.length) {
-						node1.setAttribute(add[i].name, add[i].value);
-						mem.add(add[i].name);
-					}
-				}
-			}
-
-			/**
-			 *
-			 * @param {Node} node1
-			 * @param {Node} node2
-			 * @returns
-			 */
-			equal(node1, node2) {
-				return node1.isEqualNode(node2);
-			}
-
-			/**
-			 *
-			 * @param {Node|HTMLElement} current
-			 * @param {Node|HTMLElement} previous - currently on the DOM
-			 */
-			reconcile(current, previous) {
-				if (this.equal(current, previous)) {
-					return false;
-				}
-
-				if (this.isText(current)) {
-					this.replace(previous, current);
-					return true;
-				}
-
-				if (this.isElement(current) && this.isElement(previous)) {
-					if (current.tagName !== previous.tagName) {
-						this.replace(previous, current);
-						return true;
-					}
-
-					this.replaceAttributes(previous, current);
-
-					if (this.equal(previous, current)) {
-						return false;
-					}
-
-					let i = 0,
-						j = 0;
-					let prevLength = previous.childNodes.length;
-					let curLength = current.childNodes.length;
-					let _pc = curLength;
-
-					while (i < prevLength && j < curLength) {
-						this.reconcile(current.childNodes[j], previous.childNodes[i]);
-
-						_pc = curLength;
-						curLength = current.childNodes.length;
-
-						if (_pc === curLength) j++;
-
-						i++;
-					}
-
-					while (i < previous.childNodes.length) {
-						previous.childNodes[i]?.remove();
-					}
-
-					while (j < current.childNodes.length) {
-						previous.append(current.childNodes[j]);
-					}
-
-					return true;
-				} else {
-					this.replace(previous, current);
-					return true;
-				}
-			}
-
-			/**
-			 *
-			 * @param {Node} node
-			 */
-			isText(node) {
-				return node.nodeType === Node.TEXT_NODE;
-			}
-
-			/**
-			 *
-			 * @param {Node} node
-			 * @returns
-			 */
-			isElement(node) {
-				return node.nodeType === Node.ELEMENT_NODE;
-			}
-
-			/**
-			 *
-			 * @param {object} attr1
-			 * @param {object} attr2
-			 * @returns
-			 */
-			attributesEq(attr1, attr2) {
-				return JSON.stringify(attr1) == JSON.stringify(attr2);
-			}
-		};
+		
+		Reconciler = OpenScript.DOMReconciler;
 
 		/**
 		 * Wraps the rendered content
@@ -1861,8 +2117,14 @@ var OpenScript = {
 		 */
 		wrap(...args) {
 			const lastArg = args[args.length - 1];
-			let { index, parent, resetParent, states, replaceParent } =
-				this.getParentAndListen(args);
+			let {
+				index,
+				parent,
+				resetParent,
+				states,
+				replaceParent,
+				firstOfParent,
+			} = this.getParentAndListen(args);
 
 			// check if the render was called due to a state change
 			if (lastArg && lastArg["called-by-state-change"]) {
@@ -1890,8 +2152,9 @@ var OpenScript = {
 						// parent: e,
 						component: this,
 						event: this.EVENTS.rerendered,
-						eventParams: [e],
+						eventParams: [{ markup: e, component: this }],
 					};
+
 					let shouldReconcile = true;
 
 					if (e.childNodes.length === 0) {
@@ -1902,7 +2165,13 @@ var OpenScript = {
 					let markup = this.render(...arg, attr);
 
 					if (shouldReconcile) {
-						reconciler.reconcile(markup, e.childNodes[0]);
+						if (Array.isArray(markup)) {
+							let newParent = e.cloneNode();
+							newParent.append(...markup);
+							reconciler.reconcile(newParent, e);
+						} else {
+							reconciler.reconcile(markup, e.childNodes[0]);
+						}
 					}
 				});
 
@@ -1919,7 +2188,9 @@ var OpenScript = {
 				else {
 					let all = this.markup(parent);
 
-					all.forEach((elem) => this.argsMap.delete(elem.getAttribute("uuid")));
+					all.forEach((elem) =>
+						this.argsMap.delete(elem.getAttribute("uuid"))
+					);
 				}
 
 				if (this.argsMap.size) event = this.EVENTS.rerendered;
@@ -1933,6 +2204,7 @@ var OpenScript = {
 				uuid,
 				resetParent,
 				replaceParent,
+				firstOfParent,
 				class: "__ojs-c-class__",
 			};
 
@@ -1958,11 +2230,18 @@ var OpenScript = {
 			let cAttributes = {};
 
 			if (markup instanceof HTMLElement) {
-				cAttributes = JSON.parse(markup?.getAttribute("c-attr") ?? "{}");
+				cAttributes = JSON.parse(
+					markup?.getAttribute("c-attr") ?? "{}"
+				);
 				markup.setAttribute("c-attr", "");
 			}
 
-			attr = { ...attr, component: this, event, eventParams: [markup] };
+			attr = {
+				...attr,
+				component: this,
+				event,
+				eventParams: [{ markup, component: this }],
+			};
 
 			return h[`ojs-${this.kebab(this.name)}`](attr, markup, cAttributes);
 		}
@@ -1981,6 +2260,7 @@ var OpenScript = {
 				constructor() {
 					super();
 					this.name = `anonym-${id}`;
+					this.isAnonymous = true;
 				}
 
 				/**
@@ -2103,7 +2383,10 @@ var OpenScript = {
 					: null;
 
 				if (!Context) {
-					Context = new Map([qualifiedName, ["_", OpenScript.Context]]);
+					Context = new Map([
+						qualifiedName,
+						["_", OpenScript.Context],
+					]);
 				}
 
 				let counter = 0;
@@ -2405,7 +2688,8 @@ var OpenScript = {
 							let current = target.value;
 							let nVal = value;
 
-							if (typeof nVal !== "object" && current === nVal) return true;
+							if (typeof nVal !== "object" && current === nVal)
+								return true;
 
 							Reflect.set(...arguments);
 
@@ -2437,7 +2721,10 @@ var OpenScript = {
 					}
 
 					get(target, prop, receiver) {
-						if (prop === "length" && typeof target.value === "object") {
+						if (
+							prop === "length" &&
+							typeof target.value === "object"
+						) {
 							return Object.keys(target.value).length;
 						}
 
@@ -2464,11 +2751,14 @@ var OpenScript = {
 						if (typeof target.value !== "object") return false;
 
 						if (Array.isArray(target.value)) {
-							target.value = target.value.filter((v, i) => i != prop);
+							target.value = target.value.filter(
+								(v, i) => i != prop
+							);
 						} else {
 							delete target.value[prop];
 						}
 
+						target.$__changed__ = true;
 						target.fire();
 
 						return true;
@@ -2550,7 +2840,8 @@ var OpenScript = {
 			let newName = "";
 
 			for (const c of name) {
-				if (c.toLocaleUpperCase() === c && newName.length > 1) newName += "-";
+				if (c.toLocaleUpperCase() === c && newName.length > 1)
+					newName += "-";
 				newName += c.toLocaleLowerCase();
 			}
 
@@ -2586,6 +2877,8 @@ var OpenScript = {
 		 */
 		static ID = 0;
 
+		reconciler = new OpenScript.DOMReconciler();
+
 		/**
 		 * References the DOM object
 		 */
@@ -2620,15 +2913,15 @@ var OpenScript = {
 		 * @emits unmount
 		 * Removes an already registered company
 		 * @param {string} name
-		 * @param {string} withMarkup remove the markup of this component
+		 * @param {boolean} withMarkup remove the markup of this component
 		 * as well.
 		 * @returns {boolean}
 		 */
 		deleteComponent = (name, withMarkup = true) => {
 			if (!this.has(name)) {
-				console.info(
-					`OpenScript.MarkupEngine.Exception: Trying to delete an unregistered component {${name}}. Please ensure that the component is registered before deleting it.`
-				);
+				// console.info(
+				// 	`OpenScript.MarkupEngine.Exception: Trying to delete an unregistered component {${name}}. Please ensure that the component is registered before deleting it.`
+				// );
 
 				return false;
 			}
@@ -2666,6 +2959,10 @@ var OpenScript = {
 			return false;
 		};
 
+		reconcile = (domNode, newNode) => {
+			this.reconciler.reconcile(newNode, domNode);
+		}
+
 		/**
 		 * Removes all a component's markup
 		 * from the DOM
@@ -2694,6 +2991,29 @@ var OpenScript = {
 			return true;
 		};
 
+		modify = (element) => {
+			element.__eventListeners = element.__eventListeners ?? {};
+
+			element.addListener = function (event, listener) {
+				this.__eventListeners[event] =
+					this.__eventListeners[event] ?? [];
+				this.__eventListeners[event].push(listener);
+				this.addEventListener(event, listener);
+			};
+
+			element.removeListener = function (event, listener) {
+				this.__eventListeners[event] = this.__eventListeners[
+					event
+				]?.filter((x) => x !== listener);
+
+				this.removeEventListener(event, listener);
+			};
+
+			element.getEventListeners = function () {
+				return this.__eventListeners;
+			};
+		};
+
 		/**
 		 * handles the DOM element creation
 		 * @param {string} name
@@ -2702,6 +3022,13 @@ var OpenScript = {
 		handle = (name, ...args) => {
 			if (/^[_\$]+$/.test(name)) {
 				name = OpenScript.Component.FRAGMENT.toLowerCase();
+			}
+
+			let isSvg = false;
+
+			if (/^\$\w+$/.test(name)) {
+				name = name.substring(1);
+				isSvg = true;
 			}
 
 			/**
@@ -2759,17 +3086,27 @@ var OpenScript = {
 			 * save the argument for async rendering
 			 */
 			if (isComponent) {
-				root = this.dom.createElement(`ojs-${ojsUtils.kebab(name)}-tmp--`);
+				root = this.dom.createElement(
+					`ojs-${ojsUtils.kebab(name)}-tmp--`
+				);
 
-				let id = `ojs-${ojsUtils.kebab(name)}-${OpenScript.MarkupEngine.ID++}`;
+				let id = `ojs-${ojsUtils.kebab(name)}-${OpenScript.MarkupEngine
+					.ID++}`;
 
 				root.setAttribute("ojs-key", id);
 				root.setAttribute("class", "__ojs-c-class__");
 
 				this.compArgs.set(id, args);
 			} else {
-				root = this.dom.createElement(name);
+				root = isSvg
+					? this.dom.createElementNS(
+							"http://www.w3.org/2000/svg",
+							name
+					  )
+					: this.dom.createElement(name);
 			}
+
+			this.modify(root);
 
 			let parseAttr = (obj) => {
 				for (let k in obj) {
@@ -2810,7 +3147,10 @@ var OpenScript = {
 						continue;
 					}
 
-					if (k === "component" && v instanceof OpenScript.Component) {
+					if (
+						k === "component" &&
+						v instanceof OpenScript.Component
+					) {
 						component = v;
 						continue;
 					}
@@ -2841,9 +3181,11 @@ var OpenScript = {
 							let listener = v[evt];
 
 							if (Array.isArray(listener)) {
-								listener.forEach((l) => root.addEventListener(evt, l));
+								listener.forEach((l) =>
+									root.addListener(evt, l)
+								);
 							} else {
-								root.addEventListener(evt, listener);
+								root.addListener(evt, listener);
 							}
 						}
 
@@ -2878,6 +3220,7 @@ var OpenScript = {
 				if (
 					arg instanceof DocumentFragment ||
 					arg instanceof HTMLElement ||
+					arg instanceof SVGElement ||
 					arg instanceof OpenScript.State
 				) {
 					if (isComp) return true;
@@ -2949,38 +3292,23 @@ var OpenScript = {
 				}
 
 				if (replaceParent) {
-					parent.replaceWith(root);
+					this.reconcile(parent, root);
 				} else if (prependToParent) {
 					parent.prepend(root);
 				} else {
 					parent.append(root);
 				}
+			}
 
-				// checkComponentsVisibility();
+			if (component) {
+				component.emit(event, eventParams);
 
-				if (component) {
-					component.emit(event, eventParams);
-
-					let sc = root.querySelectorAll(".__ojs-c-class__");
-
-					sc.forEach((c) => {
-						if (!isComponentName(c.tagName.toLowerCase())) return;
-						let cmpName = getComponentName(c.tagName);
-
-						let cmp = h.getComponent(getComponentName(c.tagName));
-
-						if (cmp && cmp.listensTo(component, event)) return;
-
-						h.onAll(component.name, event, () => {
-							h.getComponent(cmpName)?.emit(event, eventParams);
-						});
-
-						if (!cmp) return;
-						component.addListeningComponent(cmp, event);
-					});
-				}
-
-				return root;
+				let sc = root.querySelectorAll(".__ojs-c-class__");
+				sc.forEach((c) => {
+					if (!isComponentName(c.tagName.toLowerCase())) return;
+					let cmpName = getComponentName(c.tagName);
+					h.getComponent(cmpName)?.emit(event, eventParams);
+				});
 			}
 
 			return root;
@@ -3031,9 +3359,11 @@ var OpenScript = {
 
 			for (let e of args) {
 				if (typeof e === "number") final.push(e);
+				else if (typeof e === "boolean") final.push(e);
 				else if (typeof e === "string") {
 					if (e.length && e.substring(0, 2) === "${") {
-						let length = e[e.length - 1] === "}" ? e.length - 1 : e.length;
+						let length =
+							e[e.length - 1] === "}" ? e.length - 1 : e.length;
 						final.push(e.substring(2, length));
 					} else final.push(`'${e}'`);
 				} else if (typeof e === "object") final.push(JSON.stringify(e));
@@ -3148,7 +3478,11 @@ var OpenScript = {
 		 * @returns
 		 */
 		$anonymous = (state, callback = (state) => state.value, ...args) => {
-			return h[OpenScript.Component.anonymous()](state, callback, ...args);
+			return h[OpenScript.Component.anonymous()](
+				state,
+				callback,
+				...args
+			);
 		};
 
 		/**
@@ -3426,12 +3760,16 @@ var OpenScript = {
 		 */
 		async req(fileName) {
 			if (!/^[\w\._-]+$/.test(fileName))
-				throw Error(`OJS-INVALID-FILE: '${fileName}' is an invalid file name`);
+				throw Error(
+					`OJS-INVALID-FILE: '${fileName}' is an invalid file name`
+				);
 
 			let names = fileName.split(/\./);
 
 			if (OpenScript.AutoLoader.history.has(`${this.dir}.${fileName}`))
-				return OpenScript.AutoLoader.history.get(`${this.dir}.${fileName}`);
+				return OpenScript.AutoLoader.history.get(
+					`${this.dir}.${fileName}`
+				);
 
 			let response = await fetch(
 				`${this.dir}/${this.normalize(fileName)}${this.extension}?v=${
@@ -3522,7 +3860,10 @@ var OpenScript = {
 				}
 			}
 
-			OpenScript.AutoLoader.history.set(`${this.dir}.${fileName}`, codeMap);
+			OpenScript.AutoLoader.history.set(
+				`${this.dir}.${fileName}`,
+				codeMap
+			);
 
 			return codeMap;
 		}
@@ -3617,11 +3958,11 @@ var OpenScript = {
 	Initializer: class Initializer {
 		/**
 		 * Wrapper to write OJS codes in
-         * @param {...class} classDeclarations
+		 * @param {...class} classDeclarations
 		 */
 		ojs = (...classDeclarations) => {
-            return (new OpenScript.Runner()).run(...classDeclarations);
-        };
+			return new OpenScript.Runner().run(...classDeclarations);
+		};
 
 		/**
 		 * Automatically loads in class files
@@ -3725,10 +4066,13 @@ var OpenScript = {
 			 */
 			this.context = (name) => this.contextProvider.context(name);
 
-			OpenScript.MediatorManager.directory = configs.directories.mediators;
+			OpenScript.MediatorManager.directory =
+				configs.directories.mediators;
 			OpenScript.MediatorManager.version = configs.version;
 
-			this.broker.registerEvents({ ojs: { routeChanged: true } });
+			this.broker.registerEvents({
+				ojs: { routeChanged: true, beforeRouteChange: true },
+			});
 		}
 
 		/**
@@ -3795,7 +4139,11 @@ var OpenScript = {
 		 * @returns
 		 */
 		fetchContext = (referenceName, qualifiedName) => {
-			return this.contextProvider.load(referenceName, qualifiedName, true);
+			return this.contextProvider.load(
+				referenceName,
+				qualifiedName,
+				true
+			);
 		};
 
 		/**
@@ -3836,7 +4184,10 @@ var OpenScript = {
 		 * @returns {string} encoded EventData
 		 */
 		eData = (meta = {}, message = {}) => {
-			return new OpenScript.EventData().meta(meta).message(message).encode();
+			return new OpenScript.EventData()
+				.meta(meta)
+				.message(message)
+				.encode();
 		};
 
 		/**
