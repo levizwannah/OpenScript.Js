@@ -4,7 +4,7 @@ function Table(data, ...args) {
       { class: "table" },
       h.tbody(each(data, (value) => h.Row(value))),
       ...args
-    )
+    ),
   );
 }
 
@@ -16,6 +16,8 @@ function Row(columns, ...args) {
     )
   );
 }
+
+
 
 function Column(data, ...args) {
   return h._(h.td(data, ...args));

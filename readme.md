@@ -316,6 +316,12 @@ h.element(
     ...
 ); // returns HTMLElement
 
+h.$anSVGElement(
+    {attributes},
+    h.$svgChildren({attributes}),
+    ...
+); // returns SVGElement e.g h.$svg(...)
+
 ```
 * To create an element, use `h.elementName()`.
 * Attributes are key-value pairs passed to the element in objects. Replace every dash with underscore in the attribute names.
