@@ -135,3 +135,10 @@ broker.removeStaleEvents(); // broker garbage collection started
  |------------------------------------------
 */
 broker.withLogs(true); 
+
+/*-----------------------------------------
+ | For SPAs, you have to initialize the
+ | Router using `router.init()`
+ |-----------------------------------------
+*/
+// router.init();

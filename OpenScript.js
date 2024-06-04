@@ -125,6 +125,10 @@ var OpenScript = {
          */
         constructor() {}
 
+        /**
+         * Initializes the router for
+         * Single Page Applications.
+         */
         init() {
             this.reset = OpenScript.State.state(false);
 
@@ -4285,11 +4289,6 @@ const {
     each,
 
     /**
-     * The router class
-     */
-    Router,
-
-    /**
      * The router object
      */
     route,
@@ -4345,3 +4344,8 @@ const {
 } = new OpenScript.Initializer();
 
 const OJS = OpenScript;
+
+/**
+ * The Router Object
+ */
+const router = route;

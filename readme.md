@@ -406,7 +406,7 @@ h.table(
     each([1, 2, 3, 4, 5], (num) => h.tr(
             { class: "row", onclick: "sayHello()" },
 
-           each([0, 1, 2, 3, 4, 5], (i)=>h.td(`Column ${i} row ${num}`)
+           each([0, 1, 2, 3, 4, 5], (i) => h.td(`Column ${i} row ${num}`)
             )
             
         )
@@ -966,7 +966,7 @@ count.listener(Counter);
 >Note: Due to Selective reaction, this will not result in any views re-rendering since no View is dependent directly on the state in question. Therefore, do not use this approach.  
 
 ##### Selective Reaction
-When a component reacts to a state change, it only re-renders the views that depend on the state that change. In OJS, only one component exist in memory for all the views being rendered. That is, if you render the `Test` component multiple times, you will have multiple views but they will all be controlled by the same `Test` component. So, when a state changes, the `Test` component will only re-render the views that passed that state as a parameter during rendering. See the below example.
+When a component reacts to a state change, it only re-renders the views that depend on the state that changed. In OJS, only one component exist in memory for all the views being rendered. That is, if you render the `Test` component multiple times, you will have multiple views but they will all be controlled by the same `Test` component. So, when a state changes, the `Test` component will only re-render the views that passed that state as a parameter during rendering. See the below example.
 ```javascript
 h.div(
     {class: "test-div"},
@@ -989,7 +989,14 @@ In the above snippet, there are three `Views` of the `Test` component rendered, 
 - When `state2` changes, the `Test Views` wih `ID=2 and 3` will be re-rendered by the `Test` component because they depend on `state2`.
 
 In short, selective reaction states that only the views that depend on a state will re-render when that state changes. A view that depends on a state has the state ID on the wrapper element denoted by `s-stateId="stateId"`. For example, `... s-1="1"`.
+
 ##### Anonymous Components
+Sometimes a state change should not cause a component to rerender in the application. For example, consider a Count state. When the Count state changes, you only want to rerender the number, not the whole component. In that case, use anonymous components.  
+
+*Syntax*
+```js
+v(state, callback(value) => OSM | string);
+```
 
 ##### Component Events
 ###### Listening to Internal Events
