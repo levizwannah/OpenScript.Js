@@ -993,10 +993,66 @@ In short, selective reaction states that only the views that depend on a state w
 ##### Anonymous Components
 Sometimes a state change should not cause a component to rerender in the application. For example, consider a Count state. When the Count state changes, you only want to rerender the number, not the whole component. In that case, use anonymous components.  
 
+In OpenScript.Js, the `v` function, representing `valueOf` is used to create an anonymous component. The `v` indicates that you only want to use the value of a state. It passes the value of the state to a provided callback function which should return an `OSM` or a `string`. By default, it returns the value of the state.
+
 *Syntax*
 ```js
 v(state, callback(value) => OSM | string);
+```  
+
+*Usage*
+```js
+let counter = state(0);
+
+function Clock(...args) {
+    return h.div(
+        {class: 'd-flex mb-3'},
+        h.span('I will not rerender when counter change'),
+        
+        v(counter), // counter.value --> will change when counter value changes
+        
+        ...args
+    );
+}
+
+h.Clock({
+    parent: root,
+    $class: 'd-block',
+});
+
+// change counter value
+setTimeout(() => counter.value++, 1000);
 ```
+You can pass a callback function to the `v` function and return a formatted string. For example, returning the time in hours:minutes:seconds.
+
+```js
+function Clock(...args) {
+    return h.div(
+        {class: 'd-flex mb-3'},
+        h.span('I will not rerender when counter change'),
+        
+        v(counter, (value) => {
+            let sec = value;
+            let hour = Math.floor(sec / 3600);
+            sec %= 3600;
+            
+            let minute = Math.floor(sec / 60);
+            sec %= 60;
+
+            hour = Math.floor(hour / 10) === 0 ? `0${hour}` : hour;
+            minute = Math.floor(minute / 10) === 0 ? `0${minute}` : minute;
+            sec = Math.floor(sec / 10) === 0 ? `0${sec}` : sec;
+
+            let time = `${hour}:${minute}:${sec}`;
+
+            return time;
+        }),
+        
+        ...args
+    );
+}
+```
+> You can even return a full `OSM` from the `v` function.
 
 ##### Component Events
 ###### Listening to Internal Events
