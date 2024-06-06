@@ -239,23 +239,23 @@ The expected structure is as follows:
 You can always use another structure, just update your config file to let OpenScript know where to find your components, mediators, and contexts files.
 
 ## Other JS files
-OpenScript has a built in loader called `autoload`. This loads any JS file as long as the file has only declared contents such as classes and functions. If not, then the loader cannot load such file.
+OpenScript has a built-in loader called `autoload`. This loads any JS file as long as the file has only declared contents such as classes and functions. If not, then the loader cannot load such file.
 >Please see the ojs-config to understand how to configure the `autoload` object.
 
 ## Loading Files
 Every file type in the config has a version number. This is because, the browser caches JS files, hence if you change them, you want to update the versions so that a fresh file is loaded.
 
 ### Namespacing
-All file loaders are of type `OpenScript.AutoLoader`. When an AutoLoader loads a file, it keeps the file in its histories to avoid requesting the file later. Therefore, when you try to load the same file more than once, only one request is made and the rest of the loads only returns the kept file content.
+All file loaders are of type `OpenScript.AutoLoader`. When an AutoLoader loads a file, it keeps it in its history to avoid requesting it later. Therefore, when you try to load the same file more than once, only one request is made and the rest of the loads only return the kept file content.
 
-To avoid file clashes, the AutoLoader put the files in a namespace that is similar to the folder structure.
+To avoid file clashes, the AutoLoader puts the files in a namespace similar to the folder structure.
 
-For example, a class file with path `js/classes/user/User.js` will be placed in `window.js.classes.user.User`. Therefore, to accesses the class, you need to use `js.classes.user.User.User`.
+For example, a class file with path `js/classes/user/User.js` will be placed in `window.js.classes.user.User`. Therefore, to access the class, you need to use `js.classes.user.User.User`.
 >**Notice the class name is doubled at the end**.
 
-Imagine that the `User.js` file has two user classes declared in it: `User` and `Admin`. Therefore, it now makes sense to use the file name as part of the namespace because it make contain multiple classes. In the above example, we will use `js.classes.user.User.Admin` to access the admin class.
+Imagine that the `User.js` file has two user classes declared in it: `User` and `Admin`. Therefore, it now makes sense to use the file name as part of the namespace because it may contain multiple classes. In the above example, we will use `js.classes.user.User.Admin` to access the admin class.
 
-However, `AutoLoaders` return a map with key-values pairs. Each Key represent 1 declaration in the file. For our example, the `AutoLoader` will return
+However, `AutoLoaders` return a map with key-value pairs. Each Key represents 1 declaration in the file. For our example, the `AutoLoader` will return
 ```javascript
 new Map([
     [
