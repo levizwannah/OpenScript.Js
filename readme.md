@@ -285,7 +285,7 @@ autoload.include("folder.File"); // throws no exception when file is missing.
 ```
 
 ### Loading other JS files
-The later sections will explain how to load the various types of files. However, if you want to load any other type of file, provided you have configured the root director of the `autoload` object, use the below code.
+The later sections will explain how to load the various types of files. However, if you want to load any other type of file, provided you have configured the root directory of the `autoload` object, use the below code.
 ```javascript
 // folder structure
 |root
@@ -306,7 +306,7 @@ let Utility = new js.classes.Utility();
 ```
 # UI
 ## OSM - OpenScript Markup
-OSM allows you to write markup using javascript method. In OJS, there is an object called `h` representing the `MarkupEngine`. You can create any element using this object similar to HTML. Just like HTML in the browser, OSM is element agnostic.
+OSM allows you to write markup using Javascript method. In OJS, there is an object called `h` representing the `MarkupEngine`. You can create any element using this object similar to HTML. Just like HTML in the browser, OSM is element agnostic.
 
 ### Syntax
 ```javascript
@@ -324,7 +324,7 @@ h.$anSVGElement(
 
 ```
 * To create an element, use `h.elementName()`.
-* Attributes are key-value pairs passed to the element in objects. Replace every dash with underscore in the attribute names.
+* Attributes are key-value pairs passed to the element in objects. Replace every dash with an underscore in the attribute names.
 * Add children to the element following the above guide. Note that you can also pass an array of children and attributes to an element.
 
 ### OSM Example
@@ -346,13 +346,13 @@ h.div(
 
 ```
 ### Special Attributes
-Some attributes are special and tells OJS Markup engine to perform specific actions when rendering.
+Some attributes are special and tell OJS Markup engine to perform specific actions when rendering.
 
 | Attribute | Value | Function |
 |-----------|-------|----------| 
 | parent    | HTML Element| appends the rendered OSM to the parent element.|
 | resetParent| boolean| tells OJS to replace the elements in the parent with the rendered OSM.|
-| replaceParent | boolean | tells OJS to replace parent element completely with the rendered OSM |
+| replaceParent | boolean | tells OJS to replace the parent element completely with the rendered OSM |
 | firstOfParent | boolean | tells OJS to place the rendered OSM as the first child of the parent element|
 | c_attr | object of attributes | used as attributes for the wrapper element of a rendered OSM component|
 | listeners | object of event-callback pairs | equivalent to `element.addEventListener(event, callback)`|
@@ -456,7 +456,7 @@ h.button(
 ```
 >Components address this using the `this.method(...args)` or `this.xMethod(...args)` methods. This will be shown under the components section.  
 
-#### Escaping Formatting
+#### Escape Formats
 The arguments will be formatted such that they are parsable when placed in the `HTML` markup. for example:
 - strings will have quotations around them,
 - number will have no quotations
